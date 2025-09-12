@@ -19,7 +19,7 @@ function OperatorLayoutContent({ children }: OperatorLayoutProps) {
 
 // Wrap with role-based protection
 const OperatorLayout = withAuth(OperatorLayoutContent, {
-  allowedRoles: [UserRole.TOUR_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN]
+  requiredRoles: [UserRole.TOUR_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN]
 });
 
 export default OperatorLayout;

@@ -331,6 +331,209 @@ export const mockPackages: Package[] = [
     isFeatured: true,
     createdAt: new Date('2023-11-15'),
     updatedAt: new Date('2024-01-08')
+  },
+  {
+    id: 'pkg-003',
+    tourOperatorId: 'op-001',
+    title: 'Thailand Beach Paradise',
+    description: 'Relax and unwind in the beautiful beaches of Thailand with luxury resorts, spa treatments, and island hopping adventures.',
+    type: PackageType.LAND_PACKAGE,
+    status: PackageStatus.ACTIVE,
+    pricing: {
+      basePrice: 899,
+      currency: 'USD',
+      pricePerPerson: true,
+      groupDiscounts: [
+        { minGroupSize: 4, discountPercentage: 12 }
+      ],
+      seasonalPricing: [],
+      inclusions: ['Accommodation', 'Meals', 'Transportation', 'Activities'],
+      taxes: {
+        gst: 30,
+        serviceTax: 15,
+        tourismTax: 10,
+        other: []
+      },
+      fees: {
+        bookingFee: 25,
+        processingFee: 15,
+        cancellationFee: 75,
+        other: []
+      }
+    } as PackagePricing,
+    itinerary: [
+      {
+        day: 1,
+        title: 'Arrival in Phuket',
+        description: 'Welcome to paradise! Transfer to luxury beachfront resort.',
+        activities: ['Airport pickup', 'Resort check-in', 'Beach relaxation'],
+        meals: ['Dinner'],
+        accommodation: 'Luxury Beach Resort'
+      }
+    ],
+    inclusions: ['Accommodation', 'Meals', 'Transportation', 'Island tours', 'Spa treatments'],
+    exclusions: ['Flights', 'Personal expenses', 'Travel insurance'],
+    termsAndConditions: ['Valid for 8 months', 'Non-refundable', 'Minimum 2 travelers'],
+    cancellationPolicy: {
+      freeCancellationDays: 5,
+      cancellationFees: [],
+      refundPolicy: {
+        refundable: true,
+        refundPercentage: 70,
+        processingDays: 10,
+        conditions: []
+      },
+      forceMajeurePolicy: 'Full refund in case of natural disasters'
+    },
+    images: [
+      'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1528181304800-259b08848526?w=800&h=600&fit=crop'
+    ],
+    destinations: ['Phuket', 'Thailand'],
+    duration: { days: 5, nights: 4 } as PackageDuration,
+    groupSize: { min: 2, max: 8, ideal: 4 } as GroupSize,
+    difficulty: DifficultyLevel.EASY,
+    tags: ['beach', 'luxury', 'relaxation', 'spa'],
+    isFeatured: false,
+    createdAt: new Date('2024-01-05'),
+    updatedAt: new Date('2024-01-12')
+  },
+  {
+    id: 'pkg-004',
+    tourOperatorId: 'op-001',
+    title: 'Japan Cultural Experience',
+    description: 'Immerse yourself in Japanese culture with temple visits, traditional ceremonies, and authentic cuisine experiences.',
+    type: PackageType.LAND_PACKAGE,
+    status: PackageStatus.DRAFT,
+    pricing: {
+      basePrice: 1899,
+      currency: 'USD',
+      pricePerPerson: true,
+      groupDiscounts: [
+        { minGroupSize: 6, discountPercentage: 10 }
+      ],
+      seasonalPricing: [
+        { season: 'Cherry Blossom', startDate: new Date('2024-03-15'), endDate: new Date('2024-04-15'), priceMultiplier: 1.5, reason: 'Cherry blossom season' }
+      ],
+      inclusions: ['Accommodation', 'Meals', 'Transportation', 'Cultural activities'],
+      taxes: {
+        gst: 75,
+        serviceTax: 40,
+        tourismTax: 25,
+        other: []
+      },
+      fees: {
+        bookingFee: 40,
+        processingFee: 25,
+        cancellationFee: 150,
+        other: []
+      }
+    } as PackagePricing,
+    itinerary: [
+      {
+        day: 1,
+        title: 'Arrival in Tokyo',
+        description: 'Welcome to Japan! Transfer to traditional ryokan.',
+        activities: ['Airport pickup', 'Ryokan check-in', 'Traditional dinner'],
+        meals: ['Dinner'],
+        accommodation: 'Traditional Ryokan'
+      }
+    ],
+    inclusions: ['Accommodation', 'Meals', 'Transportation', 'Cultural activities', 'Temple visits'],
+    exclusions: ['Flights', 'Personal expenses', 'Travel insurance'],
+    termsAndConditions: ['Valid for 10 months', 'Non-refundable', 'Minimum 4 travelers'],
+    cancellationPolicy: {
+      freeCancellationDays: 10,
+      cancellationFees: [],
+      refundPolicy: {
+        refundable: true,
+        refundPercentage: 85,
+        processingDays: 14,
+        conditions: []
+      },
+      forceMajeurePolicy: 'Full refund in case of travel restrictions'
+    },
+    images: [
+      'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1542640244-a0492f5b2b7b?w=800&h=600&fit=crop'
+    ],
+    destinations: ['Tokyo', 'Kyoto', 'Japan'],
+    duration: { days: 10, nights: 9 } as PackageDuration,
+    groupSize: { min: 4, max: 16, ideal: 8 } as GroupSize,
+    difficulty: DifficultyLevel.MODERATE,
+    tags: ['culture', 'traditional', 'temples', 'cuisine'],
+    isFeatured: false,
+    createdAt: new Date('2024-01-15'),
+    updatedAt: new Date('2024-01-15')
+  },
+  {
+    id: 'pkg-005',
+    tourOperatorId: 'op-001',
+    title: 'Adventure Safari Kenya',
+    description: 'Experience the wild beauty of Kenya with game drives, cultural visits, and luxury tented camps.',
+    type: PackageType.LAND_PACKAGE,
+    status: PackageStatus.ACTIVE,
+    pricing: {
+      basePrice: 3299,
+      currency: 'USD',
+      pricePerPerson: true,
+      groupDiscounts: [
+        { minGroupSize: 4, maxGroupSize: 8, discountPercentage: 15 },
+        { minGroupSize: 9, discountPercentage: 20 }
+      ],
+      seasonalPricing: [
+        { season: 'Migration Season', startDate: new Date('2024-07-01'), endDate: new Date('2024-10-31'), priceMultiplier: 1.6, reason: 'Great Migration period' }
+      ],
+      inclusions: ['Accommodation', 'Meals', 'Game drives', 'Guide'],
+      taxes: {
+        gst: 150,
+        serviceTax: 75,
+        tourismTax: 50,
+        other: []
+      },
+      fees: {
+        bookingFee: 75,
+        processingFee: 50,
+        cancellationFee: 300,
+        other: []
+      }
+    } as PackagePricing,
+    itinerary: [
+      {
+        day: 1,
+        title: 'Arrival in Nairobi',
+        description: 'Welcome to Kenya! Transfer to luxury tented camp.',
+        activities: ['Airport pickup', 'Camp check-in', 'Evening briefing'],
+        meals: ['Dinner'],
+        accommodation: 'Luxury Tented Camp'
+      }
+    ],
+    inclusions: ['Accommodation', 'Meals', 'Game drives', 'Guide', 'Park fees'],
+    exclusions: ['Flights', 'Personal expenses', 'Travel insurance', 'Tips'],
+    termsAndConditions: ['Valid for 12 months', 'Non-refundable', 'Minimum 2 travelers'],
+    cancellationPolicy: {
+      freeCancellationDays: 21,
+      cancellationFees: [],
+      refundPolicy: {
+        refundable: true,
+        refundPercentage: 90,
+        processingDays: 30,
+        conditions: []
+      },
+      forceMajeurePolicy: 'Full refund in case of natural disasters'
+    },
+    images: [
+      'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=800&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop'
+    ],
+    destinations: ['Nairobi', 'Masai Mara', 'Kenya'],
+    duration: { days: 8, nights: 7 } as PackageDuration,
+    groupSize: { min: 2, max: 12, ideal: 6 } as GroupSize,
+    difficulty: DifficultyLevel.MODERATE,
+    tags: ['safari', 'wildlife', 'adventure', 'luxury'],
+    isFeatured: true,
+    createdAt: new Date('2023-10-20'),
+    updatedAt: new Date('2024-01-05')
   }
 ];
 
@@ -487,5 +690,35 @@ export const mockPackageAnalytics: PackageAnalytics[] = [
     conversionRate: 16.9,
     averageRating: 4.6,
     reviews: 18
+  },
+  {
+    packageId: 'pkg-003',
+    packageName: 'Thailand Beach Paradise',
+    views: 156,
+    bookings: 28,
+    revenue: 25172,
+    conversionRate: 17.9,
+    averageRating: 4.7,
+    reviews: 15
+  },
+  {
+    packageId: 'pkg-004',
+    packageName: 'Japan Cultural Experience',
+    views: 98,
+    bookings: 12,
+    revenue: 22788,
+    conversionRate: 12.2,
+    averageRating: 4.9,
+    reviews: 8
+  },
+  {
+    packageId: 'pkg-005',
+    packageName: 'Adventure Safari Kenya',
+    views: 312,
+    bookings: 38,
+    revenue: 125362,
+    conversionRate: 12.2,
+    averageRating: 4.8,
+    reviews: 22
   }
 ];

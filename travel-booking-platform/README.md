@@ -164,8 +164,8 @@ Based on 4px units:
    ```
 
 3. **Start development server**
-   ```bash
-   npm run dev
+```bash
+npm run dev
    ```
 
 4. **Open in browser**
