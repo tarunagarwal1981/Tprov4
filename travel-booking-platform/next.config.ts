@@ -11,7 +11,16 @@ const nextConfig: NextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true,
-  }
-};
+  },
+  // Ensure proper static export
+  distDir: undefined, // Let Next.js use default
+  // Disable server-side features
+  experimental: {
+    esmExternals: false,
+  },
+  // Ensure proper asset handling
+  assetPrefix: '',
+  basePath: '',
+}
 
 export default nextConfig;
