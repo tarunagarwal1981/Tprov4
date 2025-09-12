@@ -156,8 +156,8 @@ export interface Package {
   exclusions: string[];
   termsAndConditions: string[];
   cancellationPolicy: CancellationPolicy;
-  images: PackageImage[];
-  destinations: Destination[];
+  images: string[];
+  destinations: string[];
   duration: PackageDuration;
   groupSize: GroupSize;
   difficulty: DifficultyLevel;
@@ -175,7 +175,7 @@ export interface PackagePricing {
   pricePerPerson: boolean;
   groupDiscounts: GroupDiscount[];
   seasonalPricing: SeasonalPricing[];
-  inclusions: PricingInclusion[];
+  inclusions: string[];
   taxes: TaxBreakdown;
   fees: FeeBreakdown;
 }
@@ -219,13 +219,13 @@ export interface ItineraryDay {
   day: number;
   title: string;
   description: string;
-  activities: Activity[];
-  meals: Meal[];
-  accommodation?: Accommodation;
+  activities: string[];
+  meals: string[];
+  accommodation?: string;
   transportation?: Transportation;
-  highlights: string[];
-  duration: string;
-  difficulty: DifficultyLevel;
+  highlights?: string[];
+  duration?: string;
+  difficulty?: DifficultyLevel;
 }
 
 export interface Activity {

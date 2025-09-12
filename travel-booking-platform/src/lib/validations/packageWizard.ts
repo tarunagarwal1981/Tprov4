@@ -4,8 +4,7 @@ import { PackageType, DifficultyLevel } from '@/lib/types';
 // Package Type Step Validation
 export const packageTypeSchema = z.object({
   type: z.nativeEnum(PackageType, {
-    required_error: 'Please select a package type',
-    invalid_type_error: 'Invalid package type selected'
+    message: 'Please select a package type'
   })
 });
 
@@ -55,7 +54,7 @@ export const basicInfoSchema = z.object({
   ),
   
   difficulty: z.nativeEnum(DifficultyLevel, {
-    required_error: 'Please select a difficulty level'
+    message: 'Please select a difficulty level'
   }),
   
   destinations: z.array(z.string())
@@ -97,7 +96,7 @@ export const validateBasicInfo = (data: unknown) => {
 export const formatValidationErrors = (errors: z.ZodError) => {
   const formattedErrors: Record<string, string[]> = {};
   
-  errors.errors.forEach((error) => {
+  errors.issues.forEach((error) => {
     const path = error.path.join('.');
     if (!formattedErrors[path]) {
       formattedErrors[path] = [];

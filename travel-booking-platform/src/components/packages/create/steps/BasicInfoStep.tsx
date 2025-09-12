@@ -319,8 +319,8 @@ export default function BasicInfoStep({
                     value={formData.duration?.days || ''}
                     onChange={(e) => updateFormData({ 
                       duration: { 
-                        ...formData.duration, 
-                        days: parseInt(e.target.value) || 0 
+                        days: parseInt(e.target.value) || 0,
+                        nights: formData.duration?.nights || 0
                       } 
                     })}
                     className="mt-1"
@@ -342,8 +342,8 @@ export default function BasicInfoStep({
                     value={formData.duration?.nights || ''}
                     onChange={(e) => updateFormData({ 
                       duration: { 
-                        ...formData.duration, 
-                        nights: parseInt(e.target.value) || 0 
+                        days: formData.duration?.days || 0,
+                        nights: parseInt(e.target.value) || 0
                       } 
                     })}
                     className="mt-1"
@@ -382,8 +382,9 @@ export default function BasicInfoStep({
                     value={formData.groupSize?.min || ''}
                     onChange={(e) => updateFormData({ 
                       groupSize: { 
-                        ...formData.groupSize, 
-                        min: parseInt(e.target.value) || 0 
+                        min: parseInt(e.target.value) || 0,
+                        max: formData.groupSize?.max || 0,
+                        ideal: formData.groupSize?.ideal || 0
                       } 
                     })}
                     className="mt-1"
@@ -402,8 +403,9 @@ export default function BasicInfoStep({
                     value={formData.groupSize?.max || ''}
                     onChange={(e) => updateFormData({ 
                       groupSize: { 
-                        ...formData.groupSize, 
-                        max: parseInt(e.target.value) || 0 
+                        min: formData.groupSize?.min || 0,
+                        max: parseInt(e.target.value) || 0,
+                        ideal: formData.groupSize?.ideal || 0
                       } 
                     })}
                     className="mt-1"
@@ -422,8 +424,9 @@ export default function BasicInfoStep({
                     value={formData.groupSize?.ideal || ''}
                     onChange={(e) => updateFormData({ 
                       groupSize: { 
-                        ...formData.groupSize, 
-                        ideal: parseInt(e.target.value) || 0 
+                        min: formData.groupSize?.min || 0,
+                        max: formData.groupSize?.max || 0,
+                        ideal: parseInt(e.target.value) || 0
                       } 
                     })}
                     className="mt-1"

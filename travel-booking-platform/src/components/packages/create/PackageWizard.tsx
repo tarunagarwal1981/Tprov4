@@ -93,12 +93,16 @@ export default function PackageWizard({ className }: PackageWizardProps) {
 
   // Handle publish
   const handlePublish = async () => {
-    const result = await publishPackage();
-    if (result.success) {
-      router.push('/operator/packages');
-    } else {
-      // Handle error (could show toast notification)
-      console.error('Failed to publish package:', result.message);
+    try {
+      const result = await publishPackage();
+      if (result && result.success) {
+        router.push('/operator/packages');
+      } else {
+        // Handle error (could show toast notification)
+        console.error('Failed to publish package:', result?.message);
+      }
+    } catch (error) {
+      console.error('Error publishing package:', error);
     }
   };
 

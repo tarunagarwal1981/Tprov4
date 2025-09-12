@@ -33,6 +33,7 @@ export interface PackageFormData {
   groupSize: GroupSize;
   tags: string[];
   isFeatured: boolean;
+  category: string;
   
   // Step 3: Destinations & Itinerary
   destinations: string[];
@@ -73,7 +74,7 @@ export interface WizardActions {
   updateFormData: (data: Partial<PackageFormData>) => void;
   validateStep: (step: WizardStep) => boolean;
   saveDraft: () => Promise<void>;
-  publishPackage: () => Promise<void>;
+  publishPackage: () => Promise<PackageCreationResult>;
   resetWizard: () => void;
 }
 

@@ -16,6 +16,7 @@ import {
   PackageCreationResult
 } from '@/lib/types/wizard';
 import { validatePackageType, validateBasicInfo, formatValidationErrors } from '@/lib/validations/packageWizard';
+import { PackageType, PackageStatus, DifficultyLevel, Package } from '@/lib/types';
 import { packageService } from '@/lib/services/packageService';
 
 // Step configurations
@@ -131,7 +132,7 @@ export function usePackageWizard() {
     isValid: false
   });
 
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<Partial<PackageFormData>>({});
 
   // Initialize form with react-hook-form
@@ -339,8 +340,51 @@ export function usePackageWizard() {
 
     try {
       const packageData = {
-        ...wizardState.formData,
+        id: `pkg-${Date.now()}`,
         tourOperatorId: 'op-001', // This would come from auth context
+        title: wizardState.formData.title || '',
+        description: wizardState.formData.description || '',
+        type: wizardState.formData.type || PackageType.LAND_PACKAGE,
+        status: wizardState.formData.status || PackageStatus.DRAFT,
+        pricing: wizardState.formData.pricing || {
+          basePrice: 0,
+          currency: 'USD',
+          pricePerPerson: true,
+          groupDiscounts: [],
+          seasonalPricing: [],
+          inclusions: [],
+          taxes: { gst: 0, serviceTax: 0, tourismTax: 0, other: [] },
+          fees: { bookingFee: 0, processingFee: 0, cancellationFee: 0, other: [] }
+        },
+        itinerary: wizardState.formData.itinerary || [],
+        inclusions: wizardState.formData.inclusions || [],
+        exclusions: wizardState.formData.exclusions || [],
+        termsAndConditions: wizardState.formData.termsAndConditions || [],
+        cancellationPolicy: {
+          freeCancellationDays: 7,
+          cancellationFees: [
+            { daysBeforeTravel: 7, feePercentage: 0 },
+            { daysBeforeTravel: 3, feePercentage: 25 },
+            { daysBeforeTravel: 1, feePercentage: 50 },
+            { daysBeforeTravel: 0, feePercentage: 100 }
+          ],
+          refundPolicy: {
+            refundable: true,
+            refundPercentage: 100,
+            processingDays: 7,
+            conditions: ['Cancellation must be made before travel date']
+          },
+          forceMajeurePolicy: 'Full refund for force majeure events'
+        },
+        images: wizardState.formData.images || [],
+        destinations: wizardState.formData.destinations || [],
+        duration: wizardState.formData.duration || { days: 1, nights: 0 },
+        groupSize: wizardState.formData.groupSize || { min: 1, max: 10, ideal: 5 },
+        difficulty: wizardState.formData.difficulty || DifficultyLevel.MODERATE,
+        tags: wizardState.formData.tags || [],
+        isFeatured: wizardState.formData.isFeatured || false,
+        rating: 0,
+        reviewCount: 0,
         createdAt: new Date(),
         updatedAt: new Date()
       } as Package;
