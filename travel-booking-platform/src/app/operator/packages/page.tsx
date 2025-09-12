@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Package, PackageType, PackageStatus, DifficultyLevel } from '@/lib/types';
-import { PackageService, PackageSearchParams, PackageFilters } from '@/lib/services/packageService';
+import { PackageService, PackageSearchParams, PackageFilters as PackageFiltersType } from '@/lib/services/packageService';
 import PackageGrid from '@/components/packages/PackageGrid';
 import PackageFilters from '@/components/packages/PackageFilters';
 import PackageSearch from '@/components/packages/PackageSearch';
@@ -44,7 +44,7 @@ export default function PackagesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [filters, setFilters] = useState<PackageFilters>({});
+  const [filters, setFilters] = useState<PackageFiltersType>({});
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -143,7 +143,7 @@ export default function PackagesPage() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const handleFiltersChange = (newFilters: PackageFilters) => {
+  const handleFiltersChange = (newFilters: PackageFiltersType) => {
     setFilters(newFilters);
     setPagination(prev => ({ ...prev, page: 1 }));
   };

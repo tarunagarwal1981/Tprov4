@@ -163,6 +163,8 @@ export interface Package {
   difficulty: DifficultyLevel;
   tags: string[];
   isFeatured: boolean;
+  rating?: number;
+  reviewCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -542,3 +544,6 @@ export const TIMEZONES = [
 export type Currency = typeof CURRENCIES[number];
 export type Language = typeof LANGUAGES[number];
 export type Timezone = typeof TIMEZONES[number];
+
+// Re-export wizard types
+export * from './types/wizard';

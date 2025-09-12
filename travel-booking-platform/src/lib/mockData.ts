@@ -260,6 +260,8 @@ export const mockPackages: Package[] = [
     difficulty: DifficultyLevel.MODERATE,
     tags: ['adventure', 'culture', 'beach', 'mountains'],
     isFeatured: true,
+    rating: 4.6,
+    reviewCount: 18,
     createdAt: new Date('2023-12-01'),
     updatedAt: new Date('2024-01-10')
   },
@@ -329,6 +331,8 @@ export const mockPackages: Package[] = [
     difficulty: DifficultyLevel.EASY,
     tags: ['culture', 'history', 'cities', 'museums'],
     isFeatured: true,
+    rating: 4.9,
+    reviewCount: 15,
     createdAt: new Date('2023-11-15'),
     updatedAt: new Date('2024-01-08')
   },
@@ -395,6 +399,8 @@ export const mockPackages: Package[] = [
     difficulty: DifficultyLevel.EASY,
     tags: ['beach', 'luxury', 'relaxation', 'spa'],
     isFeatured: false,
+    rating: 4.5,
+    reviewCount: 22,
     createdAt: new Date('2024-01-05'),
     updatedAt: new Date('2024-01-12')
   },
@@ -463,6 +469,8 @@ export const mockPackages: Package[] = [
     difficulty: DifficultyLevel.MODERATE,
     tags: ['culture', 'traditional', 'temples', 'cuisine'],
     isFeatured: false,
+    rating: 4.8,
+    reviewCount: 23,
     createdAt: new Date('2024-01-15'),
     updatedAt: new Date('2024-01-15')
   },
