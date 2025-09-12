@@ -3,11 +3,18 @@
   publish = "out"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "22"
 
+# Handle client-side routing for SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
+  status = 200
+
+# Handle API routes (if any)
+[[redirects]]
+  from = "/api/*"
+  to = "/api/:splat"
   status = 200
 
 [[headers]]
