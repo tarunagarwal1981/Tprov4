@@ -54,38 +54,32 @@ const STEP_CONFIG = {
   'package-type': {
     icon: Sparkles,
     title: 'Package Type',
-    description: 'Choose your package style',
-    color: 'from-purple-500 to-pink-500'
+    description: 'Choose your package style'
   },
   'basic-info': {
     icon: FileText,
     title: 'Basic Info',
-    description: 'Tell us about your package',
-    color: 'from-blue-500 to-cyan-500'
+    description: 'Tell us about your package'
   },
   'destinations': {
     icon: MapPin,
     title: 'Destinations',
-    description: 'Where will you take them?',
-    color: 'from-green-500 to-emerald-500'
+    description: 'Where will you take them?'
   },
   'pricing': {
     icon: DollarSign,
     title: 'Pricing',
-    description: 'Set your prices',
-    color: 'from-orange-500 to-red-500'
+    description: 'Set your prices'
   },
   'media': {
     icon: Camera,
     title: 'Photos',
-    description: 'Show them the experience',
-    color: 'from-indigo-500 to-purple-500'
+    description: 'Show them the experience'
   },
   'review': {
     icon: CheckCircle,
     title: 'Review',
-    description: 'Ready to publish?',
-    color: 'from-teal-500 to-green-500'
+    description: 'Ready to publish?'
   }
 };
 
@@ -261,7 +255,7 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                         className={cn(
                           'flex items-center justify-center w-12 h-12 rounded-xl border-2 transition-all duration-300 cursor-pointer',
                           {
-                            'bg-gradient-to-r border-transparent text-white shadow-lg': isActive,
+                            'bg-gradient-to-r from-blue-500 to-purple-500 border-transparent text-white shadow-lg': isActive,
                             'bg-green-500 border-green-500 text-white': isCompleted,
                             'bg-gray-100 border-gray-300 text-gray-400': isUpcoming,
                             'bg-white border-gray-300 text-gray-600 hover:border-gray-400': !isActive && !isCompleted && !isUpcoming
@@ -270,9 +264,6 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                         onClick={() => handleStepClick(step.id)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        style={isActive ? {
-                          background: `linear-gradient(135deg, ${config.color.split(' ')[0].replace('from-', '')}, ${config.color.split(' ')[2].replace('to-', '')})`
-                        } : {}}
                       >
                         {isCompleted ? (
                           <CheckCircle className="w-6 h-6" />
