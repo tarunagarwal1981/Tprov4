@@ -6,6 +6,7 @@ import { StepProps } from '@/lib/types/wizard';
 import { PackageType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
   Package as PackageIcon,
   Plane,
