@@ -63,13 +63,24 @@ export function LoginForm() {
     console.log('🔄 LoginForm useEffect - Auth state:', { 
       isAuthenticated: state.isAuthenticated, 
       user: state.user, 
-      isLoading: state.isLoading 
+      isLoading: state.isLoading,
+      currentPath: window.location.pathname
     });
     
     if (state.isAuthenticated && state.user && !state.isLoading) {
       const dashboardUrl = getDashboardUrl(state.user.role);
       console.log('🚀 Redirecting to dashboard:', dashboardUrl);
-      router.push(dashboardUrl);
+      
+      // Use replace instead of push to avoid back button issues
+      router.replace(dashboardUrl);
+      
+      // Also try window.location as a fallback
+      setTimeout(() => {
+        if (window.location.pathname === '/auth/login') {
+          console.log('🔄 Fallback redirect using window.location.replace');
+          window.location.replace(dashboardUrl);
+        }
+      }, 100);
     }
   }, [state.isAuthenticated, state.user, state.isLoading, router]);
 
@@ -88,7 +99,16 @@ export function LoginForm() {
     try {
       await login(email, password);
       console.log('✅ Demo login completed');
-      // Redirect is handled by useEffect above
+      
+      // Force redirect after a short delay to ensure state is updated
+      setTimeout(() => {
+        if (state.isAuthenticated && state.user) {
+          const dashboardUrl = getDashboardUrl(state.user.role);
+          console.log('🔄 Force redirecting to:', dashboardUrl);
+          // Use replace to avoid back button issues
+          window.location.replace(dashboardUrl);
+        }
+      }, 500);
     } catch (error) {
       console.error('💥 Demo login error:', error);
     }

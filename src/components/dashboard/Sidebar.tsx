@@ -134,7 +134,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <Link key={item.id} href={item.href}>
               <motion.div
                 className={cn(
-                  'flex items-center px-3 py-2 rounded-lg transition-all duration-200 group relative',
+                  'flex items-center rounded-lg transition-all duration-200 group relative',
+                  isCollapsed ? 'justify-center px-2 py-3' : 'px-3 py-2',
                   isActive
                     ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200'
                     : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
@@ -143,7 +144,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 whileTap={{ scale: 0.98 }}
               >
                 <Icon className={cn(
-                  'w-5 h-5 transition-colors duration-200',
+                  'transition-colors duration-200',
+                  isCollapsed ? 'w-6 h-6' : 'w-5 h-5',
                   isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'
                 )} />
                 

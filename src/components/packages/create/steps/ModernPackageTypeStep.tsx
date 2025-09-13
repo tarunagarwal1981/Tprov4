@@ -103,6 +103,9 @@ const packageTypes = [
   }
 ];
 
+console.log('Package types array:', packageTypes);
+console.log('PackageType enum values:', Object.values(PackageType));
+
 export default function ModernPackageTypeStep({ 
   formData, 
   updateFormData, 
@@ -114,7 +117,11 @@ export default function ModernPackageTypeStep({
     formData.type || PackageType.LAND_PACKAGE
   );
 
+  console.log('ModernPackageTypeStep - formData:', formData);
+  console.log('ModernPackageTypeStep - selectedType:', selectedType);
+
   const handleTypeSelect = (type: PackageType) => {
+    console.log('Selecting package type:', type);
     setSelectedType(type);
     updateFormData({ type });
   };
