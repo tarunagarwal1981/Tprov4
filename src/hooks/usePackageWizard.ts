@@ -139,7 +139,7 @@ export function usePackageWizard() {
   const form = useForm<PackageFormData>({
     mode: 'onChange',
     defaultValues: {
-      type: PackageType.LAND_PACKAGE,
+      type: undefined, // No default type - user must select
       title: '',
       description: '',
       shortDescription: '',

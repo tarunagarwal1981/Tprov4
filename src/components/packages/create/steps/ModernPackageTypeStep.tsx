@@ -113,8 +113,8 @@ export default function ModernPackageTypeStep({
   isValid, 
   onNext 
 }: StepProps) {
-  const [selectedType, setSelectedType] = useState<PackageType>(
-    formData.type || PackageType.LAND_PACKAGE
+  const [selectedType, setSelectedType] = useState<PackageType | undefined>(
+    formData.type
   );
 
   console.log('ModernPackageTypeStep - formData:', formData);
@@ -128,7 +128,10 @@ export default function ModernPackageTypeStep({
 
   const handleNext = () => {
     if (selectedType) {
+      console.log('✅ Package type selected, proceeding to next step:', selectedType);
       onNext();
+    } else {
+      console.log('❌ No package type selected, cannot proceed');
     }
   };
 
