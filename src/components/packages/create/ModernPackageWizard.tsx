@@ -314,157 +314,32 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Step Content */}
-          <div className="lg:col-span-3">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm">
-                  <CardContent className="p-4">
-                    {CurrentStepComponent && (
-                      <CurrentStepComponent
-                        formData={formData}
-                        updateFormData={updateFormData}
-                        errors={errors}
-                        isValid={isValid}
-                        onNext={nextStep}
-                        onPrevious={previousStep}
-                        onSave={handleSaveDraft}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Compact Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 space-y-4">
-              {/* Quick Actions */}
-              <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center text-sm">
-                    <Zap className="w-4 h-4 mr-2 text-yellow-500" />
-                    Quick Actions
-                  </h3>
-                  <div className="space-y-2">
-                    <Button
-                      variant="outline"
-                      onClick={previousStep}
-                      disabled={currentStepIndex === 0}
-                      size="sm"
-                      className="w-full rounded-lg text-xs"
-                    >
-                      <ArrowLeft className="w-3 h-3 mr-1" />
-                      Previous
-                    </Button>
-                    
-                    <Button
-                      onClick={nextStep}
-                      disabled={!isValid || isSaving}
-                      size="sm"
-                      className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs"
-                    >
-                      Next
-                      <ArrowRight className="w-3 h-3 ml-1" />
-                    </Button>
-
-                    {currentStep === 'review' && (
-                      <Button
-                        onClick={handlePublish}
-                        disabled={!isValid || isSaving}
-                        className="w-full rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-xs"
-                      >
-                        <Heart className="w-3 h-3 mr-1" />
-                        {isSaving ? 'Publishing...' : 'Publish Package'}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Progress Summary */}
-              <Card className="border-0 shadow-lg bg-white/70 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                    <Star className="w-5 h-5 mr-2 text-blue-500" />
-                    Progress
-                  </h3>
-                  <div className="space-y-3">
-                    {steps.map((step) => {
-                      const config = STEP_CONFIG[step.id];
-                      const IconComponent = config.icon;
-                      
-                      return (
-                        <div
-                          key={step.id}
-                          className={cn(
-                            'flex items-center justify-between p-3 rounded-xl transition-all duration-200',
-                            {
-                              'bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200': step.id === currentStep,
-                              'bg-green-50 border border-green-200': step.isCompleted,
-                              'bg-gray-50 border border-gray-200': !step.isCompleted && step.id !== currentStep
-                            }
-                          )}
-                        >
-                          <div className="flex items-center">
-                            <IconComponent className={cn(
-                              'w-4 h-4 mr-2',
-                              {
-                                'text-blue-600': step.id === currentStep,
-                                'text-green-600': step.isCompleted,
-                                'text-gray-400': !step.isCompleted && step.id !== currentStep
-                              }
-                            )} />
-                            <span className="text-sm font-medium">{config.title}</span>
-                          </div>
-                          <div className="flex items-center">
-                            {step.isCompleted ? (
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                            ) : step.id === currentStep ? (
-                              <div className="w-4 h-4 bg-blue-600 rounded-full" />
-                            ) : (
-                              <div className="w-4 h-4 bg-gray-300 rounded-full" />
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Help */}
-              <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-purple-50">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
-                    <Heart className="w-5 h-5 mr-2 text-pink-500" />
-                    Need Help?
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Creating packages is easy! Follow the steps and you'll have an amazing travel experience ready in minutes.
-                  </p>
-                  <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full rounded-xl">
-                      View Guide
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full rounded-xl">
-                      Contact Support
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm">
+              <CardContent className="p-6">
+                {CurrentStepComponent && (
+                  <CurrentStepComponent
+                    formData={formData}
+                    updateFormData={updateFormData}
+                    errors={errors}
+                    isValid={isValid}
+                    onNext={nextStep}
+                    onPrevious={previousStep}
+                    onSave={handleSaveDraft}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Exit Confirmation Modal */}
