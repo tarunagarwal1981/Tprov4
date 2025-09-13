@@ -83,14 +83,14 @@ function ActivityItem({ activity, index }: ActivityItemProps) {
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: index * 0.1 }}
-      className="flex items-start space-x-4 p-4 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+      className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
     >
       {/* Icon */}
       <div className={cn(
-        'flex h-10 w-10 items-center justify-center rounded-full',
+        'flex h-8 w-8 items-center justify-center rounded-full',
         colorClass
       )}>
-        <Icon className="h-5 w-5" />
+        <Icon className="h-4 w-4" />
       </div>
       
       {/* Content */}

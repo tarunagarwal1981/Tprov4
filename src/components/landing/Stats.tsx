@@ -64,7 +64,7 @@ function StatCard({ number, suffix = '', prefix = '', label, description, icon, 
   return (
     <motion.div
       ref={ref}
-      className="card card-elevated text-center p-8"
+      className="card card-elevated text-center p-6"
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.6, delay }}
@@ -74,13 +74,13 @@ function StatCard({ number, suffix = '', prefix = '', label, description, icon, 
         transition: { duration: 0.2 }
       }}
     >
-      <div className="flex justify-center mb-4">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white">
+      <div className="flex justify-center mb-3">
+        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white">
           {icon}
         </div>
       </div>
       
-      <div className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+      <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
         <AnimatedCounter 
           end={number} 
           suffix={suffix} 
@@ -137,10 +137,10 @@ export function Stats() {
   ];
 
   return (
-    <section id="stats" className="py-20 bg-gray-50">
+    <section id="stats" className="py-12 bg-gray-50">
       <div className="container mx-auto px-4">
         <motion.div 
-          className="text-center mb-16"
+          className="text-center mb-12"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -171,7 +171,7 @@ export function Stats() {
 
         {/* Additional Stats Row */}
         <motion.div 
-          className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6"
+          className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}

@@ -69,15 +69,16 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
   const unreadCount = mockNotifications.filter(n => n.unread).length;
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200 px-4 py-1 flex items-center justify-between h-12">
       {/* Left Section */}
       <div className="flex items-center space-x-4">
         {/* Mobile Menu Button */}
         <button
           onClick={onMenuToggle}
-          className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+          className="lg:hidden p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200"
+          aria-label="Toggle mobile menu"
         >
-          <Menu className="w-5 h-5 text-gray-600" />
+          <Menu className="w-4 h-4 text-gray-600" />
         </button>
 
         {/* Breadcrumbs */}
@@ -109,7 +110,8 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
             placeholder="Search packages, bookings, agents..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full pl-10 pr-4 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            aria-label="Search packages, bookings, and agents"
           />
         </div>
       </div>
@@ -120,9 +122,10 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
         <div className="relative">
           <button
             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-            className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            className="relative p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200"
+            aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
           >
-            <Bell className="w-5 h-5 text-gray-600" />
+            <Bell className="w-4 h-4 text-gray-600" />
             {unreadCount > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
@@ -189,10 +192,11 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
         <div className="relative">
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200"
+            aria-label="User profile menu"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <User className="w-3.5 h-3.5 text-white" />
             </div>
             <div className="hidden sm:block text-left">
               <p className="text-sm font-medium text-gray-900">
@@ -200,7 +204,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
               </p>
               <p className="text-xs text-gray-500">Tour Operator</p>
             </div>
-            <ChevronDown className="w-4 h-4 text-gray-500" />
+            <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
           </button>
 
           <AnimatePresence>

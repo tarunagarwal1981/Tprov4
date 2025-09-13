@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo, useCallback } from 'react';
 import { Package, PackageStatus, PackageType } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,7 +34,7 @@ interface PackageCardProps {
   viewMode: 'grid' | 'list';
 }
 
-export default function PackageCard({ package: pkg, viewMode }: PackageCardProps) {
+export default memo(function PackageCard({ package: pkg, viewMode }: PackageCardProps) {
   const [imageError, setImageError] = useState(false);
 
   // Get status badge styling
@@ -112,7 +112,7 @@ export default function PackageCard({ package: pkg, viewMode }: PackageCardProps
   };
 
   // Handle actions
-  const handleAction = (action: string) => {
+  const handleAction = useCallback((action: string) => {
     switch (action) {
       case 'edit':
         window.location.href = `/operator/packages/${pkg.id}/edit`;
@@ -131,14 +131,14 @@ export default function PackageCard({ package: pkg, viewMode }: PackageCardProps
         window.location.href = `/operator/packages/${pkg.id}`;
         break;
     }
-  };
+  }, [pkg.id]);
 
   // Grid view
   if (viewMode === 'grid') {
     return (
       <Card className="group hover:shadow-lg transition-all duration-200 overflow-hidden">
         {/* Image */}
-        <div className="relative h-48 bg-gray-200">
+        <div className="relative h-36 bg-gray-200">
           {pkg.images && pkg.images.length > 0 && !imageError ? (
             <Image
               src={pkg.images[0]}
@@ -208,8 +208,8 @@ export default function PackageCard({ package: pkg, viewMode }: PackageCardProps
         </div>
 
         {/* Content */}
-        <CardContent className="p-4">
-          <div className="space-y-3">
+        <CardContent className="p-3">
+          <div className="space-y-2">
             {/* Title and Type */}
             <div>
               <h3 className="font-semibold text-gray-900 line-clamp-2 mb-1">
@@ -295,8 +295,8 @@ export default function PackageCard({ package: pkg, viewMode }: PackageCardProps
   // List view
   return (
     <Card className="group hover:shadow-md transition-all duration-200">
-      <CardContent className="p-6">
-        <div className="flex items-center space-x-6">
+      <CardContent className="p-4">
+        <div className="flex items-center space-x-4">
           {/* Image */}
           <div className="relative w-24 h-24 bg-gray-200 rounded-lg flex-shrink-0">
             {pkg.images && pkg.images.length > 0 && !imageError ? (
@@ -410,4 +410,4 @@ export default function PackageCard({ package: pkg, viewMode }: PackageCardProps
       </CardContent>
     </Card>
   );
-}
+});

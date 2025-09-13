@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -69,7 +69,7 @@ const colorVariants = {
   }
 };
 
-export function StatsCard({ 
+export const StatsCard = memo(function StatsCard({ 
   title, 
   value, 
   trend, 
@@ -91,7 +91,7 @@ export function StatsCard({
         transition: { duration: 0.2 }
       }}
       className={cn(
-        'relative overflow-hidden rounded-xl border border-gray-200/50 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md',
+        'relative overflow-hidden rounded-lg border border-gray-200/50 bg-white p-4 shadow-sm transition-all duration-300 hover:shadow-md',
         className
       )}
     >
@@ -103,7 +103,7 @@ export function StatsCard({
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="mt-2 text-2xl font-bold text-gray-900">{value}</p>
+            <p className="mt-1 text-lg font-bold text-gray-900">{value}</p>
             
             {trend && (
               <div className="mt-2 flex items-center">
@@ -143,11 +143,11 @@ export function StatsCard({
             animate={{ scale: 1, rotate: 0 }}
             transition={{ duration: 0.5, delay: delay + 0.1 }}
             className={cn(
-              'flex h-12 w-12 items-center justify-center rounded-lg',
+              'flex h-10 w-10 items-center justify-center rounded-lg',
               colors.iconBg
             )}
           >
-            <Icon className={cn('h-6 w-6', colors.iconColor)} />
+            <Icon className={cn('h-5 w-5', colors.iconColor)} />
           </motion.div>
         </div>
       </div>
@@ -160,4 +160,4 @@ export function StatsCard({
       />
     </motion.div>
   );
-}
+});

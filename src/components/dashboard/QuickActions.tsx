@@ -50,10 +50,10 @@ function ActionButton({
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={cn(
-        'group relative overflow-hidden rounded-xl border transition-all duration-300',
+        'group relative overflow-hidden rounded-lg border transition-all duration-300',
         isPrimary
-          ? 'border-transparent bg-gradient-to-br from-blue-600 to-purple-600 p-6 text-white shadow-lg hover:shadow-xl'
-          : 'border-gray-200 bg-white p-6 hover:border-gray-300 hover:shadow-md'
+          ? 'border-transparent bg-gradient-to-br from-blue-600 to-purple-600 p-4 text-white shadow-lg hover:shadow-xl'
+          : 'border-gray-200 bg-white p-4 hover:border-gray-300 hover:shadow-md'
       )}
     >
       {/* Background gradient for primary */}
@@ -62,19 +62,19 @@ function ActionButton({
       )}
       
       <div className="relative">
-        <div className="flex items-start space-x-4">
+        <div className="flex items-start space-x-3">
           <div className={cn(
-            'flex h-12 w-12 items-center justify-center rounded-lg transition-colors duration-300',
+            'flex h-10 w-10 items-center justify-center rounded-lg transition-colors duration-300',
             isPrimary
               ? 'bg-white/20 text-white group-hover:bg-white/30'
               : 'bg-blue-100 text-blue-600 group-hover:bg-blue-200'
           )}>
-            <Icon className="h-6 w-6" />
+            <Icon className="h-5 w-5" />
           </div>
           
           <div className="flex-1 text-left">
             <h3 className={cn(
-              'text-lg font-semibold',
+              'text-base font-semibold',
               isPrimary ? 'text-white' : 'text-gray-900'
             )}>
               {title}

@@ -7,29 +7,29 @@ import { cn } from '@/lib/utils';
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div 
           className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full opacity-20"
           animate={{ 
             rotate: 360,
-            scale: [1, 1.1, 1]
+            scale: [1, 1.05, 1]
           }}
           transition={{ 
-            rotate: { duration: 20, repeat: Infinity, ease: "linear" },
-            scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+            rotate: { duration: 30, repeat: Infinity, ease: "linear" },
+            scale: { duration: 8, repeat: Infinity, ease: "easeInOut" }
           }}
         />
         <motion.div 
           className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-200 rounded-full opacity-20"
           animate={{ 
             rotate: -360,
-            scale: [1, 1.2, 1]
+            scale: [1, 1.1, 1]
           }}
           transition={{ 
-            rotate: { duration: 25, repeat: Infinity, ease: "linear" },
-            scale: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+            rotate: { duration: 35, repeat: Infinity, ease: "linear" },
+            scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
           }}
         />
       </div>
@@ -74,13 +74,14 @@ export function Hero() {
             <Link href="/auth/register?role=tour_operator">
               <motion.button 
                 className={cn(
-                  'btn btn-primary btn-lg px-8 py-4 text-lg font-semibold',
+                  'btn btn-primary px-6 py-3 text-base font-semibold',
                   'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700',
                   'shadow-lg hover:shadow-xl transform hover:-translate-y-1'
                 )}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2 }}
+                aria-label="Sign up as a Tour Operator"
               >
                 <span className="flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,13 +95,14 @@ export function Hero() {
             <Link href="/auth/register?role=travel_agent">
               <motion.button 
                 className={cn(
-                  'btn btn-secondary btn-lg px-8 py-4 text-lg font-semibold',
+                  'btn btn-secondary px-6 py-3 text-base font-semibold',
                   'border-2 border-gray-300 hover:border-gray-400',
                   'shadow-lg hover:shadow-xl transform hover:-translate-y-1'
                 )}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ duration: 0.2 }}
+                aria-label="Sign up as a Travel Agent"
               >
                 <span className="flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
