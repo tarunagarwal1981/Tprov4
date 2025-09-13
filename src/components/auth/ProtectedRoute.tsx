@@ -34,12 +34,22 @@ export function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
 
+  console.log('🛡️ ProtectedRoute - Current state:', {
+    pathname,
+    isAuthenticated: state.isAuthenticated,
+    user: state.user,
+    isLoading: state.isLoading,
+    requiredRoles,
+    hasRequiredRole: requiredRoles ? hasAnyRole(requiredRoles) : 'N/A'
+  });
+
   useEffect(() => {
     // Don't redirect while loading
     if (state.isLoading) return;
 
     // If not authenticated, redirect to login
     if (!state.isAuthenticated) {
+      console.log('🚫 Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
       router.push(loginUrl);
       return;
@@ -47,11 +57,13 @@ export function ProtectedRoute({
 
     // If user is authenticated but no specific roles required, allow access
     if (!requiredRoles || requiredRoles.length === 0) {
+      console.log('✅ No role requirements, allowing access');
       return;
     }
 
     // Check if user has required role
     if (!hasAnyRole(requiredRoles)) {
+      console.log('❌ User does not have required role, redirecting');
       // If redirectTo is specified, use it
       if (redirectTo) {
         router.push(redirectTo);
@@ -61,12 +73,16 @@ export function ProtectedRoute({
       // Otherwise, redirect based on user's role
       const userRole = state.user?.role;
       if (userRole && defaultRoleRedirects[userRole]) {
+        console.log('🔄 Redirecting to user role dashboard:', defaultRoleRedirects[userRole]);
         router.push(defaultRoleRedirects[userRole]);
         return;
       }
 
       // Fallback to home page
+      console.log('🏠 Fallback redirect to home');
       router.push('/');
+    } else {
+      console.log('✅ User has required role, allowing access');
     }
   }, [state.isAuthenticated, state.isLoading, state.user, requiredRoles, redirectTo, router, pathname, hasAnyRole]);
 

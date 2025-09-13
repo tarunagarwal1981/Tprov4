@@ -18,6 +18,12 @@ import { useAuth } from '@/context/AuthContext';
 
 function OperatorDashboard() {
   const { state } = useAuth();
+  
+  console.log('🏢 OperatorDashboard component loaded:', {
+    user: state.user,
+    isAuthenticated: state.isAuthenticated
+  });
+
   const stats = [
     {
       title: 'Total Packages',
@@ -294,6 +300,8 @@ function OperatorDashboard() {
 }
 
 export default function OperatorDashboardPage() {
+  console.log('📄 OperatorDashboardPage wrapper loaded');
+  
   return (
     <ProtectedRoute requiredRoles={[UserRole.TOUR_OPERATOR]}>
       <OperatorDashboard />
