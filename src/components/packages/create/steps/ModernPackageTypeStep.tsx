@@ -6,21 +6,18 @@ import { StepProps } from '@/lib/types/wizard';
 import { PackageType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { 
   Package as PackageIcon,
   Plane,
   Car,
   Building,
   Activity,
-  Check,
+  CheckCircle,
+  ArrowRight,
   Star,
   Clock,
   Users,
-  MapPin,
-  Sparkles,
-  Zap,
-  Heart,
+  DollarSign,
   TrendingUp
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -136,184 +133,128 @@ export default function ModernPackageTypeStep({
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-6">
+      {/* Compact Header */}
       <motion.div 
-        className="text-center"
-        initial={{ opacity: 0, y: 20 }}
+        className="text-center mb-6"
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
+        transition={{ duration: 0.5 }}
       >
-        <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <Sparkles className="w-8 h-8 text-white" />
-        </div>
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">
-          What type of experience are you creating?
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          Choose Package Type
         </h2>
-        <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          Choose the package type that best fits your offering. Each type is optimized for different travel experiences.
+        <p className="text-gray-600 max-w-xl mx-auto">
+          Select the type of travel package you want to create
         </p>
       </motion.div>
 
-      {/* Package Type Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {packageTypes.map((pkgType, index) => {
-          const IconComponent = pkgType.icon;
-          const isSelected = selectedType === pkgType.type;
+      {/* Compact Package Type Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {packageTypes.map((pkg, index) => {
+          const IconComponent = pkg.icon;
+          const isSelected = selectedType === pkg.type;
           
           return (
             <motion.div
-              key={pkgType.type}
+              key={pkg.type}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="relative"
             >
-              <Card
+              <div 
                 className={cn(
-                  'cursor-pointer transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-2 border-0 overflow-hidden',
-                  `bg-gradient-to-br ${pkgType.bgGradient}`,
-                  isSelected && 'shadow-2xl scale-105 ring-4 ring-white/50'
+                  "cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 rounded-xl p-4",
+                  isSelected 
+                    ? `border-blue-500 bg-gradient-to-br ${pkg.bgGradient} shadow-md` 
+                    : "border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50"
                 )}
-                onClick={() => handleTypeSelect(pkgType.type)}
+                onClick={() => handleTypeSelect(pkg.type)}
               >
-                <CardContent className="p-0">
-                  {/* Header with gradient */}
+                {/* Compact Header */}
+                <div className="flex items-center justify-between mb-3">
                   <div className={cn(
-                    'p-6 text-white relative overflow-hidden',
-                    `bg-gradient-to-r ${pkgType.gradient}`
+                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                    `bg-gradient-to-r ${pkg.gradient}`
                   )}>
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12" />
-                    
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center">
-                          <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4">
-                            <IconComponent className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-xl mb-1">
-                              {pkgType.title}
-                            </h3>
-                            <p className="text-white/80 text-sm">
-                              {pkgType.subtitle}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        {pkgType.popular && (
-                          <Badge className="bg-yellow-500 text-white text-xs font-medium px-3 py-1">
-                            <Star className="w-3 h-3 mr-1" />
-                            Popular
-                          </Badge>
-                        )}
-                        
-                        {isSelected && (
-                          <motion.div 
-                            className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                          >
-                            <Check className="w-5 h-5 text-white" />
-                          </motion.div>
-                        )}
-                      </div>
-                    </div>
+                    <IconComponent className="w-5 h-5 text-white" />
                   </div>
+                  
+                  {pkg.popular && (
+                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 text-xs px-2 py-1">
+                      <Star className="w-3 h-3 mr-1" />
+                      Popular
+                    </Badge>
+                  )}
+                  
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+                    >
+                      <CheckCircle className="w-3 h-3 text-white" />
+                    </motion.div>
+                  )}
+                </div>
 
-                  {/* Content */}
-                  <div className="p-6">
-                    {/* Description */}
-                    <p className="text-gray-700 mb-4 leading-relaxed">
-                      {pkgType.description}
-                    </p>
+                {/* Title and Subtitle */}
+                <div className="mb-3">
+                  <h3 className="text-lg font-bold text-gray-900 mb-1">
+                    {pkg.title}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {pkg.subtitle}
+                  </p>
+                </div>
 
-                    {/* Examples */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
-                        <Zap className="w-4 h-4 mr-1 text-yellow-500" />
-                        Examples:
-                      </h4>
-                      <div className="flex flex-wrap gap-1">
-                        {pkgType.examples.map((example, idx) => (
-                          <Badge 
-                            key={idx} 
-                            variant="outline" 
-                            className="text-xs bg-white/50 border-gray-200 text-gray-700"
-                          >
-                            {example}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                {/* Compact Description */}
+                <p className="text-gray-600 mb-3 text-sm leading-relaxed">
+                  {pkg.description}
+                </p>
 
-                    {/* Features */}
-                    <div className="mb-4">
-                      <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
-                        <Heart className="w-4 h-4 mr-1 text-red-500" />
-                        Includes:
-                      </h4>
-                      <div className="flex flex-wrap gap-1">
-                        {pkgType.features.map((feature, idx) => (
-                          <Badge 
-                            key={idx} 
-                            variant="outline" 
-                            className="text-xs bg-white/50 border-gray-200 text-gray-700"
-                          >
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Package Details */}
-                    <div className="grid grid-cols-3 gap-3 pt-4 border-t border-gray-200">
-                      <div className="text-center">
-                        <Clock className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                        <div className="text-xs font-medium text-gray-700">
-                          {pkgType.duration}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <Users className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                        <div className="text-xs font-medium text-gray-700">
-                          {pkgType.groupSize}
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <MapPin className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                        <div className="text-xs font-medium text-gray-700">
-                          {pkgType.priceRange}
-                        </div>
-                      </div>
-                    </div>
+                {/* Compact Stats */}
+                <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                  <div className="bg-white/70 rounded-md p-2">
+                    <div className="text-xs text-gray-500 mb-1">Duration</div>
+                    <div className="text-xs font-semibold text-gray-900">{pkg.duration}</div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="bg-white/70 rounded-md p-2">
+                    <div className="text-xs text-gray-500 mb-1">Group</div>
+                    <div className="text-xs font-semibold text-gray-900">{pkg.groupSize}</div>
+                  </div>
+                  <div className="bg-white/70 rounded-md p-2">
+                    <div className="text-xs text-gray-500 mb-1">Price</div>
+                    <div className="text-xs font-semibold text-gray-900">{pkg.priceRange}</div>
+                  </div>
+                </div>
+
+                {/* Compact Examples */}
+                <div className="flex flex-wrap gap-1">
+                  {pkg.examples.slice(0, 2).map((example, idx) => (
+                    <span 
+                      key={idx}
+                      className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-md"
+                    >
+                      {example}
+                    </span>
+                  ))}
+                  {pkg.examples.length > 2 && (
+                    <span className="text-xs text-gray-500 px-2 py-1">
+                      +{pkg.examples.length - 2} more
+                    </span>
+                  )}
+                </div>
+              </div>
             </motion.div>
           );
         })}
       </div>
 
-      {/* Error Display */}
-      {errors.type && (
-        <motion.div 
-          className="text-center"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-        >
-          <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-4 inline-block">
-            {errors.type.map((error, index) => (
-              <div key={index}>{error}</div>
-            ))}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Action Button */}
+      {/* Compact Continue Button */}
       <motion.div 
-        className="flex justify-center pt-8"
+        className="flex justify-center pt-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.5 }}
@@ -322,48 +263,37 @@ export default function ModernPackageTypeStep({
           onClick={handleNext}
           disabled={!selectedType}
           size="lg"
-          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-12 py-4 text-lg font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+          className={cn(
+            "px-8 py-3 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300",
+            selectedType 
+              ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          )}
         >
           <TrendingUp className="w-5 h-5 mr-2" />
           Continue to Package Details
         </Button>
       </motion.div>
 
-      {/* Help Section */}
+      {/* Compact Help Section */}
       <motion.div 
-        className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border border-blue-200 rounded-2xl p-8"
+        className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border border-blue-200 rounded-xl p-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.6 }}
+        transition={{ duration: 0.6, delay: 0.7 }}
       >
-        <h4 className="font-semibold text-gray-900 mb-4 flex items-center text-lg">
-          <Sparkles className="w-5 h-5 mr-2 text-blue-600" />
-          Need Help Choosing?
-        </h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
-          <div className="flex items-start">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2 mr-3 flex-shrink-0" />
-            <div>
-              <strong className="text-gray-900">Activity Experience:</strong> Perfect for day trips, city tours, and adventure experiences.
-            </div>
-          </div>
-          <div className="flex items-start">
-            <div className="w-2 h-2 bg-purple-500 rounded-full mt-2 mr-3 flex-shrink-0" />
-            <div>
-              <strong className="text-gray-900">Complete Package:</strong> Comprehensive multi-day trips with everything included.
-            </div>
-          </div>
-          <div className="flex items-start">
-            <div className="w-2 h-2 bg-orange-500 rounded-full mt-2 mr-3 flex-shrink-0" />
-            <div>
-              <strong className="text-gray-900">Hotel Package:</strong> Hotel-focused packages with added experiences.
-            </div>
-          </div>
-          <div className="flex items-start">
-            <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0" />
-            <div>
-              <strong className="text-gray-900">Transportation:</strong> Airport pickups, city transfers, and private transport.
-            </div>
+        <div className="text-center">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+            💡 Need Help Choosing?
+          </h4>
+          <p className="text-xs text-gray-600 mb-3">
+            <strong>Activity Experience:</strong> Perfect for day trips and single activities<br/>
+            <strong>Complete Package:</strong> Full multi-day trips with everything included<br/>
+            <strong>Hotel Package:</strong> Accommodation-focused with added services
+          </p>
+          <div className="flex justify-center space-x-4 text-xs text-gray-500">
+            <span>💬 Contact Support</span>
+            <span>📖 View Guide</span>
           </div>
         </div>
       </motion.div>

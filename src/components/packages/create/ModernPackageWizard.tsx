@@ -165,90 +165,91 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
 
   return (
     <div className={cn('min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100', className)}>
-      {/* Modern Header */}
-      <div className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-10">
+      {/* Compact Header */}
+      <div className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
+          <div className="py-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-4">
                 <Button
                   variant="ghost"
                   onClick={handleExit}
-                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl"
+                  size="sm"
+                  className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
                 >
-                  <X className="w-5 h-5 mr-2" />
+                  <X className="w-4 h-4 mr-1" />
                   Exit
                 </Button>
                 
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-lg font-bold text-gray-900">
                       Create Package
                     </h1>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-gray-600">
                       Build amazing travel experiences
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                {/* Auto-save status */}
-                <div className="flex items-center text-sm">
+              <div className="flex items-center space-x-3">
+                {/* Compact Auto-save status */}
+                <div className="flex items-center text-xs">
                   {isSaving ? (
                     <div className="flex items-center text-blue-600">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2" />
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-1" />
                       Saving...
                     </div>
                   ) : lastSaved ? (
                     <div className="flex items-center text-green-600">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Saved {lastSaved.toLocaleTimeString()}
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Saved
                     </div>
                   ) : isDirty ? (
                     <div className="flex items-center text-orange-600">
-                      <Clock className="w-4 h-4 mr-2" />
-                      Unsaved changes
+                      <Clock className="w-3 h-3 mr-1" />
+                      Unsaved
                     </div>
                   ) : (
                     <div className="flex items-center text-green-600">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      All saved
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Saved
                     </div>
                   )}
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex items-center space-x-3">
+                {/* Compact Action buttons */}
+                <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     onClick={handleSaveDraft}
                     disabled={!isDirty || isSaving}
                     size="sm"
-                    className="rounded-xl"
+                    className="rounded-lg text-xs px-3 py-1"
                   >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Draft
+                    <Save className="w-3 h-3 mr-1" />
+                    Save
                   </Button>
                   
                   <Button
                     variant="outline"
                     onClick={() => setShowPreview(!showPreview)}
                     size="sm"
-                    className="rounded-xl"
+                    className="rounded-lg text-xs px-3 py-1"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
+                    <Eye className="w-3 h-3 mr-1" />
                     Preview
                   </Button>
                 </div>
               </div>
             </div>
 
-            {/* Modern Step Indicator */}
-            <div className="mt-8">
+            {/* Compact Step Indicator */}
+            <div className="mt-4">
               <div className="flex items-center justify-between">
                 {steps.map((step, index) => {
                   const config = STEP_CONFIG[step.id];
@@ -261,9 +262,9 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                     <div key={step.id} className="flex items-center">
                       <motion.div
                         className={cn(
-                          'flex items-center justify-center w-12 h-12 rounded-xl border-2 transition-all duration-300 cursor-pointer',
+                          'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all duration-300 cursor-pointer',
                           {
-                            'bg-gradient-to-r from-blue-500 to-purple-500 border-transparent text-white shadow-lg': isActive,
+                            'bg-gradient-to-r from-blue-500 to-purple-500 border-transparent text-white shadow-md': isActive,
                             'bg-green-500 border-green-500 text-white': isCompleted,
                             'bg-gray-100 border-gray-300 text-gray-400': isUpcoming,
                             'bg-white border-gray-300 text-gray-600 hover:border-gray-400': !isActive && !isCompleted && !isUpcoming
@@ -274,15 +275,15 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                         whileTap={{ scale: 0.95 }}
                       >
                         {isCompleted ? (
-                          <CheckCircle className="w-6 h-6" />
+                          <CheckCircle className="w-4 h-4" />
                         ) : (
-                          <IconComponent className="w-6 h-6" />
+                          <IconComponent className="w-4 h-4" />
                         )}
                       </motion.div>
                       
-                      <div className="ml-3 min-w-0">
+                      <div className="ml-2 min-w-0">
                         <p className={cn(
-                          'text-sm font-medium',
+                          'text-xs font-medium',
                           {
                             'text-gray-900': isActive,
                             'text-green-600': isCompleted,
@@ -292,22 +293,11 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                         )}>
                           {config.title}
                         </p>
-                        <p className={cn(
-                          'text-xs',
-                          {
-                            'text-gray-600': isActive,
-                            'text-green-500': isCompleted,
-                            'text-gray-400': isUpcoming,
-                            'text-gray-500': !isActive && !isCompleted && !isUpcoming
-                          }
-                        )}>
-                          {config.description}
-                        </p>
                       </div>
                       
                       {index < steps.length - 1 && (
                         <div className={cn(
-                          'w-8 h-0.5 mx-4',
+                          'w-6 h-0.5 mx-2',
                           {
                             'bg-gradient-to-r from-blue-500 to-purple-500': index < currentStepIndex,
                             'bg-gray-300': index >= currentStepIndex
@@ -324,8 +314,8 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Step Content */}
           <div className="lg:col-span-3">
             <AnimatePresence mode="wait">
@@ -336,8 +326,8 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card className="border-0 shadow-xl bg-white/70 backdrop-blur-sm">
-                  <CardContent className="p-8">
+                <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm">
+                  <CardContent className="p-4">
                     {CurrentStepComponent && (
                       <CurrentStepComponent
                         formData={formData}
@@ -355,25 +345,25 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
             </AnimatePresence>
           </div>
 
-          {/* Modern Sidebar */}
+          {/* Compact Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-32 space-y-6">
+            <div className="sticky top-24 space-y-4">
               {/* Quick Actions */}
-              <Card className="border-0 shadow-lg bg-white/70 backdrop-blur-sm">
-                <CardContent className="p-6">
-                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                    <Zap className="w-5 h-5 mr-2 text-yellow-500" />
+              <Card className="border-0 shadow-md bg-white/90 backdrop-blur-sm">
+                <CardContent className="p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center text-sm">
+                    <Zap className="w-4 h-4 mr-2 text-yellow-500" />
                     Quick Actions
                   </h3>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Button
                       variant="outline"
                       onClick={previousStep}
                       disabled={currentStepIndex === 0}
                       size="sm"
-                      className="w-full rounded-xl"
+                      className="w-full rounded-lg text-xs"
                     >
-                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      <ArrowLeft className="w-3 h-3 mr-1" />
                       Previous
                     </Button>
                     
@@ -381,19 +371,19 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                       onClick={nextStep}
                       disabled={!isValid || isSaving}
                       size="sm"
-                      className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                      className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs"
                     >
                       Next
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
 
                     {currentStep === 'review' && (
                       <Button
                         onClick={handlePublish}
                         disabled={!isValid || isSaving}
-                        className="w-full rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                        className="w-full rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-xs"
                       >
-                        <Heart className="w-4 h-4 mr-2" />
+                        <Heart className="w-3 h-3 mr-1" />
                         {isSaving ? 'Publishing...' : 'Publish Package'}
                       </Button>
                     )}
