@@ -25,78 +25,48 @@ import { cn } from '@/lib/utils';
 const packageTypes = [
   {
     type: PackageType.ACTIVITY,
-    title: 'Activity Experience',
-    subtitle: 'Single or multiple activities',
-    description: 'Perfect for day trips, city tours, and adventure activities',
+    title: 'Activity',
+    subtitle: 'Day trips & experiences',
     icon: Activity,
     gradient: 'from-emerald-500 to-teal-600',
     bgGradient: 'from-emerald-50 to-teal-50',
-    features: ['Guided Tours', 'Adventure Sports', 'Cultural Experiences'],
-    duration: '1-3 days',
-    groupSize: '1-50 people',
-    priceRange: '$50 - $500',
-    popular: true,
-    examples: ['City Walking Tour', 'Cooking Class', 'Hiking Adventure']
-  },
-  {
-    type: PackageType.LAND_PACKAGE,
-    title: 'Complete Package',
-    subtitle: 'Everything included',
-    description: 'Comprehensive multi-day trips with accommodation, activities, and transportation',
-    icon: PackageIcon,
-    gradient: 'from-purple-500 to-indigo-600',
-    bgGradient: 'from-purple-50 to-indigo-50',
-    features: ['Accommodation', 'Activities', 'Transportation', 'Meals'],
-    duration: '3-14 days',
-    groupSize: '2-20 people',
-    priceRange: '$500 - $5000',
-    popular: true,
-    examples: ['Bali Adventure', 'European Tour', 'Cultural Journey']
-  },
-  {
-    type: PackageType.HOTEL,
-    title: 'Hotel Package',
-    subtitle: 'Accommodation focused',
-    description: 'Hotel-focused packages with added experiences and services',
-    icon: Building,
-    gradient: 'from-orange-500 to-red-600',
-    bgGradient: 'from-orange-50 to-red-50',
-    features: ['Hotel Stay', 'Room Service', 'Amenities', 'Local Activities'],
-    duration: '2-7 days',
-    groupSize: '1-10 people',
-    priceRange: '$200 - $2000',
-    popular: true,
-    examples: ['Luxury Resort', 'City Hotel', 'Beach Resort']
+    popular: true
   },
   {
     type: PackageType.TRANSFERS,
-    title: 'Transportation',
-    subtitle: 'Get around easily',
-    description: 'Ideal for airport pickups, city transfers, and private transportation',
+    title: 'Transfers',
+    subtitle: 'Transportation only',
     icon: Car,
     gradient: 'from-blue-500 to-cyan-600',
     bgGradient: 'from-blue-50 to-cyan-50',
-    features: ['Airport Transfers', 'City Transfers', 'Private Transport'],
-    duration: 'Few hours',
-    groupSize: '1-8 people',
-    priceRange: '$30 - $200',
-    popular: false,
-    examples: ['Airport Pickup', 'City Transfer', 'Private Driver']
+    popular: false
+  },
+  {
+    type: PackageType.LAND_PACKAGE,
+    title: 'Land Package',
+    subtitle: 'Complete ground tour',
+    icon: PackageIcon,
+    gradient: 'from-purple-500 to-indigo-600',
+    bgGradient: 'from-purple-50 to-indigo-50',
+    popular: true
+  },
+  {
+    type: PackageType.HOTEL,
+    title: 'Land Package with Hotel',
+    subtitle: 'Tour + accommodation',
+    icon: Building,
+    gradient: 'from-orange-500 to-red-600',
+    bgGradient: 'from-orange-50 to-red-50',
+    popular: true
   },
   {
     type: PackageType.FLIGHT,
-    title: 'Fixed Departure',
-    subtitle: 'Scheduled group tours',
-    description: 'Fixed departure tours with flights included and scheduled itineraries',
+    title: 'Fixed Departure with Flight',
+    subtitle: 'Group tours with flights',
     icon: Plane,
     gradient: 'from-sky-500 to-blue-600',
     bgGradient: 'from-sky-50 to-blue-50',
-    features: ['Flights', 'Seat Selection', 'Baggage', 'Ground Services'],
-    duration: '5-21 days',
-    groupSize: '10-40 people',
-    priceRange: '$1000 - $8000',
-    popular: false,
-    examples: ['Group Tour', 'Fixed Dates', 'All Inclusive']
+    popular: false
   }
 ];
 
@@ -149,8 +119,8 @@ export default function ModernPackageTypeStep({
         </p>
       </motion.div>
 
-      {/* Compact Package Type Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Simple Package Type Selection */}
+      <div className="space-y-3">
         {packageTypes.map((pkg, index) => {
           const IconComponent = pkg.icon;
           const isSelected = selectedType === pkg.type;
@@ -158,22 +128,20 @@ export default function ModernPackageTypeStep({
           return (
             <motion.div
               key={pkg.type}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="relative"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
             >
               <div 
                 className={cn(
-                  "cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg border-2 rounded-xl p-4",
+                  "cursor-pointer transition-all duration-200 border-2 rounded-lg p-4 flex items-center justify-between",
                   isSelected 
-                    ? `border-blue-500 bg-gradient-to-br ${pkg.bgGradient} shadow-md` 
+                    ? "border-blue-500 bg-blue-50 shadow-sm" 
                     : "border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50"
                 )}
                 onClick={() => handleTypeSelect(pkg.type)}
               >
-                {/* Compact Header */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center space-x-4">
                   <div className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center",
                     `bg-gradient-to-r ${pkg.gradient}`
@@ -181,71 +149,33 @@ export default function ModernPackageTypeStep({
                     <IconComponent className="w-5 h-5 text-white" />
                   </div>
                   
-                  {pkg.popular && (
-                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 text-xs px-2 py-1">
-                      <Star className="w-3 h-3 mr-1" />
-                      Popular
-                    </Badge>
-                  )}
-                  
-                  {isSelected && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
-                    >
-                      <CheckCircle className="w-3 h-3 text-white" />
-                    </motion.div>
-                  )}
-                </div>
-
-                {/* Title and Subtitle */}
-                <div className="mb-3">
-                  <h3 className="text-lg font-bold text-gray-900 mb-1">
-                    {pkg.title}
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    {pkg.subtitle}
-                  </p>
-                </div>
-
-                {/* Compact Description */}
-                <p className="text-gray-600 mb-3 text-sm leading-relaxed">
-                  {pkg.description}
-                </p>
-
-                {/* Compact Stats */}
-                <div className="grid grid-cols-3 gap-2 text-center mb-3">
-                  <div className="bg-white/70 rounded-md p-2">
-                    <div className="text-xs text-gray-500 mb-1">Duration</div>
-                    <div className="text-xs font-semibold text-gray-900">{pkg.duration}</div>
-                  </div>
-                  <div className="bg-white/70 rounded-md p-2">
-                    <div className="text-xs text-gray-500 mb-1">Group</div>
-                    <div className="text-xs font-semibold text-gray-900">{pkg.groupSize}</div>
-                  </div>
-                  <div className="bg-white/70 rounded-md p-2">
-                    <div className="text-xs text-gray-500 mb-1">Price</div>
-                    <div className="text-xs font-semibold text-gray-900">{pkg.priceRange}</div>
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {pkg.title}
+                      </h3>
+                      {pkg.popular && (
+                        <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0 text-xs px-2 py-1">
+                          <Star className="w-3 h-3 mr-1" />
+                          Popular
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      {pkg.subtitle}
+                    </p>
                   </div>
                 </div>
-
-                {/* Compact Examples */}
-                <div className="flex flex-wrap gap-1">
-                  {pkg.examples.slice(0, 2).map((example, idx) => (
-                    <span 
-                      key={idx}
-                      className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-md"
-                    >
-                      {example}
-                    </span>
-                  ))}
-                  {pkg.examples.length > 2 && (
-                    <span className="text-xs text-gray-500 px-2 py-1">
-                      +{pkg.examples.length - 2} more
-                    </span>
-                  )}
-                </div>
+                
+                {isSelected && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
+                  >
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           );
@@ -275,26 +205,17 @@ export default function ModernPackageTypeStep({
         </Button>
       </motion.div>
 
-      {/* Compact Help Section */}
+      {/* Simple Help Section */}
       <motion.div 
-        className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 border border-blue-200 rounded-xl p-4"
+        className="bg-blue-50 border border-blue-200 rounded-lg p-3"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.7 }}
       >
         <div className="text-center">
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">
-            💡 Need Help Choosing?
-          </h4>
-          <p className="text-xs text-gray-600 mb-3">
-            <strong>Activity Experience:</strong> Perfect for day trips and single activities<br/>
-            <strong>Complete Package:</strong> Full multi-day trips with everything included<br/>
-            <strong>Hotel Package:</strong> Accommodation-focused with added services
+          <p className="text-sm text-gray-600">
+            💡 <strong>Need help?</strong> Choose the package type that best fits your offering
           </p>
-          <div className="flex justify-center space-x-4 text-xs text-gray-500">
-            <span>💬 Contact Support</span>
-            <span>📖 View Guide</span>
-          </div>
         </div>
       </motion.div>
     </div>
