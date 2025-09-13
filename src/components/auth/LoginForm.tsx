@@ -43,10 +43,40 @@ export function LoginForm() {
     clearError();
   }, [clearError]);
 
+  // Helper function to get dashboard URL based on user role
+  const getDashboardUrl = (role: UserRole): string => {
+    switch (role) {
+      case UserRole.ADMIN:
+      case UserRole.SUPER_ADMIN:
+        return '/admin/dashboard';
+      case UserRole.TOUR_OPERATOR:
+        return '/operator/dashboard';
+      case UserRole.TRAVEL_AGENT:
+        return '/agent/dashboard';
+      default:
+        return '/';
+    }
+  };
+
+  // Redirect after successful login
+  useEffect(() => {
+    console.log('LoginForm useEffect - Auth state:', { 
+      isAuthenticated: state.isAuthenticated, 
+      user: state.user, 
+      isLoading: state.isLoading 
+    });
+    
+    if (state.isAuthenticated && state.user && !state.isLoading) {
+      const dashboardUrl = getDashboardUrl(state.user.role);
+      console.log('Redirecting to dashboard:', dashboardUrl);
+      router.push(dashboardUrl);
+    }
+  }, [state.isAuthenticated, state.user, state.isLoading, router]);
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       await login(data.email, data.password);
-      router.push(redirectTo);
+      // Redirect is handled by useEffect above
     } catch (error) {
       // Error is handled by the auth context
       console.error('Login error:', error);
@@ -56,7 +86,7 @@ export function LoginForm() {
   const handleDemoLogin = async (email: string, password: string) => {
     try {
       await login(email, password);
-      router.push(redirectTo);
+      // Redirect is handled by useEffect above
     } catch (error) {
       console.error('Demo login error:', error);
     }
