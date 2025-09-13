@@ -60,15 +60,8 @@ export function LoginForm() {
 
   // Redirect after successful login
   useEffect(() => {
-    console.log('LoginForm useEffect - Auth state:', { 
-      isAuthenticated: state.isAuthenticated, 
-      user: state.user, 
-      isLoading: state.isLoading 
-    });
-    
     if (state.isAuthenticated && state.user && !state.isLoading) {
       const dashboardUrl = getDashboardUrl(state.user.role);
-      console.log('Redirecting to dashboard:', dashboardUrl);
       router.push(dashboardUrl);
     }
   }, [state.isAuthenticated, state.user, state.isLoading, router]);
