@@ -15,12 +15,12 @@ const nextConfig: NextConfig = {
   // Ensure proper static export
   distDir: undefined, // Let Next.js use default
   // Disable server-side features
-  experimental: {
-    esmExternals: false,
-  },
+  // Remove experimental.esmExternals as it's causing warnings
   // Ensure proper asset handling
   assetPrefix: '',
   basePath: '',
+  // Fix workspace root warning
+  outputFileTracingRoot: undefined,
 }
 
 export default nextConfig;
