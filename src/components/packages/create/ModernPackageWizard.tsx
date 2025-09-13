@@ -113,6 +113,14 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
   const currentStepConfig = STEP_CONFIG[currentStep];
   const currentStepIndex = steps.findIndex(s => s.id === currentStep);
 
+  console.log('🎯 ModernPackageWizard render:', {
+    currentStep,
+    currentStepIndex,
+    formData,
+    steps: steps.map(s => ({ id: s.id, isCompleted: s.isCompleted, isAccessible: s.isAccessible })),
+    CurrentStepComponent: CurrentStepComponent?.name || 'Unknown'
+  });
+
   // Handle exit confirmation
   const handleExit = () => {
     if (isDirty) {

@@ -132,6 +132,12 @@ export function usePackageWizard() {
     isValid: false
   });
 
+  console.log('🚀 usePackageWizard initialized with:', {
+    currentStep: wizardState.currentStep,
+    formData: wizardState.formData,
+    steps: wizardState.steps.map(s => ({ id: s.id, isCompleted: s.isCompleted, isAccessible: s.isAccessible }))
+  });
+
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<Partial<PackageFormData>>({});
 
@@ -460,25 +466,23 @@ export function usePackageWizard() {
   // Load draft on mount
   useEffect(() => {
     const savedDraft = localStorage.getItem('package-draft');
+    console.log('🔍 Checking for saved draft:', savedDraft);
+    
     if (savedDraft) {
       try {
         const draft: DraftPackage = JSON.parse(savedDraft);
-        setWizardState(prev => ({
-          ...prev,
-          formData: draft.formData,
-          currentStep: draft.lastStep,
-          isDirty: false
-        }));
-
-        // Update react-hook-form
-        Object.entries(draft.formData).forEach(([key, value]) => {
-          form.setValue(key as keyof PackageFormData, value);
-        });
-
-        lastSavedDataRef.current = { ...draft.formData };
+        console.log('📦 Found saved draft:', draft);
+        
+        // Clear the draft to start fresh
+        localStorage.removeItem('package-draft');
+        console.log('🗑️ Cleared saved draft to start fresh');
       } catch (error) {
         console.error('Error loading draft:', error);
+        // Clear invalid draft
+        localStorage.removeItem('package-draft');
       }
+    } else {
+      console.log('✨ No saved draft found, starting fresh');
     }
   }, [form]);
 

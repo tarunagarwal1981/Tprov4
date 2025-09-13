@@ -20,7 +20,7 @@ interface RoleBasedRedirects {
 const defaultRoleRedirects: RoleBasedRedirects = {
   [UserRole.SUPER_ADMIN]: '/admin/dashboard',
   [UserRole.ADMIN]: '/admin/dashboard',
-  [UserRole.TOUR_OPERATOR]: '/1operator/dashboard',
+  [UserRole.TOUR_OPERATOR]: '/operator/dashboard',
   [UserRole.TRAVEL_AGENT]: '/agent/dashboard',
 };
 
