@@ -1,7 +1,7 @@
-# Netlify configuration for Next.js static export
+# Netlify configuration for testing
 [build]
-  command = "npm run build"
-  publish = "out"
+  command = "echo 'Testing simple deployment'"
+  publish = "."
 
 [build.environment]
   NODE_VERSION = "22"

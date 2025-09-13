@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netlify Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: rgba(0, 255, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #00ff00;
+            margin: 20px 0;
+        }
+        .debug-info {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Netlify Test Page</h1>
+        <p>If you can see this, Netlify deployment is working!</p>
+        
+        <div class="status">
+            <h2>✅ SUCCESS!</h2>
+            <p>Basic HTML deployment is working correctly.</p>
+        </div>
+
+        <div class="debug-info">
+            <h3>Debug Information:</h3>
+            <p><strong>Current URL:</strong> <span id="current-url"></span></p>
+            <p><strong>User Agent:</strong> <span id="user-agent"></span></p>
+            <p><strong>Timestamp:</strong> <span id="timestamp"></span></p>
+            <p><strong>Page Loaded:</strong> <span id="load-time"></span></p>
+        </div>
+
+        <div class="debug-info">
+            <h3>Next Steps:</h3>
+            <p>1. If you see this page → Basic deployment works</p>
+            <p>2. Check browser console for any errors</p>
+            <p>3. Test navigation to other routes</p>
+            <p>4. Verify static assets are loading</p>
+        </div>
+    </div>
+
+    <script>
+        // Debug information
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        document.getElementById('timestamp').textContent = new Date().toISOString();
+        document.getElementById('load-time').textContent = new Date().toLocaleString();
+
+        // Console logs for debugging
+        console.log('🚀 Netlify Test Page Loaded Successfully!');
+        console.log('📍 Current URL:', window.location.href);
+        console.log('🕒 Load Time:', new Date().toISOString());
+        console.log('🌐 User Agent:', navigator.userAgent);
+        
+        // Test if we can access other routes
+        console.log('🔍 Testing route accessibility...');
+        
+        // Test fetch to see if other files exist
+        fetch('/auth/login/')
+            .then(response => {
+                console.log('✅ /auth/login/ accessible:', response.status);
+            })
+            .catch(error => {
+                console.log('❌ /auth/login/ error:', error);
+            });
+
+        fetch('/admin/dashboard/')
+            .then(response => {
+                console.log('✅ /admin/dashboard/ accessible:', response.status);
+            })
+            .catch(error => {
+                console.log('❌ /admin/dashboard/ error:', error);
+            });
+
+        // Test if _redirects is working
+        console.log('🔄 Testing redirects...');
+        setTimeout(() => {
+            console.log('⏰ Redirect test completed');
+        }, 1000);
+    </script>
+</body>
+</html>
