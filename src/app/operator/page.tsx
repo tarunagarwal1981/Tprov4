@@ -9,11 +9,18 @@ export default function OperatorPage() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('🏢 Operator page - Auth state:', { 
+      isAuthenticated: state.isAuthenticated, 
+      user: state.user 
+    });
+    
     // Redirect to dashboard if user is authenticated
     if (state.isAuthenticated && state.user) {
+      console.log('🔄 Redirecting to operator dashboard');
       router.push('/operator/dashboard');
     } else {
       // Redirect to login if not authenticated
+      console.log('🔄 Redirecting to login');
       router.push('/auth/login');
     }
   }, [state.isAuthenticated, state.user, router]);

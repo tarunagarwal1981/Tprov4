@@ -242,6 +242,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Login function
   const login = async (email: string, password: string): Promise<void> => {
+    console.log('🔐 Login attempt:', { email, password });
     dispatch({ type: 'AUTH_START' });
 
     try {
@@ -250,16 +251,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Mock authentication logic
       const user = mockUsers.find(u => u.email === email);
+      console.log('👤 Found user:', user);
       
       if (!user) {
+        console.log('❌ User not found');
         throw new Error('User not found');
       }
 
       if (password !== user.password) {
+        console.log('🔒 Password mismatch:', { provided: password, expected: user.password });
         throw new Error('Invalid password');
       }
 
       if (!user.isActive) {
+        console.log('🚫 Account is deactivated');
         throw new Error('Account is deactivated');
       }
 
@@ -269,10 +274,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Generate and store token
       const token = generateMockToken(user);
       localStorage.setItem('auth_token', token);
+      console.log('✅ Login successful, token stored:', token);
 
       dispatch({ type: 'AUTH_SUCCESS', payload: user });
+      console.log('🎉 Auth state updated with user:', user);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      console.error('💥 Login error:', errorMessage);
       dispatch({ type: 'AUTH_FAILURE', payload: errorMessage });
       throw error;
     }

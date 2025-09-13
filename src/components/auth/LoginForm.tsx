@@ -60,8 +60,15 @@ export function LoginForm() {
 
   // Redirect after successful login
   useEffect(() => {
+    console.log('🔄 LoginForm useEffect - Auth state:', { 
+      isAuthenticated: state.isAuthenticated, 
+      user: state.user, 
+      isLoading: state.isLoading 
+    });
+    
     if (state.isAuthenticated && state.user && !state.isLoading) {
       const dashboardUrl = getDashboardUrl(state.user.role);
+      console.log('🚀 Redirecting to dashboard:', dashboardUrl);
       router.push(dashboardUrl);
     }
   }, [state.isAuthenticated, state.user, state.isLoading, router]);
@@ -77,11 +84,13 @@ export function LoginForm() {
   };
 
   const handleDemoLogin = async (email: string, password: string) => {
+    console.log('🎯 Demo login clicked:', { email, password });
     try {
       await login(email, password);
+      console.log('✅ Demo login completed');
       // Redirect is handled by useEffect above
     } catch (error) {
-      console.error('Demo login error:', error);
+      console.error('💥 Demo login error:', error);
     }
   };
 
