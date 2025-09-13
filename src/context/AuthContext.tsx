@@ -42,11 +42,12 @@ interface RegisterData {
   phone?: string;
 }
 
-// Mock user data
+// Mock user data with simple credentials
 const mockUsers: User[] = [
   {
     id: '1',
     email: 'operator@test.com',
+    password: '1', // Simple password for tour operator
     name: 'John Operator',
     role: UserRole.TOUR_OPERATOR,
     profile: {
@@ -70,6 +71,7 @@ const mockUsers: User[] = [
   {
     id: '2',
     email: 'agent@test.com',
+    password: '1', // Simple password for travel agent
     name: 'Jane Agent',
     role: UserRole.TRAVEL_AGENT,
     profile: {
@@ -93,6 +95,7 @@ const mockUsers: User[] = [
   {
     id: '3',
     email: 'admin@test.com',
+    password: '1', // Simple password for admin
     name: 'Admin User',
     role: UserRole.ADMIN,
     profile: {
@@ -252,7 +255,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         throw new Error('User not found');
       }
 
-      if (password !== 'password123') {
+      if (password !== user.password) {
         throw new Error('Invalid password');
       }
 

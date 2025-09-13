@@ -10,6 +10,7 @@ export enum UserRole {
 export interface User {
   id: string;
   email: string;
+  password?: string; // Optional password field for mock authentication
   name: string;
   role: UserRole;
   profile: UserProfile;

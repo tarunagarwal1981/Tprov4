@@ -12,8 +12,12 @@ import {
   Star,
   Clock
 } from 'lucide-react';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { UserRole } from '@/lib/types';
+import { useAuth } from '@/context/AuthContext';
 
-export default function OperatorDashboard() {
+function OperatorDashboard() {
+  const { state } = useAuth();
   const stats = [
     {
       title: 'Total Packages',
@@ -104,8 +108,8 @@ export default function OperatorDashboard() {
     <div className="p-6 space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your business.</p>
+        <h1 className="text-2xl font-bold text-gray-900">Tour Operator Dashboard</h1>
+        <p className="text-gray-600 mt-1">Welcome back, {state.user?.profile.firstName}! Here's what's happening with your business.</p>
       </div>
 
       {/* Stats Grid */}
@@ -286,5 +290,13 @@ export default function OperatorDashboard() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function OperatorDashboardPage() {
+  return (
+    <ProtectedRoute requiredRoles={[UserRole.TOUR_OPERATOR]}>
+      <OperatorDashboard />
+    </ProtectedRoute>
   );
 }

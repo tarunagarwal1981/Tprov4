@@ -184,25 +184,25 @@ export function LoginForm() {
 
           <div className="mt-6 grid grid-cols-1 gap-3">
             <button
-              onClick={() => handleDemoLogin('admin@test.com', 'password123')}
+              onClick={() => handleDemoLogin('admin@test.com', '1')}
               disabled={isSubmitting}
               className="btn btn-secondary w-full"
             >
-              Demo as Admin
+              Demo as Admin (Password: 1)
             </button>
             <button
-              onClick={() => handleDemoLogin('operator@test.com', 'password123')}
+              onClick={() => handleDemoLogin('operator@test.com', '1')}
               disabled={isSubmitting}
               className="btn btn-secondary w-full"
             >
-              Demo as Tour Operator
+              Demo as Tour Operator (Password: 1)
             </button>
             <button
-              onClick={() => handleDemoLogin('agent@test.com', 'password123')}
+              onClick={() => handleDemoLogin('agent@test.com', '1')}
               disabled={isSubmitting}
               className="btn btn-secondary w-full"
             >
-              Demo as Travel Agent
+              Demo as Travel Agent (Password: 1)
             </button>
           </div>
         </div>
