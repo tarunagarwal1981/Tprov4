@@ -26,6 +26,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getPackageTypeInfo } from '@/lib/packageTypeInfo';
 
 const difficultyOptions = [
   { 
@@ -121,6 +122,9 @@ export default function ModernBasicInfoStep({
     }
   };
 
+  // Get package type specific information
+  const packageTypeInfo = formData.type ? getPackageTypeInfo(formData.type) : null;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -140,6 +144,62 @@ export default function ModernBasicInfoStep({
           Share the details that will help travelers understand and get excited about your experience.
         </p>
       </motion.div>
+
+      {/* Package Type Specific Guidance */}
+      {packageTypeInfo && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6"
+        >
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">
+                Creating a {packageTypeInfo.title} Package
+              </h3>
+              <p className="text-gray-600 mb-4">
+                {packageTypeInfo.description}
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <Target className="w-4 h-4 mr-2 text-blue-500" />
+                    Key Considerations
+                  </h4>
+                  <ul className="space-y-1 text-sm text-gray-600">
+                    {packageTypeInfo.tips.slice(0, 3).map((tip, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-2 flex-shrink-0" />
+                        {tip}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                    <Star className="w-4 h-4 mr-2 text-purple-500" />
+                    Popular Examples
+                  </h4>
+                  <ul className="space-y-1 text-sm text-gray-600">
+                    {packageTypeInfo.examples.slice(0, 3).map((example, idx) => (
+                      <li key={idx} className="flex items-start">
+                        <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 mr-2 flex-shrink-0" />
+                        {example}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Basic Information */}
       <motion.div

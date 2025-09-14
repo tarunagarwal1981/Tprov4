@@ -165,11 +165,13 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
 
   return (
     <div className={cn('min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100', className)}>
-      {/* Compact Header */}
-      <div className="bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10">
+      {/* Streamlined Header */}
+      <div className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-3">
+          <div className="py-4">
+            {/* Single Row Header */}
             <div className="flex items-center justify-between">
+              {/* Left: Exit + Title */}
               <div className="flex items-center space-x-4">
                 <Button
                   variant="ghost"
@@ -182,75 +184,22 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                 </Button>
                 
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-lg font-bold text-gray-900">
+                    <h1 className="text-xl font-bold text-gray-900">
                       Create Package
                     </h1>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-sm text-gray-600">
                       Build amazing travel experiences
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
-                {/* Compact Auto-save status */}
-                <div className="flex items-center text-xs">
-                  {isSaving ? (
-                    <div className="flex items-center text-blue-600">
-                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-1" />
-                      Saving...
-                    </div>
-                  ) : lastSaved ? (
-                    <div className="flex items-center text-green-600">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Saved
-                    </div>
-                  ) : isDirty ? (
-                    <div className="flex items-center text-orange-600">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Unsaved
-                    </div>
-                  ) : (
-                    <div className="flex items-center text-green-600">
-                      <CheckCircle className="w-3 h-3 mr-1" />
-                      Saved
-                    </div>
-                  )}
-                </div>
-
-                {/* Compact Action buttons */}
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={handleSaveDraft}
-                    disabled={!isDirty || isSaving}
-                    size="sm"
-                    className="rounded-lg text-xs px-3 py-1"
-                  >
-                    <Save className="w-3 h-3 mr-1" />
-                    Save
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowPreview(!showPreview)}
-                    size="sm"
-                    className="rounded-lg text-xs px-3 py-1"
-                  >
-                    <Eye className="w-3 h-3 mr-1" />
-                    Preview
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            {/* Compact Step Indicator */}
-            <div className="mt-4">
-              <div className="flex items-center justify-between">
+              {/* Center: Step Progress */}
+              <div className="hidden md:flex items-center space-x-1">
                 {steps.map((step, index) => {
                   const config = STEP_CONFIG[step.id];
                   const IconComponent = config.icon;
@@ -262,9 +211,9 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                     <div key={step.id} className="flex items-center">
                       <motion.div
                         className={cn(
-                          'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all duration-300 cursor-pointer',
+                          'flex items-center justify-center w-10 h-10 rounded-xl border-2 transition-all duration-300 cursor-pointer',
                           {
-                            'bg-gradient-to-r from-blue-500 to-purple-500 border-transparent text-white shadow-md': isActive,
+                            'bg-gradient-to-r from-blue-500 to-purple-500 border-transparent text-white shadow-lg': isActive,
                             'bg-green-500 border-green-500 text-white': isCompleted,
                             'bg-gray-100 border-gray-300 text-gray-400': isUpcoming,
                             'bg-white border-gray-300 text-gray-600 hover:border-gray-400': !isActive && !isCompleted && !isUpcoming
@@ -275,34 +224,105 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                         whileTap={{ scale: 0.95 }}
                       >
                         {isCompleted ? (
-                          <CheckCircle className="w-4 h-4" />
+                          <CheckCircle className="w-5 h-5" />
                         ) : (
-                          <IconComponent className="w-4 h-4" />
+                          <IconComponent className="w-5 h-5" />
                         )}
                       </motion.div>
                       
-                      <div className="ml-2 min-w-0">
-                        <p className={cn(
-                          'text-xs font-medium',
-                          {
-                            'text-gray-900': isActive,
-                            'text-green-600': isCompleted,
-                            'text-gray-400': isUpcoming,
-                            'text-gray-600': !isActive && !isCompleted && !isUpcoming
-                          }
-                        )}>
-                          {config.title}
-                        </p>
-                      </div>
-                      
                       {index < steps.length - 1 && (
                         <div className={cn(
-                          'w-6 h-0.5 mx-2',
+                          'w-8 h-0.5 mx-2',
                           {
                             'bg-gradient-to-r from-blue-500 to-purple-500': index < currentStepIndex,
                             'bg-gray-300': index >= currentStepIndex
                           }
                         )} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right: Status + Actions */}
+              <div className="flex items-center space-x-3">
+                {/* Auto-save status */}
+                <div className="flex items-center text-sm">
+                  {isSaving ? (
+                    <div className="flex items-center text-blue-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2" />
+                      Saving...
+                    </div>
+                  ) : lastSaved ? (
+                    <div className="flex items-center text-green-600">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Saved
+                    </div>
+                  ) : isDirty ? (
+                    <div className="flex items-center text-orange-600">
+                      <Clock className="w-4 h-4 mr-2" />
+                      Unsaved
+                    </div>
+                  ) : (
+                    <div className="flex items-center text-green-600">
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      Saved
+                    </div>
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveDraft}
+                    disabled={!isDirty || isSaving}
+                    size="sm"
+                    className="rounded-lg"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPreview(!showPreview)}
+                    size="sm"
+                    className="rounded-lg"
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Step Indicator */}
+            <div className="md:hidden mt-4">
+              <div className="flex items-center justify-center space-x-1">
+                {steps.map((step, index) => {
+                  const isActive = step.id === currentStep;
+                  const isCompleted = step.isCompleted;
+                  
+                  return (
+                    <div key={step.id} className="flex items-center">
+                      <div className={cn(
+                        'w-8 h-8 rounded-lg flex items-center justify-center',
+                        {
+                          'bg-gradient-to-r from-blue-500 to-purple-500 text-white': isActive,
+                          'bg-green-500 text-white': isCompleted,
+                          'bg-gray-200 text-gray-400': !isActive && !isCompleted
+                        }
+                      )}>
+                        {isCompleted ? (
+                          <CheckCircle className="w-4 h-4" />
+                        ) : (
+                          <span className="text-xs font-bold">{index + 1}</span>
+                        )}
+                      </div>
+                      
+                      {index < steps.length - 1 && (
+                        <div className="w-4 h-0.5 mx-1 bg-gray-300" />
                       )}
                     </div>
                   );
