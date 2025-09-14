@@ -3,27 +3,27 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ModernPackageWizard from '@/components/packages/create/ModernPackageWizard';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 import { UserRole } from '@/lib/types';
 
 export default function CreatePackagePage() {
   const router = useRouter();
-  const { state, hasAnyRole } = useAuth();
+  const { state } = useSimpleAuth();
 
   // Check authentication and authorization
   useEffect(() => {
     if (state.isLoading) return;
 
-    if (!state.isAuthenticated) {
+    if (!state.user) {
       router.push('/auth/login?redirect=/operator/packages/create');
       return;
     }
 
-    if (!hasAnyRole([UserRole.TOUR_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN])) {
+    if (![UserRole.TOUR_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(state.user.role)) {
       router.push('/operator/dashboard');
       return;
     }
-  }, [state.isAuthenticated, state.isLoading, hasAnyRole, router]);
+  }, [state.user, state.isLoading, router]);
 
   // Show loading state
   if (state.isLoading) {
@@ -41,7 +41,7 @@ export default function CreatePackagePage() {
   }
 
   // Show access denied if not authorized
-  if (!state.isAuthenticated || !hasAnyRole([UserRole.TOUR_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN])) {
+  if (!state.user || ![UserRole.TOUR_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(state.user.role)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <div className="text-center">

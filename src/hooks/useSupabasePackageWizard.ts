@@ -18,7 +18,7 @@ import {
 import { validatePackageType, validateBasicInfo, formatValidationErrors } from '@/lib/validations/packageWizard';
 import { PackageType, PackageStatus, DifficultyLevel, Package } from '@/lib/types';
 import { PackageService } from '@/lib/services/packageService';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 
 // Step configurations
 const STEP_CONFIGS: StepConfig[] = [
@@ -121,7 +121,7 @@ const STEP_VALIDATIONS: StepValidation[] = [
 
 export function useSupabasePackageWizard() {
   const router = useRouter();
-  const { state: authState } = useAuth();
+  const { state: authState } = useSimpleAuth();
   const [wizardState, setWizardState] = useState<WizardState>({
     currentStep: 'package-type',
     steps: [...STEP_CONFIGS],
@@ -453,7 +453,7 @@ export function useSupabasePackageWizard() {
     ...wizardState,
     form,
     actions,
-    isAuthenticated: authState.isAuthenticated,
+    isAuthenticated: !!authState.user,
     user: authState.user
   };
 }

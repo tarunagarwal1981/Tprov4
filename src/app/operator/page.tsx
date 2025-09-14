@@ -2,28 +2,28 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 
 export default function OperatorPage() {
-  const { state } = useAuth();
+  const { state } = useSimpleAuth();
   const router = useRouter();
 
   useEffect(() => {
     console.log('🏢 Operator page - Auth state:', { 
-      isAuthenticated: state.isAuthenticated, 
-      user: state.user 
+      user: state.user,
+      isLoading: state.isLoading
     });
     
     // Redirect to dashboard if user is authenticated
-    if (state.isAuthenticated && state.user) {
+    if (state.user && !state.isLoading) {
       console.log('🔄 Redirecting to operator dashboard');
       router.push('/operator/dashboard');
-    } else {
+    } else if (!state.isLoading) {
       // Redirect to login if not authenticated
       console.log('🔄 Redirecting to login');
       router.push('/auth/login');
     }
-  }, [state.isAuthenticated, state.user, router]);
+  }, [state.user, state.isLoading, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
