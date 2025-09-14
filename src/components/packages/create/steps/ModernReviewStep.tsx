@@ -190,48 +190,48 @@ export default function ModernReviewStep({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Main Destination</Label>
+                  <span className="text-sm font-medium text-gray-500">Main Destination</span>
                   <p className="text-gray-900">{formData.place || 'Not specified'}</p>
                 </div>
                 
                 {visibleFields.fromLocation && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">From Location</Label>
+                    <span className="text-sm font-medium text-gray-500">From Location</span>
                     <p className="text-gray-900">{formData.fromLocation || 'Not specified'}</p>
                   </div>
                 )}
                 
                 {visibleFields.toLocation && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">To Location</Label>
+                    <span className="text-sm font-medium text-gray-500">To Location</span>
                     <p className="text-gray-900">{formData.toLocation || 'Not specified'}</p>
                   </div>
                 )}
                 
                 {visibleFields.durationHours && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Duration</Label>
+                    <span className="text-sm font-medium text-gray-500">Duration</span>
                     <p className="text-gray-900">{formData.durationHours || 0} hours</p>
                   </div>
                 )}
                 
                 {visibleFields.durationDays && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Duration</Label>
+                    <span className="text-sm font-medium text-gray-500">Duration</span>
                     <p className="text-gray-900">{formData.durationDays || 0} days</p>
                   </div>
                 )}
                 
                 {formData.startTime && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Start Time</Label>
+                    <span className="text-sm font-medium text-gray-500">Start Time</span>
                     <p className="text-gray-900">{formData.startTime}</p>
                   </div>
                 )}
                 
                 {formData.endTime && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">End Time</Label>
+                    <span className="text-sm font-medium text-gray-500">End Time</span>
                     <p className="text-gray-900">{formData.endTime}</p>
                   </div>
                 )}
@@ -239,7 +239,7 @@ export default function ModernReviewStep({
               
               {formData.pickupPoints && formData.pickupPoints.length > 0 && (
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Pickup Points</Label>
+                  <span className="text-sm font-medium text-gray-500">Pickup Points</span>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {formData.pickupPoints.map((point, index) => (
                       <Badge key={index} variant="outline">{point}</Badge>
@@ -250,7 +250,7 @@ export default function ModernReviewStep({
               
               {formData.multipleDestinations && formData.multipleDestinations.length > 0 && (
                 <div>
-                  <Label className="text-sm font-medium text-gray-500">Destinations</Label>
+                  <span className="text-sm font-medium text-gray-500">Destinations</span>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {formData.multipleDestinations.map((destination, index) => (
                       <Badge key={index} variant="secondary">{destination}</Badge>
@@ -274,21 +274,21 @@ export default function ModernReviewStep({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {formData.vehicleType && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Vehicle Type</Label>
+                      <span className="text-sm font-medium text-gray-500">Vehicle Type</span>
                       <p className="text-gray-900">{formData.vehicleType}</p>
                     </div>
                   )}
                   
                   {formData.acNonAc && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">AC/Non-AC</Label>
+                      <span className="text-sm font-medium text-gray-500">AC/Non-AC</span>
                       <p className="text-gray-900">{formData.acNonAc}</p>
                     </div>
                   )}
                   
                   {formData.fuelInclusion && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Fuel</Label>
+                      <span className="text-sm font-medium text-gray-500">Fuel</span>
                       <p className="text-gray-900">Included</p>
                     </div>
                   )}
@@ -296,7 +296,7 @@ export default function ModernReviewStep({
                 
                 {formData.driverDetails && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Driver Details</Label>
+                    <span className="text-sm font-medium text-gray-500">Driver Details</span>
                     <p className="text-gray-900">{formData.driverDetails}</p>
                   </div>
                 )}
@@ -317,14 +317,14 @@ export default function ModernReviewStep({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {formData.hotelCategory && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Hotel Category</Label>
+                      <span className="text-sm font-medium text-gray-500">Hotel Category</span>
                       <p className="text-gray-900">{formData.hotelCategory}</p>
                     </div>
                   )}
                   
                   {formData.roomType && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Room Type</Label>
+                      <span className="text-sm font-medium text-gray-500">Room Type</span>
                       <p className="text-gray-900">{formData.roomType}</p>
                     </div>
                   )}
@@ -332,7 +332,7 @@ export default function ModernReviewStep({
                 
                 {formData.hotelNameOptions && formData.hotelNameOptions.length > 0 && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Hotel Options</Label>
+                    <span className="text-sm font-medium text-gray-500">Hotel Options</span>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {formData.hotelNameOptions.map((hotel, index) => (
                         <Badge key={index} variant="outline">{hotel}</Badge>
@@ -343,7 +343,7 @@ export default function ModernReviewStep({
                 
                 {formData.checkInCheckOut && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Check-in/Check-out</Label>
+                    <span className="text-sm font-medium text-gray-500">Check-in/Check-out</span>
                     <p className="text-gray-900">{formData.checkInCheckOut}</p>
                   </div>
                 )}
@@ -364,28 +364,28 @@ export default function ModernReviewStep({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {formData.departureAirport && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Departure Airport</Label>
+                      <span className="text-sm font-medium text-gray-500">Departure Airport</span>
                       <p className="text-gray-900">{formData.departureAirport}</p>
                     </div>
                   )}
                   
                   {formData.arrivalAirport && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Arrival Airport</Label>
+                      <span className="text-sm font-medium text-gray-500">Arrival Airport</span>
                       <p className="text-gray-900">{formData.arrivalAirport}</p>
                     </div>
                   )}
                   
                   {formData.flightClass && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Flight Class</Label>
+                      <span className="text-sm font-medium text-gray-500">Flight Class</span>
                       <p className="text-gray-900">{formData.flightClass}</p>
                     </div>
                   )}
                   
                   {formData.airlinePreference && (
                     <div>
-                      <Label className="text-sm font-medium text-gray-500">Airline Preference</Label>
+                      <span className="text-sm font-medium text-gray-500">Airline Preference</span>
                       <p className="text-gray-900">{formData.airlinePreference}</p>
                     </div>
                   )}
@@ -393,14 +393,14 @@ export default function ModernReviewStep({
                 
                 {formData.baggageAllowance && (
                   <div>
-                    <Label className="text-sm font-medium text-gray-500">Baggage Allowance</Label>
+                    <span className="text-sm font-medium text-gray-500">Baggage Allowance</span>
                     <p className="text-gray-900">{formData.baggageAllowance}</p>
                   </div>
                 )}
               </CardContent>
             </Card>
           )}
-        </div>
+      </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
@@ -573,7 +573,7 @@ export default function ModernReviewStep({
           ) : (
             <>
               <Star className="w-5 h-5 mr-2" />
-              Publish Package
+          Publish Package
               <ArrowRight className="w-5 h-5 ml-2" />
             </>
           )}
