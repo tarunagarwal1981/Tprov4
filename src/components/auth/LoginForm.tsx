@@ -19,7 +19,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const { login, state, clearError } = useAuth();
+  const { signIn, state, clearError } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
@@ -86,7 +86,7 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data.email, data.password);
+      await signIn(data.email, data.password);
       // Redirect is handled by useEffect above
     } catch (error) {
       // Error is handled by the auth context
@@ -97,7 +97,7 @@ export function LoginForm() {
   const handleDemoLogin = async (email: string, password: string) => {
     console.log('🎯 Demo login clicked:', { email, password });
     try {
-      await login(email, password);
+      await signIn(email, password);
       console.log('✅ Demo login completed');
       
       // Force redirect after a short delay to ensure state is updated
@@ -236,25 +236,25 @@ export function LoginForm() {
 
           <div className="mt-6 grid grid-cols-1 gap-3">
             <button
-              onClick={() => handleDemoLogin('admin@test.com', '1')}
+              onClick={() => handleDemoLogin('admin@travelbooking.com', 'Admin123!')}
               disabled={isSubmitting}
               className="btn btn-secondary w-full"
             >
-              Demo as Admin (Password: 1)
+              Demo as Super Admin
             </button>
             <button
-              onClick={() => handleDemoLogin('operator@test.com', '1')}
+              onClick={() => handleDemoLogin('operator@adventuretravel.com', 'Operator123!')}
               disabled={isSubmitting}
               className="btn btn-secondary w-full"
             >
-              Demo as Tour Operator (Password: 1)
+              Demo as Tour Operator
             </button>
             <button
-              onClick={() => handleDemoLogin('agent@test.com', '1')}
+              onClick={() => handleDemoLogin('agent@travelpro.com', 'Agent123!')}
               disabled={isSubmitting}
               className="btn btn-secondary w-full"
             >
-              Demo as Travel Agent (Password: 1)
+              Demo as Travel Agent
             </button>
           </div>
         </div>
