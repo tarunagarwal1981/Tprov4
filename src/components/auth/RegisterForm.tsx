@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth, RegisterData } from '@/context/AuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 

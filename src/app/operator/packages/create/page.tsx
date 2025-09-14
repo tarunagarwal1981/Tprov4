@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ModernPackageWizard from '@/components/packages/create/ModernPackageWizard';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 import { UserRole } from '@/lib/types';
 
 export default function CreatePackagePage() {

@@ -2,7 +2,7 @@
 
 import React, { ReactNode, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 import { UserRole } from '@/lib/types';
 
 interface ProtectedRouteProps {
