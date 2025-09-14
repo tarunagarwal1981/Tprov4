@@ -122,12 +122,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (userProfile) {
+        console.log('📋 Raw user profile from database:', userProfile);
         const user = UserService.convertToAppUser(userProfile);
+        console.log('👤 Converted user profile:', user);
         dispatch({ type: 'SET_USER_PROFILE', payload: user });
         
         // Update last login
         await UserService.updateLastLogin(supabaseUser.id);
       } else {
+        console.log('❌ User profile not found for user:', supabaseUser.id);
         dispatch({ type: 'SET_ERROR', payload: 'User profile not found' });
       }
     } catch (error) {

@@ -67,6 +67,7 @@ export function LoginForm() {
       currentPath: window.location.pathname
     });
     
+    // Only redirect if we have both authentication AND user profile loaded
     if (state.isAuthenticated && state.user && !state.isLoading) {
       const dashboardUrl = getDashboardUrl(state.user.role);
       console.log('🚀 Redirecting to dashboard:', dashboardUrl);

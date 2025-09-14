@@ -1,10 +1,10 @@
 import { Suspense } from 'react';
-import { LoginForm } from '@/components/auth/LoginForm';
+import { SimpleLoginForm } from '@/components/auth/SimpleLoginForm';
 
 export default function LoginPage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <LoginForm />
+      <SimpleLoginForm />
     </Suspense>
   );
 }

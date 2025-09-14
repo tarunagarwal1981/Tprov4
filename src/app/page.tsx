@@ -4,7 +4,7 @@ import { Header } from '@/components/landing/Header';
 import { Hero } from '@/components/landing/Hero';
 import { Stats } from '@/components/landing/Stats';
 import { Features } from '@/components/landing/Features';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 import { UserRole } from '@/lib/types';
 import { EnvDebugger } from '@/components/debug/EnvDebugger';
 

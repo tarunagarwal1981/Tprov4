@@ -1,11 +1,11 @@
 'use client';
 
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { SimpleProtectedRoute } from '@/components/auth/SimpleProtectedRoute';
 import { UserRole } from '@/lib/types';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 
 function AgentDashboard() {
-  const { state } = useAuth();
+  const { state } = useSimpleAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -14,7 +14,7 @@ function AgentDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Travel Agent Dashboard</h1>
-              <p className="text-gray-600 mt-1">Welcome back, {state.user?.profile.firstName}!</p>
+              <p className="text-gray-600 mt-1">Welcome back, {state.user?.profile?.firstName || state.user?.name || 'User'}!</p>
             </div>
             <div className="flex items-center gap-4">
               <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
@@ -134,8 +134,8 @@ function AgentDashboard() {
 
 export default function AgentDashboardPage() {
   return (
-    <ProtectedRoute requiredRoles={[UserRole.TRAVEL_AGENT]}>
+    <SimpleProtectedRoute requiredRoles={[UserRole.TRAVEL_AGENT]}>
       <AgentDashboard />
-    </ProtectedRoute>
+    </SimpleProtectedRoute>
   );
 }

@@ -3,26 +3,27 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
+import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export function Header() {
-  const { state, logout } = useAuth();
+  const { state, signOut } = useSimpleAuth();
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   const getDashboardUrl = () => {
     if (!state.user) return '/auth/login';
     
     switch (state.user.role) {
-      case 'ADMIN':
-      case 'SUPER_ADMIN':
+      case UserRole.ADMIN:
+      case UserRole.SUPER_ADMIN:
         return '/admin/dashboard';
-      case 'TOUR_OPERATOR':
+      case UserRole.TOUR_OPERATOR:
         return '/operator/dashboard';
-      case 'TRAVEL_AGENT':
+      case UserRole.TRAVEL_AGENT:
         return '/agent/dashboard';
       default:
         return '/';
@@ -82,7 +83,7 @@ export function Header() {
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-3">
-            {state.isAuthenticated ? (
+            {state.user ? (
               <>
                 <span className="hidden sm:inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
                   {state.user?.role.replace('_', ' ')}

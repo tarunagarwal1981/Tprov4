@@ -131,12 +131,27 @@ export class UserService {
 
   // Convert database user to app user format
   static convertToAppUser(dbUser: DbUser): User {
+    // Handle profile conversion - ensure it has the expected structure
+    let profile = dbUser.profile as any;
+    
+    // If profile doesn't have firstName/lastName, try to extract from name or create defaults
+    if (!profile || typeof profile !== 'object') {
+      profile = {};
+    }
+    
+    // Extract firstName and lastName from name if not present in profile
+    if (!profile.firstName || !profile.lastName) {
+      const nameParts = dbUser.name.split(' ');
+      profile.firstName = profile.firstName || nameParts[0] || 'User';
+      profile.lastName = profile.lastName || nameParts.slice(1).join(' ') || '';
+    }
+    
     return {
       id: dbUser.id,
       email: dbUser.email,
       name: dbUser.name,
       role: dbUser.role as UserRole,
-      profile: dbUser.profile as any,
+      profile: profile,
       createdAt: new Date(dbUser.created_at),
       updatedAt: new Date(dbUser.updated_at),
       isActive: dbUser.is_active,

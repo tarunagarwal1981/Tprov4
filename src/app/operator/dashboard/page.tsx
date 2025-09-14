@@ -12,16 +12,16 @@ import {
   Star,
   Clock
 } from 'lucide-react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { SimpleProtectedRoute } from '@/components/auth/SimpleProtectedRoute';
 import { UserRole } from '@/lib/types';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 
 function OperatorDashboard() {
-  const { state } = useAuth();
+  const { state } = useSimpleAuth();
   
   console.log('🏢 OperatorDashboard component loaded:', {
     user: state.user,
-    isAuthenticated: state.isAuthenticated
+    isLoading: state.isLoading
   });
 
   const stats = [
@@ -115,7 +115,7 @@ function OperatorDashboard() {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Tour Operator Dashboard</h1>
-        <p className="text-gray-600 mt-1">Welcome back, {state.user?.profile.firstName}! Here's what's happening with your business.</p>
+        <p className="text-gray-600 mt-1">Welcome back, {state.user?.profile?.firstName || state.user?.name || 'User'}! Here's what's happening with your business.</p>
       </div>
 
       {/* Stats Grid */}
@@ -303,8 +303,8 @@ export default function OperatorDashboardPage() {
   console.log('📄 OperatorDashboardPage wrapper loaded');
   
   return (
-    <ProtectedRoute requiredRoles={[UserRole.TOUR_OPERATOR]}>
+    <SimpleProtectedRoute requiredRoles={[UserRole.TOUR_OPERATOR]}>
       <OperatorDashboard />
-    </ProtectedRoute>
+    </SimpleProtectedRoute>
   );
 }

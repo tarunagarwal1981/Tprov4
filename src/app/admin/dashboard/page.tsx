@@ -1,11 +1,11 @@
 'use client';
 
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { SimpleProtectedRoute } from '@/components/auth/SimpleProtectedRoute';
 import { UserRole } from '@/lib/types';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 
 function AdminDashboard() {
-  const { state } = useAuth();
+  const { state } = useSimpleAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -14,7 +14,7 @@ function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 mt-1">Welcome back, {state.user?.profile.firstName}!</p>
+              <p className="text-gray-600 mt-1">Welcome back, {state.user?.profile?.firstName || state.user?.name || 'User'}!</p>
             </div>
             <div className="flex items-center gap-4">
               <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
@@ -119,8 +119,8 @@ function AdminDashboard() {
 
 export default function AdminDashboardPage() {
   return (
-    <ProtectedRoute requiredRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+    <SimpleProtectedRoute requiredRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
       <AdminDashboard />
-    </ProtectedRoute>
+    </SimpleProtectedRoute>
   );
 }
