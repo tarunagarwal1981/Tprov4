@@ -321,7 +321,32 @@ export function usePackageWizard() {
     // Validate all steps
     const allStepsValid = wizardState.steps.every(step => {
       if (step.isCompleted) return true;
-      return validateStep(step.id);
+      
+      // Inline validation for each step
+      let validationResult;
+      switch (step.id) {
+        case 'package-type':
+          validationResult = validatePackageType({ type: wizardState.formData.type });
+          break;
+        case 'basic-info':
+          validationResult = validateBasicInfo({
+            title: wizardState.formData.title,
+            description: wizardState.formData.description,
+            shortDescription: wizardState.formData.shortDescription,
+            duration: wizardState.formData.duration,
+            groupSize: wizardState.formData.groupSize,
+            difficulty: wizardState.formData.difficulty,
+            destinations: wizardState.formData.destinations,
+            category: wizardState.formData.category,
+            tags: wizardState.formData.tags,
+            isFeatured: wizardState.formData.isFeatured
+          });
+          break;
+        default:
+          validationResult = { success: true };
+      }
+      
+      return validationResult.success;
     });
 
     if (!allStepsValid) {
@@ -415,7 +440,7 @@ export function usePackageWizard() {
     } finally {
       setWizardState(prev => ({ ...prev, isSaving: false }));
     }
-  }, [wizardState.formData, wizardState.steps, wizardState.errors, validateStep]);
+  }, [wizardState.formData, wizardState.steps, wizardState.errors]);
 
   // Reset wizard
   const resetWizard = useCallback(() => {
@@ -494,7 +519,6 @@ export function usePackageWizard() {
     nextStep,
     previousStep,
     updateFormData,
-    validateStep,
     saveDraft,
     publishPackage,
     resetWizard

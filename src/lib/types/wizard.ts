@@ -72,7 +72,6 @@ export interface WizardActions {
   nextStep: () => void;
   previousStep: () => void;
   updateFormData: (data: Partial<PackageFormData>) => void;
-  validateStep: (step: WizardStep) => boolean;
   saveDraft: () => Promise<void>;
   publishPackage: () => Promise<PackageCreationResult>;
   resetWizard: () => void;
