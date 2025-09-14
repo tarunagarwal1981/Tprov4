@@ -64,6 +64,8 @@ export function SimpleAuthProvider({ children }: AuthProviderProps) {
 
       if (userProfile) {
         console.log('✅ User profile loaded:', userProfile);
+        console.log('🔍 User role from database:', userProfile.role);
+        console.log('🔍 User role type:', typeof userProfile.role);
         return {
           id: userProfile.id,
           email: userProfile.email,
@@ -71,6 +73,9 @@ export function SimpleAuthProvider({ children }: AuthProviderProps) {
           role: userProfile.role as UserRole,
           profile: userProfile.profile,
         };
+      } else {
+        console.log('❌ No user profile found in database for user:', supabaseUser.id);
+        console.log('🔍 User email:', supabaseUser.email);
       }
 
       return null;

@@ -69,23 +69,36 @@ export function SimpleLoginForm() {
     });
     
     if (state.user && !state.isLoading) {
+      console.log('🔍 User role for redirect:', state.user.role);
+      console.log('🔍 User role type:', typeof state.user.role);
       const dashboardUrl = getDashboardUrl(state.user.role);
       console.log('🚀 Redirecting to dashboard:', dashboardUrl);
+      console.log('🔍 Current path before redirect:', window.location.pathname);
       router.replace(dashboardUrl);
+    } else {
+      console.log('⏳ Not redirecting yet - user:', !!state.user, 'loading:', state.isLoading);
     }
   }, [state.user, state.isLoading, router]);
 
   // ===== GET DASHBOARD URL =====
   const getDashboardUrl = (role: UserRole): string => {
+    console.log('🎯 getDashboardUrl called with role:', role);
+    console.log('🎯 Role comparison with UserRole.TOUR_OPERATOR:', role === UserRole.TOUR_OPERATOR);
+    console.log('🎯 UserRole.TOUR_OPERATOR value:', UserRole.TOUR_OPERATOR);
+    
     switch (role) {
       case UserRole.ADMIN:
       case UserRole.SUPER_ADMIN:
+        console.log('🎯 Redirecting to admin dashboard');
         return '/admin/dashboard';
       case UserRole.TOUR_OPERATOR:
+        console.log('🎯 Redirecting to operator dashboard');
         return '/operator/dashboard';
       case UserRole.TRAVEL_AGENT:
+        console.log('🎯 Redirecting to agent dashboard');
         return '/agent/dashboard';
       default:
+        console.log('🎯 Default redirect to home');
         return '/';
     }
   };
