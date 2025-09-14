@@ -90,6 +90,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData?: { name: string; role?: UserRole }) => Promise<{ success: boolean; error?: string }>;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  logout: () => Promise<void>; // Alias for signOut for compatibility
   updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
   hasRole: (role: UserRole) => boolean;
   hasAnyRole: (roles: UserRole[]) => boolean;
@@ -339,11 +340,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
+  // ===== LOGOUT ALIAS =====
+  const logout = async (): Promise<void> => {
+    return signOut();
+  };
+
   const value: AuthContextType = {
     state,
     signUp,
     signIn,
     signOut,
+    logout,
     updateProfile,
     hasRole,
     hasAnyRole,
