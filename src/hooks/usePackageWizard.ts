@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
 import { 
   WizardStep, 
   StepConfig, 
@@ -141,40 +140,6 @@ export function usePackageWizard() {
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<Partial<PackageFormData>>({});
 
-  // Initialize form with react-hook-form
-  const form = useForm<PackageFormData>({
-    mode: 'onChange',
-    defaultValues: {
-      type: undefined, // No default type - user must select
-      title: '',
-      description: '',
-      shortDescription: '',
-      difficulty: DifficultyLevel.MODERATE,
-      duration: { days: 7, nights: 6 },
-      groupSize: { min: 2, max: 12, ideal: 6 },
-      tags: [],
-      isFeatured: false,
-      destinations: [],
-      itinerary: [],
-      inclusions: [],
-      exclusions: [],
-      termsAndConditions: [],
-      pricing: {
-        basePrice: 0,
-        currency: 'USD',
-        pricePerPerson: true,
-        groupDiscounts: [],
-        seasonalPricing: [],
-        inclusions: [],
-        taxes: { gst: 0, serviceTax: 0, tourismTax: 0, other: [] },
-        fees: { bookingFee: 0, processingFee: 0, cancellationFee: 0, other: [] }
-      },
-      images: [],
-      coverImage: '',
-      status: PackageStatus.DRAFT
-    }
-  });
-
 
   // Update form data
   const updateFormData = useCallback((data: Partial<PackageFormData>) => {
@@ -183,11 +148,6 @@ export function usePackageWizard() {
       formData: { ...prev.formData, ...data },
       isDirty: true
     }));
-
-    // Update react-hook-form
-    Object.entries(data).forEach(([key, value]) => {
-      form.setValue(key as keyof PackageFormData, value);
-    });
   }, []);
 
   // Navigate to a specific step
@@ -205,9 +165,16 @@ export function usePackageWizard() {
 
   // Go to next step
   const nextStep = useCallback(() => {
+    console.log('🚀 nextStep called');
     setWizardState(prev => {
+      console.log('🔍 Current state:', prev);
       const currentIndex = prev.steps.findIndex(s => s.id === prev.currentStep);
-      if (currentIndex === -1 || currentIndex >= prev.steps.length - 1) return prev;
+      console.log('🔍 Current step index:', currentIndex);
+      
+      if (currentIndex === -1 || currentIndex >= prev.steps.length - 1) {
+        console.log('❌ Cannot proceed - at last step or invalid index');
+        return prev;
+      }
 
       // Validate current step
       let validationResult;
@@ -233,8 +200,11 @@ export function usePackageWizard() {
           validationResult = { success: true };
       }
 
+      console.log('🔍 Validation result:', validationResult);
+
       if (!validationResult.success) {
         const formattedErrors = formatValidationErrors(validationResult.error);
+        console.log('❌ Validation failed:', formattedErrors);
         return {
           ...prev,
           errors: formattedErrors,
@@ -243,7 +213,10 @@ export function usePackageWizard() {
       }
 
       const nextStepConfig = prev.steps[currentIndex + 1];
+      console.log('🔍 Next step config:', nextStepConfig);
+      
       if (nextStepConfig) {
+        console.log('✅ Proceeding to next step:', nextStepConfig.id);
         return {
           ...prev,
           currentStep: nextStepConfig.id,
@@ -448,9 +421,8 @@ export function usePackageWizard() {
       errors: {},
       isValid: false
     });
-    form.reset();
     localStorage.removeItem('package-draft');
-  }, [form]);
+  }, []);
 
   // Auto-save functionality
   useEffect(() => {
@@ -494,7 +466,7 @@ export function usePackageWizard() {
     } else {
       console.log('✨ No saved draft found, starting fresh');
     }
-  }, [form]);
+  }, []);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -521,7 +493,6 @@ export function usePackageWizard() {
 
   return {
     ...wizardState,
-    ...actions,
-    form
+    ...actions
   };
 }

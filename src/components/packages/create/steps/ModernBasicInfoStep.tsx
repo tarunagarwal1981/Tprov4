@@ -117,8 +117,16 @@ export default function ModernBasicInfoStep({
   };
 
   const handleNext = () => {
+    console.log('🔘 Continue to Destinations button clicked');
+    console.log('🔍 isValid:', isValid);
+    console.log('🔍 formData:', formData);
+    console.log('🔍 errors:', errors);
+    
     if (isValid) {
+      console.log('✅ Validation passed, calling onNext');
       onNext();
+    } else {
+      console.log('❌ Validation failed, not proceeding');
     }
   };
 
