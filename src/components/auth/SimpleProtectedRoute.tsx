@@ -85,7 +85,13 @@ export function SimpleProtectedRoute({
 
   // ===== LOADING STATE =====
   if (state.isLoading) {
-    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user);
+    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname);
+    
+    // If we're on a dashboard page and user is null, we might be redirecting
+    if (pathname.includes('/dashboard') && !state.user) {
+      console.log('🔄 On dashboard page with no user, might be redirecting...');
+    }
+    
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>

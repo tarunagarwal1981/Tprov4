@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,6 +41,7 @@ const demoUsers = [
 export function SimpleLoginForm() {
   const { signIn, state, clearError } = useSimpleAuth();
   const router = useRouter();
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const {
     register,
@@ -78,8 +79,9 @@ export function SimpleLoginForm() {
       // Only redirect if we're still on the login page
       if (window.location.pathname === '/auth/login' || window.location.pathname === '/auth/login/') {
         console.log('🔄 Currently on login page, redirecting to dashboard');
-        // Use window.location.href for a full page navigation
-        window.location.href = dashboardUrl;
+        setIsRedirecting(true);
+        // Use window.location.replace for immediate redirect without history
+        window.location.replace(dashboardUrl);
       } else {
         console.log('🔄 Not on login page, no redirect needed');
       }
@@ -140,6 +142,18 @@ export function SimpleLoginForm() {
       setError('root', { message: 'Demo login failed' });
     }
   };
+
+  // ===== SHOW REDIRECTING STATE =====
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-lg text-gray-600">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">

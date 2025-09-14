@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +44,7 @@ interface FormData extends BasicInfoData, RoleSelectionData, CompanyInfoData {}
 export function RegisterForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<Partial<FormData>>({});
-  const { register: registerUser, state, clearError } = useAuth();
+  const { signUp: registerUser, state, clearError } = useSimpleAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -79,10 +79,20 @@ export function RegisterForm() {
   };
 
   const handleSubmit = async (data: CompanyInfoData) => {
-    const finalData = { ...formData, ...data } as RegisterData;
+    const finalData = { ...formData, ...data } as FormData;
     try {
-      await registerUser(finalData);
-      router.push('/');
+      const result = await registerUser(
+        finalData.email,
+        finalData.password,
+        `${finalData.firstName} ${finalData.lastName}`,
+        finalData.role
+      );
+      
+      if (result.success) {
+        router.push('/');
+      } else {
+        console.error('Registration error:', result.error);
+      }
     } catch (error) {
       console.error('Registration error:', error);
     }

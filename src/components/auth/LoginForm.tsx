@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useSimpleAuth } from '@/context/SimpleAuthContext';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -19,7 +19,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const { signIn, state, clearError } = useAuth();
+  const { signIn, state, clearError } = useSimpleAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
