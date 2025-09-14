@@ -74,7 +74,17 @@ export function SimpleLoginForm() {
       const dashboardUrl = getDashboardUrl(state.user.role);
       console.log('🚀 Redirecting to dashboard:', dashboardUrl);
       console.log('🔍 Current path before redirect:', window.location.pathname);
+      
+      // Try router.replace first
       router.replace(dashboardUrl);
+      
+      // Fallback: Use window.location if router doesn't work
+      setTimeout(() => {
+        if (window.location.pathname === '/auth/login' || window.location.pathname === '/auth/login/') {
+          console.log('🔄 Router redirect failed, using window.location.replace');
+          window.location.replace(dashboardUrl);
+        }
+      }, 1000);
     } else {
       console.log('⏳ Not redirecting yet - user:', !!state.user, 'loading:', state.isLoading);
     }
