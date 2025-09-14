@@ -188,7 +188,7 @@ export function usePackageWizard() {
     Object.entries(data).forEach(([key, value]) => {
       form.setValue(key as keyof PackageFormData, value);
     });
-  }, [form]);
+  }, []);
 
   // Navigate to a specific step
   const goToStep = useCallback((step: WizardStep) => {
@@ -285,36 +285,31 @@ export function usePackageWizard() {
 
   // Save draft
   const saveDraft = useCallback(async (): Promise<void> => {
-    if (!wizardState.isDirty) return;
-
-    setWizardState(prev => ({ ...prev, isSaving: true }));
-
-    try {
+    setWizardState(prev => {
+      if (!prev.isDirty) return prev;
+      
       const draftData: DraftPackage = {
         id: `draft-${Date.now()}`,
-        formData: wizardState.formData,
+        formData: prev.formData,
         createdAt: new Date(),
         updatedAt: new Date(),
-        lastStep: wizardState.currentStep,
+        lastStep: prev.currentStep,
         isPublished: false
       };
 
       // Save to localStorage for now (in real app, this would be an API call)
       localStorage.setItem('package-draft', JSON.stringify(draftData));
 
-      setWizardState(prev => ({
+      lastSavedDataRef.current = { ...prev.formData };
+
+      return {
         ...prev,
         isDirty: false,
         isSaving: false,
         lastSaved: new Date()
-      }));
-
-      lastSavedDataRef.current = { ...wizardState.formData };
-    } catch (error) {
-      console.error('Error saving draft:', error);
-      setWizardState(prev => ({ ...prev, isSaving: false }));
-    }
-  }, [wizardState.formData, wizardState.currentStep, wizardState.isDirty]);
+      };
+    });
+  }, []);
 
   // Publish package
   const publishPackage = useCallback(async (): Promise<PackageCreationResult> => {
@@ -440,7 +435,7 @@ export function usePackageWizard() {
     } finally {
       setWizardState(prev => ({ ...prev, isSaving: false }));
     }
-  }, [wizardState.formData, wizardState.steps, wizardState.errors]);
+  }, []);
 
   // Reset wizard
   const resetWizard = useCallback(() => {
@@ -476,7 +471,7 @@ export function usePackageWizard() {
         clearTimeout(autoSaveTimeoutRef.current);
       }
     };
-  }, [wizardState.isDirty, saveDraft]);
+  }, [wizardState.isDirty]);
 
   // Load draft on mount
   useEffect(() => {
