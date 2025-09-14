@@ -1,4 +1,4 @@
-import { supabase, supabaseAdmin } from './supabase'
+import { supabase } from '../supabase'
 import { 
   DbPackage, 
   DbPackageInsert, 
@@ -6,11 +6,273 @@ import {
   PackageWithDetails,
   SupabaseResponse,
   SupabaseListResponse 
-} from './supabase-types'
-import { Package, PackageStatus, PackageType } from './types'
+} from '../supabase-types'
+import { Package, PackageStatus, PackageType } from '../types'
+
+// Service response interfaces to match existing code
+export interface ServiceResponse<T> {
+  data: T;
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+export interface PackageFilters {
+  type?: PackageType;
+  status?: PackageStatus;
+  difficulty?: string;
+  priceRange?: {
+    min: number;
+    max: number;
+  };
+  destinations?: string[];
+  tags?: string[];
+  featured?: boolean;
+}
+
+export interface PackageSearchParams {
+  query?: string;
+  filters?: PackageFilters;
+  sortBy?: 'title' | 'price' | 'createdAt' | 'rating';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+}
 
 export class PackageService {
   // Create a new package
+  async createPackage(packageData: DbPackageInsert): Promise<ServiceResponse<DbPackage>> {
+    try {
+      const { data, error } = await PackageService.createPackage(packageData);
+      
+      if (error) {
+        return { data: null as any, success: false, error: error.message || 'Failed to create package' };
+      }
+      
+      return { data, success: true, message: 'Package created successfully' };
+    } catch (error) {
+      return { 
+        data: null as any, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to create package' 
+      };
+    }
+  }
+
+  // Get packages with filtering and pagination (compatible with existing interface)
+  async getPackages(params: PackageSearchParams = {}): Promise<ServiceResponse<PaginatedResponse<Package>>> {
+    try {
+      const { data, error, count } = await PackageService.getPackages({
+        status: params.filters?.status || 'ACTIVE',
+        type: params.filters?.type,
+        featured: params.filters?.featured,
+        search: params.query,
+        limit: params.limit || 12,
+        offset: ((params.page || 1) - 1) * (params.limit || 12)
+      });
+
+      if (error) {
+        return { 
+          data: null as any, 
+          success: false, 
+          error: error.message || 'Failed to fetch packages' 
+        };
+      }
+
+      // Convert to app packages
+      const packages = data?.map(pkg => PackageService.convertToAppPackage(pkg)) || [];
+      
+      const totalPages = count ? Math.ceil(count / (params.limit || 12)) : 0;
+      const currentPage = params.page || 1;
+
+      return {
+        data: {
+          data: packages,
+          page: currentPage,
+          limit: params.limit || 12,
+          total: count || 0,
+          totalPages,
+          hasNext: currentPage < totalPages,
+          hasPrev: currentPage > 1
+        },
+        success: true
+      };
+    } catch (error) {
+      return { 
+        data: null as any, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to fetch packages' 
+      };
+    }
+  }
+
+  // Get package by ID
+  async getPackageById(id: string): Promise<ServiceResponse<Package>> {
+    try {
+      const { data, error } = await PackageService.getPackageById(id);
+      
+      if (error) {
+        return { data: null as any, success: false, error: error.message || 'Failed to fetch package' };
+      }
+      
+      if (!data) {
+        return { data: null as any, success: false, error: 'Package not found' };
+      }
+
+      const packageData = PackageService.convertToAppPackage(data);
+      return { data: packageData, success: true };
+    } catch (error) {
+      return { 
+        data: null as any, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to fetch package' 
+      };
+    }
+  }
+
+  // Update package
+  async updatePackage(id: string, updates: DbPackageUpdate): Promise<ServiceResponse<Package>> {
+    try {
+      const { data, error } = await PackageService.updatePackage(id, updates);
+      
+      if (error) {
+        return { data: null as any, success: false, error: error.message || 'Failed to update package' };
+      }
+      
+      if (!data) {
+        return { data: null as any, success: false, error: 'Package not found' };
+      }
+
+      const packageData = PackageService.convertToAppPackage(data);
+      return { data: packageData, success: true, message: 'Package updated successfully' };
+    } catch (error) {
+      return { 
+        data: null as any, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to update package' 
+      };
+    }
+  }
+
+  // Delete package
+  async deletePackage(id: string): Promise<ServiceResponse<boolean>> {
+    try {
+      const { data, error } = await PackageService.deletePackage(id);
+      
+      if (error) {
+        return { data: false, success: false, error: error.message || 'Failed to delete package' };
+      }
+      
+      return { data: true, success: true, message: 'Package deleted successfully' };
+    } catch (error) {
+      return { 
+        data: false, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to delete package' 
+      };
+    }
+  }
+
+  // Get package statistics
+  async getPackageStats(): Promise<ServiceResponse<{
+    totalPackages: number;
+    activePackages: number;
+    totalRevenue: number;
+    averageRating: number;
+  }>> {
+    try {
+      // Get all packages for stats
+      const { data: packages, error } = await PackageService.getPackages({ limit: 1000 });
+      
+      if (error) {
+        return { 
+          data: { totalPackages: 0, activePackages: 0, totalRevenue: 0, averageRating: 0 }, 
+          success: false, 
+          error: error.message || 'Failed to fetch package statistics' 
+        };
+      }
+
+      const totalPackages = packages?.length || 0;
+      const activePackages = packages?.filter(pkg => pkg.status === 'ACTIVE').length || 0;
+      
+      // Calculate total revenue (mock calculation - you'd need booking data for real revenue)
+      const totalRevenue = packages?.reduce((sum, pkg) => {
+        const basePrice = (pkg.pricing as any)?.basePrice || 0;
+        return sum + basePrice * 10; // Mock: assume 10 bookings per package
+      }, 0) || 0;
+      
+      // Calculate average rating
+      const averageRating = packages?.reduce((sum, pkg) => sum + (pkg.rating || 0), 0) / totalPackages || 0;
+
+      return {
+        data: {
+          totalPackages,
+          activePackages,
+          totalRevenue,
+          averageRating
+        },
+        success: true
+      };
+    } catch (error) {
+      return { 
+        data: { totalPackages: 0, activePackages: 0, totalRevenue: 0, averageRating: 0 }, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to fetch package statistics' 
+      };
+    }
+  }
+
+  // Get featured packages
+  async getFeaturedPackages(limit: number = 10): Promise<ServiceResponse<Package[]>> {
+    try {
+      const { data, error } = await PackageService.getFeaturedPackages(limit);
+      
+      if (error) {
+        return { data: [], success: false, error: error.message || 'Failed to fetch featured packages' };
+      }
+      
+      const packages = data?.map(pkg => PackageService.convertToAppPackage(pkg)) || [];
+      return { data: packages, success: true };
+    } catch (error) {
+      return { 
+        data: [], 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to fetch featured packages' 
+      };
+    }
+  }
+
+  // Search packages
+  async searchPackages(query: string, limit: number = 20): Promise<ServiceResponse<Package[]>> {
+    try {
+      const { data, error } = await PackageService.searchPackages(query, limit);
+      
+      if (error) {
+        return { data: [], success: false, error: error.message || 'Failed to search packages' };
+      }
+      
+      const packages = data?.map(pkg => PackageService.convertToAppPackage(pkg)) || [];
+      return { data: packages, success: true };
+    } catch (error) {
+      return { 
+        data: [], 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to search packages' 
+      };
+    }
+  }
+
+  // Static methods from the original PackageService (for backward compatibility)
   static async createPackage(packageData: DbPackageInsert): Promise<SupabaseResponse<DbPackage>> {
     try {
       const { data, error } = await supabase
@@ -27,7 +289,6 @@ export class PackageService {
     }
   }
 
-  // Get package by ID with full details
   static async getPackageById(id: string): Promise<SupabaseResponse<PackageWithDetails>> {
     try {
       const { data, error } = await supabase
@@ -52,7 +313,6 @@ export class PackageService {
     }
   }
 
-  // Get packages with filtering and pagination
   static async getPackages(options: {
     status?: PackageStatus
     type?: PackageType
@@ -128,7 +388,6 @@ export class PackageService {
     }
   }
 
-  // Update package
   static async updatePackage(id: string, updates: DbPackageUpdate): Promise<SupabaseResponse<DbPackage>> {
     try {
       const { data, error } = await supabase
@@ -146,7 +405,6 @@ export class PackageService {
     }
   }
 
-  // Delete package
   static async deletePackage(id: string): Promise<SupabaseResponse<void>> {
     try {
       const { error } = await supabase
@@ -162,37 +420,14 @@ export class PackageService {
     }
   }
 
-  // Update package status
-  static async updatePackageStatus(id: string, status: PackageStatus): Promise<SupabaseResponse<DbPackage>> {
-    return this.updatePackage(id, { status })
-  }
-
-  // Get packages by tour operator
-  static async getPackagesByTourOperator(tourOperatorId: string): Promise<SupabaseListResponse<PackageWithDetails>> {
-    return this.getPackages({ tourOperatorId })
-  }
-
-  // Get featured packages
   static async getFeaturedPackages(limit: number = 10): Promise<SupabaseListResponse<PackageWithDetails>> {
     return this.getPackages({ featured: true, status: 'ACTIVE', limit })
   }
 
-  // Search packages
   static async searchPackages(searchTerm: string, limit: number = 20): Promise<SupabaseListResponse<PackageWithDetails>> {
     return this.getPackages({ search: searchTerm, status: 'ACTIVE', limit })
   }
 
-  // Get packages by destination
-  static async getPackagesByDestination(destination: string, limit: number = 20): Promise<SupabaseListResponse<PackageWithDetails>> {
-    return this.getPackages({ destinations: [destination], status: 'ACTIVE', limit })
-  }
-
-  // Get packages by tags
-  static async getPackagesByTags(tags: string[], limit: number = 20): Promise<SupabaseListResponse<PackageWithDetails>> {
-    return this.getPackages({ tags, status: 'ACTIVE', limit })
-  }
-
-  // Convert database package to app package format
   static convertToAppPackage(dbPackage: PackageWithDetails): Package {
     return {
       id: dbPackage.id,
@@ -221,7 +456,6 @@ export class PackageService {
     }
   }
 
-  // Convert app package to database format
   static convertToDbPackage(appPackage: Partial<Package>): DbPackageInsert {
     return {
       tour_operator_id: appPackage.tourOperatorId!,
@@ -247,3 +481,6 @@ export class PackageService {
     }
   }
 }
+
+// Export singleton instance
+export const packageService = new PackageService();
