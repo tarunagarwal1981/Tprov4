@@ -101,7 +101,6 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
     nextStep,
     previousStep,
     updateFormData,
-    validateStep,
     saveDraft,
     publishPackage,
     resetWizard,
@@ -158,9 +157,7 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
 
   // Handle step navigation
   const handleStepClick = (step: WizardStep) => {
-    if (validateStep(currentStep)) {
-      goToStep(step);
-    }
+    goToStep(step);
   };
 
   return (

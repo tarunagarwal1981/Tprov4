@@ -175,49 +175,6 @@ export function usePackageWizard() {
     }
   });
 
-  // Validate a specific step
-  const validateStep = useCallback((step: WizardStep): boolean => {
-    let validationResult;
-    
-    switch (step) {
-      case 'package-type':
-        validationResult = validatePackageType({ type: wizardState.formData.type });
-        break;
-      case 'basic-info':
-        validationResult = validateBasicInfo({
-          title: wizardState.formData.title,
-          description: wizardState.formData.description,
-          shortDescription: wizardState.formData.shortDescription,
-          duration: wizardState.formData.duration,
-          groupSize: wizardState.formData.groupSize,
-          difficulty: wizardState.formData.difficulty,
-          destinations: wizardState.formData.destinations,
-          category: wizardState.formData.category,
-          tags: wizardState.formData.tags,
-          isFeatured: wizardState.formData.isFeatured
-        });
-        break;
-      default:
-        return true;
-    }
-
-    if (validationResult.success) {
-      setWizardState(prev => ({
-        ...prev,
-        errors: {},
-        isValid: true
-      }));
-      return true;
-    } else {
-      const formattedErrors = formatValidationErrors(validationResult.error);
-      setWizardState(prev => ({
-        ...prev,
-        errors: formattedErrors,
-        isValid: false
-      }));
-      return false;
-    }
-  }, [wizardState.formData]);
 
   // Update form data
   const updateFormData = useCallback((data: Partial<PackageFormData>) => {
@@ -235,63 +192,96 @@ export function usePackageWizard() {
 
   // Navigate to a specific step
   const goToStep = useCallback((step: WizardStep) => {
-    const stepConfig = wizardState.steps.find(s => s.id === step);
-    if (!stepConfig || !stepConfig.isAccessible) return;
+    setWizardState(prev => {
+      const stepConfig = prev.steps.find(s => s.id === step);
+      if (!stepConfig || !stepConfig.isAccessible) return prev;
 
-    setWizardState(prev => ({
-      ...prev,
-      currentStep: step
-    }));
-  }, [wizardState.steps]);
+      return {
+        ...prev,
+        currentStep: step
+      };
+    });
+  }, []);
 
   // Go to next step
   const nextStep = useCallback(() => {
-    const currentIndex = wizardState.steps.findIndex(s => s.id === wizardState.currentStep);
-    if (currentIndex === -1 || currentIndex >= wizardState.steps.length - 1) return;
+    setWizardState(prev => {
+      const currentIndex = prev.steps.findIndex(s => s.id === prev.currentStep);
+      if (currentIndex === -1 || currentIndex >= prev.steps.length - 1) return prev;
 
-    // Validate current step
-    if (!validateStep(wizardState.currentStep)) {
-      return;
-    }
+      // Validate current step
+      let validationResult;
+      switch (prev.currentStep) {
+        case 'package-type':
+          validationResult = validatePackageType({ type: prev.formData.type });
+          break;
+        case 'basic-info':
+          validationResult = validateBasicInfo({
+            title: prev.formData.title,
+            description: prev.formData.description,
+            shortDescription: prev.formData.shortDescription,
+            duration: prev.formData.duration,
+            groupSize: prev.formData.groupSize,
+            difficulty: prev.formData.difficulty,
+            destinations: prev.formData.destinations,
+            category: prev.formData.category,
+            tags: prev.formData.tags,
+            isFeatured: prev.formData.isFeatured
+          });
+          break;
+        default:
+          validationResult = { success: true };
+      }
 
-    const nextStepConfig = wizardState.steps[currentIndex + 1];
-    if (nextStepConfig) {
-      // Mark current step as completed
-      setWizardState(prev => ({
-        ...prev,
-        currentStep: nextStepConfig.id,
-        steps: prev.steps.map(step => 
-          step.id === wizardState.currentStep 
-            ? { ...step, isCompleted: true }
-            : step
-        )
-      }));
+      if (!validationResult.success) {
+        const formattedErrors = formatValidationErrors(validationResult.error);
+        return {
+          ...prev,
+          errors: formattedErrors,
+          isValid: false
+        };
+      }
 
-      // Make next step accessible
-      setWizardState(prev => ({
-        ...prev,
-        steps: prev.steps.map(step => 
-          step.id === nextStepConfig.id 
-            ? { ...step, isAccessible: true }
-            : step
-        )
-      }));
-    }
-  }, [wizardState.currentStep, wizardState.steps, validateStep]);
+      const nextStepConfig = prev.steps[currentIndex + 1];
+      if (nextStepConfig) {
+        return {
+          ...prev,
+          currentStep: nextStepConfig.id,
+          errors: {},
+          isValid: true,
+          steps: prev.steps.map(step => {
+            if (step.id === prev.currentStep) {
+              return { ...step, isCompleted: true };
+            }
+            if (step.id === nextStepConfig.id) {
+              return { ...step, isAccessible: true };
+            }
+            return step;
+          })
+        };
+      }
+
+      return prev;
+    });
+  }, []);
 
   // Go to previous step
   const previousStep = useCallback(() => {
-    const currentIndex = wizardState.steps.findIndex(s => s.id === wizardState.currentStep);
-    if (currentIndex <= 0) return;
+    setWizardState(prev => {
+      const currentIndex = prev.steps.findIndex(s => s.id === prev.currentStep);
+      if (currentIndex <= 0) return prev;
 
-    const prevStepConfig = wizardState.steps[currentIndex - 1];
-    if (prevStepConfig) {
-      setWizardState(prev => ({
-        ...prev,
-        currentStep: prevStepConfig.id
-      }));
-    }
-  }, [wizardState.currentStep, wizardState.steps]);
+      const prevStepConfig = prev.steps[currentIndex - 1];
+      if (prevStepConfig) {
+        return {
+          ...prev,
+          currentStep: prevStepConfig.id
+        };
+      }
+
+      return prev;
+    });
+  }, []);
 
   // Save draft
   const saveDraft = useCallback(async (): Promise<void> => {

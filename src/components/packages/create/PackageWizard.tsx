@@ -58,7 +58,6 @@ export default function PackageWizard({ className }: PackageWizardProps) {
     nextStep,
     previousStep,
     updateFormData,
-    validateStep,
     saveDraft,
     publishPackage,
     resetWizard,
@@ -108,10 +107,7 @@ export default function PackageWizard({ className }: PackageWizardProps) {
 
   // Handle step navigation
   const handleStepClick = (step: WizardStep) => {
-    // Validate current step before navigating
-    if (validateStep(currentStep)) {
-      goToStep(step);
-    }
+    goToStep(step);
   };
 
   // Auto-save indicator
