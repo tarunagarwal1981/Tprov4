@@ -120,6 +120,8 @@ export default function ModernLocationTimingStep({
   onNext,
   onPrevious
 }: StepProps) {
+  console.log('📍 ModernLocationTimingStep loaded with dynamic fields!');
+  
   const [localData, setLocalData] = useState({
     place: formData.place || '',
     fromLocation: formData.fromLocation || '',
