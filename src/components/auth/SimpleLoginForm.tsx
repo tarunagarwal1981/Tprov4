@@ -75,9 +75,14 @@ export function SimpleLoginForm() {
       console.log('🚀 Redirecting to dashboard:', dashboardUrl);
       console.log('🔍 Current path before redirect:', window.location.pathname);
       
-      // Use window.location.replace for immediate redirect
-      console.log('🔄 Using window.location.replace for immediate redirect');
-      window.location.replace(dashboardUrl);
+      // Only redirect if we're still on the login page
+      if (window.location.pathname === '/auth/login' || window.location.pathname === '/auth/login/') {
+        console.log('🔄 Currently on login page, redirecting to dashboard');
+        // Use window.location.href for a full page navigation
+        window.location.href = dashboardUrl;
+      } else {
+        console.log('🔄 Not on login page, no redirect needed');
+      }
     } else {
       console.log('⏳ Not redirecting yet - user:', !!state.user, 'loading:', state.isLoading);
     }

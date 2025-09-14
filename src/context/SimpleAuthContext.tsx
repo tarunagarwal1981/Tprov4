@@ -142,12 +142,14 @@ export function SimpleAuthProvider({ children }: AuthProviderProps) {
         if (event === 'SIGNED_IN' && session?.user) {
           console.log('✅ User signed in');
           const userProfile = await loadUserProfile(session.user);
+          console.log('🔍 User profile loaded, updating state:', userProfile);
           setState({
             user: userProfile,
             session,
             isLoading: false,
             error: null,
           });
+          console.log('✅ Auth state updated after sign in');
         } else if (event === 'SIGNED_OUT') {
           console.log('👋 User signed out');
           setState({
