@@ -221,15 +221,15 @@ export default function ModernBasicInfoStep({
             </Label>
             <Input
               id="name"
-              value={formData.name || ''}
-              onChange={(e) => updateFormData({ name: e.target.value })}
+              value={formData.title || ''}
+              onChange={(e) => updateFormData({ title: e.target.value })}
               placeholder="e.g., Amazing Bali Adventure"
               className="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
-            {errors.name && (
+            {errors.title && (
               <div className="flex items-center mt-2 text-red-600 text-sm">
                 <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.name[0]}
+                {errors.title[0]}
               </div>
             )}
           </div>
@@ -264,8 +264,17 @@ export default function ModernBasicInfoStep({
               id="duration"
               type="number"
               min="1"
-              value={formData.duration || ''}
-              onChange={(e) => updateFormData({ duration: parseInt(e.target.value) || 0 })}
+              value={formData.duration?.days || ''}
+              onChange={(e) => {
+                const days = parseInt(e.target.value) || 0;
+                const nights = Math.max(0, days - 1); // Default nights = days - 1
+                updateFormData({ 
+                  duration: { 
+                    days, 
+                    nights 
+                  } 
+                });
+              }}
               placeholder="e.g., 7"
               className="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
@@ -286,15 +295,26 @@ export default function ModernBasicInfoStep({
               id="maxGroupSize"
               type="number"
               min="1"
-              value={formData.maxGroupSize || ''}
-              onChange={(e) => updateFormData({ maxGroupSize: parseInt(e.target.value) || 0 })}
+              value={formData.groupSize?.max || ''}
+              onChange={(e) => {
+                const max = parseInt(e.target.value) || 0;
+                const min = formData.groupSize?.min || 1;
+                const ideal = formData.groupSize?.ideal || Math.ceil(max / 2);
+                updateFormData({ 
+                  groupSize: { 
+                    min: Math.min(min, max), // Ensure min doesn't exceed max
+                    max, 
+                    ideal: Math.min(ideal, max) // Ensure ideal doesn't exceed max
+                  } 
+                });
+              }}
               placeholder="e.g., 12"
               className="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500"
             />
-            {errors.maxGroupSize && (
+            {errors.groupSize && (
               <div className="flex items-center mt-2 text-red-600 text-sm">
                 <AlertCircle className="w-4 h-4 mr-1" />
-                {errors.maxGroupSize[0]}
+                {errors.groupSize[0]}
               </div>
             )}
           </div>
