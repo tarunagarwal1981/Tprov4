@@ -10,8 +10,8 @@ declare global {
   var __supabaseAdminClient: any;
 }
 
-// Log environment status for debugging
-if (typeof window !== 'undefined') {
+// Log environment status for debugging (only once)
+if (typeof window !== 'undefined' && !global.__supabaseClient) {
   console.log('🔍 Supabase Environment Check:');
   console.log('URL:', supabaseUrl ? '✅ Loaded' : '❌ Missing');
   console.log('Key:', supabaseAnonKey ? '✅ Loaded' : '❌ Missing');
@@ -23,9 +23,15 @@ if (!global.__supabaseClient) {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined
     }
   });
+  
+  // Log successful client creation
+  if (typeof window !== 'undefined') {
+    console.log('✅ Supabase client created successfully');
+  }
 }
 
 if (!global.__supabaseAdminClient) {
