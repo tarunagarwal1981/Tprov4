@@ -1,12 +1,53 @@
 import { Package, PackageType, PackageStatus, DifficultyLevel, PackageDuration, GroupSize, PackagePricing, ItineraryDay } from '@/lib/types';
 
+// Additional interfaces for the expanded form data
+export interface GroupDiscount {
+  minGroupSize: number;
+  maxGroupSize?: number;
+  discountPercentage: number;
+  discountAmount?: number;
+}
+
+export interface SeasonalPricing {
+  season: string;
+  startDate: string;
+  endDate: string;
+  priceMultiplier: number;
+  additionalCharges?: number;
+}
+
+export interface ValidityDates {
+  startDate: string;
+  endDate: string;
+  blackoutDates?: string[];
+}
+
+export interface CancellationPolicy {
+  freeCancellationDays: number;
+  cancellationFees: CancellationFee[];
+  forceMajeurePolicy: string;
+}
+
+export interface CancellationFee {
+  daysBeforeTravel: number;
+  feePercentage: number;
+}
+
+export interface RefundPolicy {
+  refundable: boolean;
+  refundPercentage: number;
+  processingDays: number;
+  conditions: string[];
+}
+
 // Wizard Step Types
 export type WizardStep = 
   | 'package-type'
   | 'basic-info'
-  | 'destinations'
-  | 'pricing'
-  | 'media'
+  | 'location-timing'
+  | 'detailed-planning'
+  | 'inclusions-exclusions'
+  | 'pricing-policies'
   | 'review';
 
 // Step Configuration
@@ -28,28 +69,94 @@ export interface PackageFormData {
   title: string;
   description: string;
   shortDescription: string;
+  bannerImage: string;
+  additionalImages: string[];
+  additionalNotes: string;
+  
+  // Step 3: Location & Timing
+  place: string;
+  fromLocation?: string;
+  toLocation?: string;
+  multipleDestinations: string[];
+  pickupPoints: string[];
+  durationHours?: number;
+  durationDays?: number;
+  startTime?: string;
+  endTime?: string;
+  timingNotes: string;
+  
+  // Step 4: Detailed Planning
+  itinerary: ItineraryDay[];
+  activitiesPerDay: string[];
+  mealPlanPerDay: string[];
+  freeTimeLeisure: string[];
+  
+  // Accommodation (for Land Package with Hotel, Fixed Departure with Flight, Multi-City Tour)
+  hotelCategory?: string;
+  roomType?: string;
+  hotelNameOptions?: string[];
+  checkInCheckOut?: string;
+  
+  // Transportation
+  vehicleType: string;
+  acNonAc: string;
+  driverDetails?: string;
+  fuelInclusion: boolean;
+  
+  // Flights (for Fixed Departure with Flight)
+  departureAirport?: string;
+  arrivalAirport?: string;
+  flightClass?: string;
+  airlinePreference?: string;
+  baggageAllowance?: string;
+  
+  // Step 5: Inclusions & Exclusions
+  tourInclusions: string[];
+  mealInclusions: string[];
+  entryTickets: string[];
+  guideServices: string[];
+  insurance: string[];
+  tourExclusions: string[];
+  personalExpenses: string[];
+  optionalActivities: string[];
+  visaDocumentation: string[];
+  
+  // Step 6: Pricing & Policies
+  adultPrice: number;
+  childPrice: number;
+  infantPrice?: number;
+  seniorCitizenPrice?: number;
+  groupDiscounts: GroupDiscount[];
+  seasonalPricing: SeasonalPricing[];
+  validityDates: ValidityDates;
+  currency: string;
+  
+  // Booking Policies
+  minGroupSize: number;
+  maxGroupSize: number;
+  advanceBookingDays: number;
+  cancellationPolicy: CancellationPolicy;
+  refundPolicy: RefundPolicy;
+  paymentTerms: string[];
+  
+  // Additional Fields
+  ageRestrictions: string[];
+  physicalRequirements: string[];
+  specialEquipment: string[];
+  weatherDependency: string[];
+  languageOptions: string[];
+  dressCode: string[];
+  
+  // Legacy fields (keeping for compatibility)
   difficulty: DifficultyLevel;
-  duration: PackageDuration;
   groupSize: GroupSize;
   tags: string[];
   isFeatured: boolean;
   category: string;
-  
-  // Step 3: Destinations & Itinerary
-  destinations: string[];
-  itinerary: ItineraryDay[];
-  inclusions: string[];
-  exclusions: string[];
   termsAndConditions: string[];
-  
-  // Step 4: Pricing & Commission
   pricing: PackagePricing;
-  
-  // Step 5: Media & Gallery
   images: string[];
   coverImage: string;
-  
-  // Step 6: Review & Publish
   status: PackageStatus;
   publishDate?: Date;
 }

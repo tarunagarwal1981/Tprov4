@@ -30,9 +30,10 @@ import { cn } from '@/lib/utils';
 // Import step components
 import ModernPackageTypeStep from './steps/ModernPackageTypeStep';
 import ModernBasicInfoStep from './steps/ModernBasicInfoStep';
-import ModernDestinationsStep from './steps/ModernDestinationsStep';
-import ModernPricingStep from './steps/ModernPricingStep';
-import ModernMediaStep from './steps/ModernMediaStep';
+import ModernLocationTimingStep from './steps/ModernLocationTimingStep';
+import ModernDetailedPlanningStep from './steps/ModernDetailedPlanningStep';
+import ModernInclusionsExclusionsStep from './steps/ModernInclusionsExclusionsStep';
+import ModernPricingPoliciesStep from './steps/ModernPricingPoliciesStep';
 import ModernReviewStep from './steps/ModernReviewStep';
 
 interface ModernPackageWizardProps {
@@ -43,9 +44,10 @@ interface ModernPackageWizardProps {
 const STEP_COMPONENTS: Record<WizardStep, React.ComponentType<StepProps>> = {
   'package-type': ModernPackageTypeStep,
   'basic-info': ModernBasicInfoStep,
-  'destinations': ModernDestinationsStep,
-  'pricing': ModernPricingStep,
-  'media': ModernMediaStep,
+  'location-timing': ModernLocationTimingStep,
+  'detailed-planning': ModernDetailedPlanningStep,
+  'inclusions-exclusions': ModernInclusionsExclusionsStep,
+  'pricing-policies': ModernPricingPoliciesStep,
   'review': ModernReviewStep
 };
 
@@ -61,23 +63,28 @@ const STEP_CONFIG = {
     title: 'Basic Info',
     description: 'Tell us about your package'
   },
-  'destinations': {
+  'location-timing': {
     icon: MapPin,
-    title: 'Destinations',
-    description: 'Where will you take them?'
+    title: 'Location & Timing',
+    description: 'Where and when?'
   },
-  'pricing': {
+  'detailed-planning': {
+    icon: Clock,
+    title: 'Detailed Planning',
+    description: 'Plan the experience'
+  },
+  'inclusions-exclusions': {
+    icon: CheckCircle,
+    title: 'Inclusions & Exclusions',
+    description: 'What\'s included?'
+  },
+  'pricing-policies': {
     icon: DollarSign,
-    title: 'Pricing',
+    title: 'Pricing & Policies',
     description: 'Set your prices'
   },
-  'media': {
-    icon: Camera,
-    title: 'Photos',
-    description: 'Show them the experience'
-  },
   'review': {
-    icon: CheckCircle,
+    icon: Eye,
     title: 'Review',
     description: 'Ready to publish?'
   }

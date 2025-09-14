@@ -37,28 +37,36 @@ const STEP_CONFIGS: StepConfig[] = [
     order: 2
   },
   {
-    id: 'destinations',
-    title: 'Destinations & Itinerary',
-    description: 'Set destinations and create your itinerary',
+    id: 'location-timing',
+    title: 'Location & Timing',
+    description: 'Set destinations, timing, and duration',
     isCompleted: false,
     isAccessible: false,
     order: 3
   },
   {
-    id: 'pricing',
-    title: 'Pricing & Commission',
-    description: 'Configure pricing and commission settings',
+    id: 'detailed-planning',
+    title: 'Detailed Planning',
+    description: 'Create itinerary and detailed planning',
     isCompleted: false,
     isAccessible: false,
     order: 4
   },
   {
-    id: 'media',
-    title: 'Media & Gallery',
-    description: 'Upload images and media for your package',
+    id: 'inclusions-exclusions',
+    title: 'Inclusions & Exclusions',
+    description: 'Define what\'s included and excluded',
     isCompleted: false,
     isAccessible: false,
     order: 5
+  },
+  {
+    id: 'pricing-policies',
+    title: 'Pricing & Policies',
+    description: 'Set pricing and booking policies',
+    isCompleted: false,
+    isAccessible: false,
+    order: 6
   },
   {
     id: 'review',
@@ -66,7 +74,7 @@ const STEP_CONFIGS: StepConfig[] = [
     description: 'Review your package and publish it',
     isCompleted: false,
     isAccessible: false,
-    order: 6
+    order: 7
   }
 ];
 
@@ -84,31 +92,40 @@ const STEP_VALIDATIONS: StepValidation[] = [
       { field: 'title', required: true, minLength: 3, maxLength: 100 },
       { field: 'description', required: true, minLength: 50, maxLength: 2000 },
       { field: 'shortDescription', required: true, minLength: 10, maxLength: 200 },
-      { field: 'difficulty', required: true },
-      { field: 'duration', required: true },
-      { field: 'groupSize', required: true }
+      { field: 'bannerImage', required: true }
     ]
   },
   {
-    step: 'destinations',
+    step: 'location-timing',
     rules: [
-      { field: 'destinations', required: true },
+      { field: 'place', required: true },
+      { field: 'pickupPoints', required: true },
+      { field: 'timingNotes', required: true }
+    ]
+  },
+  {
+    step: 'detailed-planning',
+    rules: [
       { field: 'itinerary', required: true },
-      { field: 'inclusions', required: true },
-      { field: 'exclusions', required: true }
+      { field: 'vehicleType', required: true },
+      { field: 'acNonAc', required: true }
     ]
   },
   {
-    step: 'pricing',
+    step: 'inclusions-exclusions',
     rules: [
-      { field: 'pricing', required: true }
+      { field: 'tourInclusions', required: true },
+      { field: 'tourExclusions', required: true }
     ]
   },
   {
-    step: 'media',
+    step: 'pricing-policies',
     rules: [
-      { field: 'images', required: true },
-      { field: 'coverImage', required: true }
+      { field: 'adultPrice', required: true },
+      { field: 'childPrice', required: true },
+      { field: 'currency', required: true },
+      { field: 'minGroupSize', required: true },
+      { field: 'maxGroupSize', required: true }
     ]
   },
   {
@@ -181,14 +198,20 @@ export function usePackageWizard() {
             title: prev.formData.title,
             description: prev.formData.description,
             shortDescription: prev.formData.shortDescription,
-            duration: prev.formData.duration,
-            groupSize: prev.formData.groupSize,
-            difficulty: prev.formData.difficulty,
-            destinations: prev.formData.destinations,
-            category: prev.formData.category,
-            tags: prev.formData.tags,
-            isFeatured: prev.formData.isFeatured
+            bannerImage: prev.formData.bannerImage
           });
+          break;
+        case 'location-timing':
+          validationResult = { success: true }; // Add validation logic
+          break;
+        case 'detailed-planning':
+          validationResult = { success: true }; // Add validation logic
+          break;
+        case 'inclusions-exclusions':
+          validationResult = { success: true }; // Add validation logic
+          break;
+        case 'pricing-policies':
+          validationResult = { success: true }; // Add validation logic
           break;
         default:
           validationResult = { success: true };
@@ -295,14 +318,20 @@ export function usePackageWizard() {
             title: wizardState.formData.title,
             description: wizardState.formData.description,
             shortDescription: wizardState.formData.shortDescription,
-            duration: wizardState.formData.duration,
-            groupSize: wizardState.formData.groupSize,
-            difficulty: wizardState.formData.difficulty,
-            destinations: wizardState.formData.destinations,
-            category: wizardState.formData.category,
-            tags: wizardState.formData.tags,
-            isFeatured: wizardState.formData.isFeatured
+            bannerImage: wizardState.formData.bannerImage
           });
+          break;
+        case 'location-timing':
+          validationResult = { success: true }; // Add validation logic
+          break;
+        case 'detailed-planning':
+          validationResult = { success: true }; // Add validation logic
+          break;
+        case 'inclusions-exclusions':
+          validationResult = { success: true }; // Add validation logic
+          break;
+        case 'pricing-policies':
+          validationResult = { success: true }; // Add validation logic
           break;
         default:
           validationResult = { success: true };
@@ -327,23 +356,23 @@ export function usePackageWizard() {
         tourOperatorId: 'op-001', // This would come from auth context
         title: wizardState.formData.title || '',
         description: wizardState.formData.description || '',
-        type: wizardState.formData.type || PackageType.LAND_PACKAGE,
+        type: wizardState.formData.type || PackageType.ACTIVITY,
         status: wizardState.formData.status || PackageStatus.DRAFT,
-        pricing: wizardState.formData.pricing || {
-          basePrice: 0,
-          currency: 'USD',
+        pricing: {
+          basePrice: wizardState.formData.adultPrice || 0,
+          currency: wizardState.formData.currency || 'USD',
           pricePerPerson: true,
-          groupDiscounts: [],
-          seasonalPricing: [],
-          inclusions: [],
+          groupDiscounts: wizardState.formData.groupDiscounts || [],
+          seasonalPricing: wizardState.formData.seasonalPricing || [],
+          inclusions: wizardState.formData.tourInclusions || [],
           taxes: { gst: 0, serviceTax: 0, tourismTax: 0, other: [] },
           fees: { bookingFee: 0, processingFee: 0, cancellationFee: 0, other: [] }
         },
         itinerary: wizardState.formData.itinerary || [],
-        inclusions: wizardState.formData.inclusions || [],
-        exclusions: wizardState.formData.exclusions || [],
+        inclusions: wizardState.formData.tourInclusions || [],
+        exclusions: wizardState.formData.tourExclusions || [],
         termsAndConditions: wizardState.formData.termsAndConditions || [],
-        cancellationPolicy: {
+        cancellationPolicy: wizardState.formData.cancellationPolicy || {
           freeCancellationDays: 7,
           cancellationFees: [
             { daysBeforeTravel: 7, feePercentage: 0 },
@@ -359,10 +388,17 @@ export function usePackageWizard() {
           },
           forceMajeurePolicy: 'Full refund for force majeure events'
         },
-        images: wizardState.formData.images || [],
-        destinations: wizardState.formData.destinations || [],
-        duration: wizardState.formData.duration || { days: 1, nights: 0 },
-        groupSize: wizardState.formData.groupSize || { min: 1, max: 10, ideal: 5 },
+        images: wizardState.formData.additionalImages || [],
+        destinations: wizardState.formData.multipleDestinations || [],
+        duration: {
+          days: wizardState.formData.durationDays || 1,
+          nights: wizardState.formData.durationDays ? wizardState.formData.durationDays - 1 : 0
+        },
+        groupSize: {
+          min: wizardState.formData.minGroupSize || 1,
+          max: wizardState.formData.maxGroupSize || 10,
+          ideal: Math.floor((wizardState.formData.minGroupSize || 1 + wizardState.formData.maxGroupSize || 10) / 2)
+        },
         difficulty: wizardState.formData.difficulty || DifficultyLevel.MODERATE,
         tags: wizardState.formData.tags || [],
         isFeatured: wizardState.formData.isFeatured || false,

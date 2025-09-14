@@ -20,7 +20,7 @@ export const packageTypeInfo: Record<PackageType, PackageTypeInfo> = {
   [PackageType.ACTIVITY]: {
     type: PackageType.ACTIVITY,
     title: 'Activity',
-    subtitle: 'Day trips & experiences',
+    subtitle: 'Single activity/experience',
     description: 'Perfect for single-day experiences, tours, and activities that don\'t require overnight stays.',
     icon: 'Activity',
     gradient: 'from-emerald-500 to-teal-600',
@@ -61,7 +61,7 @@ export const packageTypeInfo: Record<PackageType, PackageTypeInfo> = {
   [PackageType.TRANSFERS]: {
     type: PackageType.TRANSFERS,
     title: 'Transfers',
-    subtitle: 'Transportation only',
+    subtitle: 'Point-to-point transportation',
     description: 'Transportation services between locations, airports, hotels, or attractions.',
     icon: 'Car',
     gradient: 'from-blue-500 to-cyan-600',
@@ -101,8 +101,8 @@ export const packageTypeInfo: Record<PackageType, PackageTypeInfo> = {
   [PackageType.LAND_PACKAGE]: {
     type: PackageType.LAND_PACKAGE,
     title: 'Land Package',
-    subtitle: 'Complete ground tour',
-    description: 'Comprehensive ground-based tours with multiple destinations, activities, and services.',
+    subtitle: 'Multi-day tour without accommodation',
+    description: 'Comprehensive ground-based tours with multiple destinations, activities, and services without accommodation.',
     icon: 'Package',
     gradient: 'from-purple-500 to-indigo-600',
     bgGradient: 'from-purple-50 to-indigo-50',
@@ -111,18 +111,17 @@ export const packageTypeInfo: Record<PackageType, PackageTypeInfo> = {
       'Multi-day itineraries',
       'Multiple destinations',
       'Comprehensive services',
-      'All-inclusive options'
+      'No accommodation included'
     ],
     tips: [
       'Create detailed day-by-day itineraries',
       'Include all meals and activities',
-      'Specify accommodation standards',
+      'Specify transportation details',
       'Mention group size limits'
     ],
     examples: [
       'Cultural heritage tours',
       'Adventure expeditions',
-      'Wellness retreats',
       'Educational tours',
       'Photography workshops'
     ],
@@ -134,15 +133,15 @@ export const packageTypeInfo: Record<PackageType, PackageTypeInfo> = {
     ],
     mediaTips: [
       'Show diverse destinations',
-      'Include accommodation photos',
+      'Include activity photos',
       'Show group activities',
       'Highlight unique experiences'
     ]
   },
-  [PackageType.HOTEL]: {
-    type: PackageType.HOTEL,
+  [PackageType.LAND_PACKAGE_WITH_HOTEL]: {
+    type: PackageType.LAND_PACKAGE_WITH_HOTEL,
     title: 'Land Package with Hotel',
-    subtitle: 'Tour + accommodation',
+    subtitle: 'Multi-day tour with accommodation',
     description: 'Complete packages that include both tour activities and hotel accommodations.',
     icon: 'Building',
     gradient: 'from-orange-500 to-red-600',
@@ -179,10 +178,10 @@ export const packageTypeInfo: Record<PackageType, PackageTypeInfo> = {
       'Highlight package value'
     ]
   },
-  [PackageType.FLIGHT]: {
-    type: PackageType.FLIGHT,
+  [PackageType.FIXED_DEPARTURE_WITH_FLIGHT]: {
+    type: PackageType.FIXED_DEPARTURE_WITH_FLIGHT,
     title: 'Fixed Departure with Flight',
-    subtitle: 'Group tours with flights',
+    subtitle: 'Complete package with flights',
     description: 'Pre-scheduled group tours that include flights and complete travel arrangements.',
     icon: 'Plane',
     gradient: 'from-sky-500 to-blue-600',
@@ -219,124 +218,84 @@ export const packageTypeInfo: Record<PackageType, PackageTypeInfo> = {
       'Highlight group benefits'
     ]
   },
-  [PackageType.CRUISE]: {
-    type: PackageType.CRUISE,
-    title: 'Cruise Package',
-    subtitle: 'Cruise + shore excursions',
-    description: 'Cruise packages with included shore excursions and onboard activities.',
-    icon: 'Ship',
-    gradient: 'from-cyan-500 to-blue-600',
-    bgGradient: 'from-cyan-50 to-blue-50',
-    popular: false,
+  [PackageType.DAY_TOUR]: {
+    type: PackageType.DAY_TOUR,
+    title: 'Day Tour',
+    subtitle: 'Single day complete tour',
+    description: 'Complete single-day tours that include activities, transportation, and meals.',
+    icon: 'Sun',
+    gradient: 'from-yellow-500 to-orange-600',
+    bgGradient: 'from-yellow-50 to-orange-50',
+    popular: true,
     features: [
-      'Cruise accommodation',
-      'Shore excursions',
-      'Onboard activities',
-      'All-inclusive dining'
+      'Single day complete experience',
+      'All-inclusive day tours',
+      'Transportation included',
+      'Perfect for day trips'
     ],
     tips: [
-      'Specify cruise line and ship',
-      'Detail cabin categories',
-      'Include shore excursion options',
-      'Mention onboard amenities'
+      'Specify start and end times',
+      'Include all activities and meals',
+      'Mention pickup points',
+      'Detail what\'s included'
     ],
     examples: [
-      'Mediterranean cruises',
-      'Caribbean cruises',
-      'Alaska cruises',
-      'River cruises'
+      'City sightseeing tours',
+      'Nature day trips',
+      'Cultural day experiences',
+      'Adventure day tours'
     ],
     pricingTips: [
-      'Include cruise and excursion costs',
-      'Consider cabin upgrade options',
-      'Factor in port fees',
-      'Offer early booking discounts'
+      'All-inclusive pricing',
+      'Include transportation costs',
+      'Consider meal inclusions',
+      'Offer group discounts'
     ],
     mediaTips: [
-      'Show ship exteriors and cabins',
-      'Include shore excursion photos',
-      'Show onboard activities',
-      'Highlight cruise amenities'
+      'Show day itinerary highlights',
+      'Include transportation photos',
+      'Show meal experiences',
+      'Highlight day tour value'
     ]
   },
-  [PackageType.COMBO]: {
-    type: PackageType.COMBO,
-    title: 'Combo Package',
-    subtitle: 'Multiple package types',
-    description: 'Combination packages that include multiple types of experiences and services.',
-    icon: 'Layers',
+  [PackageType.MULTI_CITY_TOUR]: {
+    type: PackageType.MULTI_CITY_TOUR,
+    title: 'Multi-City Tour',
+    subtitle: 'Multiple cities/destinations',
+    description: 'Extended tours covering multiple cities and destinations with comprehensive travel arrangements.',
+    icon: 'Map',
     gradient: 'from-violet-500 to-purple-600',
     bgGradient: 'from-violet-50 to-purple-50',
     popular: false,
     features: [
-      'Multiple experiences',
-      'Flexible combinations',
-      'Customizable options',
-      'Value packages'
+      'Multiple cities/destinations',
+      'Extended itineraries',
+      'Comprehensive travel',
+      'Flexible routing'
     ],
     tips: [
-      'Clearly define what\'s included',
-      'Offer customization options',
-      'Specify package combinations',
-      'Highlight value proposition'
+      'Plan city-to-city logistics',
+      'Include inter-city transportation',
+      'Specify accommodation in each city',
+      'Detail city-specific activities'
     ],
     examples: [
-      'Activity + Transfer combos',
-      'Hotel + Tour packages',
-      'Multi-city experiences',
-      'Seasonal packages'
+      'European city hopping',
+      'Asian multi-country tours',
+      'American coast-to-coast',
+      'African safari circuits'
     ],
     pricingTips: [
-      'Show savings vs individual prices',
-      'Offer combo discounts',
-      'Include all service costs',
-      'Provide flexible payment options'
+      'Include all transportation costs',
+      'Consider city-specific pricing',
+      'Factor in visa requirements',
+      'Offer flexible payment options'
     ],
     mediaTips: [
-      'Show all included services',
-      'Highlight combination benefits',
-      'Include diverse experiences',
-      'Show value proposition'
-    ]
-  },
-  [PackageType.CUSTOM]: {
-    type: PackageType.CUSTOM,
-    title: 'Custom Package',
-    subtitle: 'Tailored experiences',
-    description: 'Fully customized packages designed specifically for individual or group needs.',
-    icon: 'Settings',
-    gradient: 'from-gray-500 to-slate-600',
-    bgGradient: 'from-gray-50 to-slate-50',
-    popular: false,
-    features: [
-      'Fully customizable',
-      'Personalized service',
-      'Flexible itineraries',
-      'Tailored experiences'
-    ],
-    tips: [
-      'Gather detailed requirements',
-      'Offer consultation services',
-      'Provide flexible options',
-      'Set clear customization limits'
-    ],
-    examples: [
-      'Private group tours',
-      'Corporate retreats',
-      'Special occasion packages',
-      'Bespoke experiences'
-    ],
-    pricingTips: [
-      'Provide detailed quotes',
-      'Include consultation fees',
-      'Offer package tiers',
-      'Set minimum group sizes'
-    ],
-    mediaTips: [
-      'Show customization process',
-      'Include consultation photos',
-      'Show diverse custom options',
-      'Highlight personalization'
+      'Show diverse city highlights',
+      'Include transportation between cities',
+      'Show accommodation variety',
+      'Highlight multi-city value'
     ]
   }
 };
