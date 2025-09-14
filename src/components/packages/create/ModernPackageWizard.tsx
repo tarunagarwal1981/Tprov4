@@ -95,6 +95,8 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   
+  console.log('🚀 ModernPackageWizard loaded with updated field matrix!');
+  
   const {
     currentStep,
     steps,

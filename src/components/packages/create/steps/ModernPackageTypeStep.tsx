@@ -37,6 +37,8 @@ export default function ModernPackageTypeStep({
   isValid, 
   onNext 
 }: StepProps) {
+  console.log('🎯 ModernPackageTypeStep loaded with 7 new package types!');
+  
   const [selectedType, setSelectedType] = useState<PackageType | undefined>(
     formData.type
   );
