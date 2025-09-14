@@ -23,7 +23,8 @@ import {
   Sparkles,
   TrendingUp,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  MapPin
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getPackageTypeInfo } from '@/lib/packageTypeInfo';
@@ -108,7 +109,8 @@ export default function ModernBasicInfoStep({
 
   const handleCategorySelect = (categories: string[]) => {
     setSelectedCategories(categories);
-    updateFormData({ categories });
+    // Use the first selected category as the main category
+    updateFormData({ category: categories[0] || '' });
   };
 
   const handleTagSelect = (tags: string[]) => {
@@ -263,6 +265,27 @@ export default function ModernBasicInfoStep({
             )}
           </div>
 
+          {/* Short Description */}
+          <div className="md:col-span-2">
+            <Label htmlFor="shortDescription" className="text-sm font-medium text-gray-700 mb-2 block">
+              Short Description *
+            </Label>
+            <Textarea
+              id="shortDescription"
+              value={formData.shortDescription || ''}
+              onChange={(e) => updateFormData({ shortDescription: e.target.value })}
+              placeholder="A brief summary of your package (10-200 characters)..."
+              rows={2}
+              className="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+            />
+            {errors.shortDescription && (
+              <div className="flex items-center mt-2 text-red-600 text-sm">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                {errors.shortDescription[0]}
+              </div>
+            )}
+          </div>
+
           {/* Duration */}
           <div>
             <Label htmlFor="duration" className="text-sm font-medium text-gray-700 mb-2 block">
@@ -326,6 +349,38 @@ export default function ModernBasicInfoStep({
               </div>
             )}
           </div>
+        </div>
+      </motion.div>
+
+      {/* Destinations */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.15 }}
+        className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm"
+      >
+        <h3 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
+          <MapPin className="w-6 h-6 mr-3 text-green-500" />
+          Destinations *
+        </h3>
+        
+        <div className="space-y-4">
+          <Label htmlFor="destinations" className="text-sm font-medium text-gray-700">
+            Where will this package take travelers? *
+          </Label>
+          <Input
+            id="destinations"
+            value={formData.destinations?.[0] || ''}
+            onChange={(e) => updateFormData({ destinations: [e.target.value] })}
+            placeholder="e.g., Bali, Indonesia"
+            className="rounded-xl border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          />
+          {errors.destinations && (
+            <div className="flex items-center mt-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              {errors.destinations[0]}
+            </div>
+          )}
         </div>
       </motion.div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   WizardStep, 
@@ -129,12 +129,6 @@ export function usePackageWizard() {
     isSaving: false,
     errors: {},
     isValid: false
-  });
-
-  console.log('🚀 usePackageWizard initialized with:', {
-    currentStep: wizardState.currentStep,
-    formData: wizardState.formData,
-    steps: wizardState.steps.map(s => ({ id: s.id, isCompleted: s.isCompleted, isAccessible: s.isAccessible }))
   });
 
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
