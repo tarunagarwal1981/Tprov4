@@ -167,15 +167,79 @@ export function useSupabasePackageWizard() {
       title: '',
       description: '',
       shortDescription: '',
+      bannerImage: '',
+      additionalImages: [],
+      additionalNotes: '',
+      place: '',
+      fromLocation: '',
+      toLocation: '',
+      multipleDestinations: [],
+      pickupPoints: [],
+      durationHours: undefined, // Don't default to 0 - let user set it
+      durationDays: undefined, // Don't default to 0 - let user set it
+      startTime: '',
+      endTime: '',
+      timingNotes: '',
+      itinerary: [],
+      activitiesPerDay: [],
+      mealPlanPerDay: [],
+      freeTimeLeisure: [],
+      hotelCategory: '',
+      roomType: '',
+      hotelNameOptions: [],
+      checkInCheckOut: '',
+      vehicleType: '',
+      acNonAc: '',
+      driverDetails: '',
+      fuelInclusion: false,
+      departureAirport: '',
+      arrivalAirport: '',
+      flightClass: '',
+      airlinePreference: '',
+      baggageAllowance: '',
+      tourInclusions: [],
+      mealInclusions: [],
+      entryTickets: [],
+      guideServices: [],
+      insurance: [],
+      tourExclusions: [],
+      personalExpenses: [],
+      optionalActivities: [],
+      visaDocumentation: [],
+      adultPrice: 0,
+      childPrice: 0,
+      infantPrice: 0,
+      seniorCitizenPrice: 0,
+      groupDiscounts: [],
+      seasonalPricing: [],
+      validityDates: { startDate: '', endDate: '', blackoutDates: [] },
+      currency: 'USD',
+      minGroupSize: 1,
+      maxGroupSize: 10,
+      advanceBookingDays: 7,
+      cancellationPolicy: {
+        freeCancellationDays: 7,
+        cancellationFees: [],
+        forceMajeurePolicy: ''
+      },
+      refundPolicy: {
+        refundable: true,
+        refundPercentage: 100,
+        processingDays: 7,
+        conditions: []
+      },
+      paymentTerms: [],
+      ageRestrictions: [],
+      physicalRequirements: [],
+      specialEquipment: [],
+      weatherDependency: [],
+      languageOptions: [],
+      dressCode: [],
       difficulty: DifficultyLevel.MODERATE,
-      duration: { days: 7, nights: 6 },
       groupSize: { min: 2, max: 12, ideal: 6 },
       tags: [],
       isFeatured: false,
-      destinations: [],
-      itinerary: [],
-      inclusions: [],
-      exclusions: [],
+      category: '',
       termsAndConditions: [],
       pricing: {
         basePrice: 0,
@@ -207,7 +271,97 @@ export function useSupabasePackageWizard() {
     if (step === 'location-timing') {
       const packageType = formValues.type;
       
-      // Always required fields
+      // Field visibility matrix based on package type (matching the component)
+      const FIELD_VISIBILITY = {
+        [PackageType.ACTIVITY]: {
+          place: true,
+          fromLocation: false,
+          toLocation: false,
+          multipleDestinations: false,
+          pickupPoints: true,
+          durationHours: true,
+          durationDays: false,
+          startTime: true,
+          endTime: true,
+          timingNotes: true
+        },
+        [PackageType.TRANSFERS]: {
+          place: true,
+          fromLocation: true,
+          toLocation: true,
+          multipleDestinations: false,
+          pickupPoints: true,
+          durationHours: true,
+          durationDays: false,
+          startTime: true,
+          endTime: false,
+          timingNotes: true
+        },
+        [PackageType.LAND_PACKAGE]: {
+          place: true,
+          fromLocation: true,
+          toLocation: true,
+          multipleDestinations: true,
+          pickupPoints: true,
+          durationHours: false,
+          durationDays: true,
+          startTime: true,
+          endTime: false,
+          timingNotes: true
+        },
+        [PackageType.LAND_PACKAGE_WITH_HOTEL]: {
+          place: true,
+          fromLocation: true,
+          toLocation: true,
+          multipleDestinations: true,
+          pickupPoints: true,
+          durationHours: false,
+          durationDays: true,
+          startTime: true,
+          endTime: false,
+          timingNotes: true
+        },
+        [PackageType.FIXED_DEPARTURE_WITH_FLIGHT]: {
+          place: true,
+          fromLocation: true,
+          toLocation: true,
+          multipleDestinations: true,
+          pickupPoints: true,
+          durationHours: false,
+          durationDays: true,
+          startTime: true,
+          endTime: false,
+          timingNotes: true
+        },
+        [PackageType.DAY_TOUR]: {
+          place: true,
+          fromLocation: true,
+          toLocation: true,
+          multipleDestinations: false,
+          pickupPoints: true,
+          durationHours: true,
+          durationDays: false,
+          startTime: true,
+          endTime: true,
+          timingNotes: true
+        },
+        [PackageType.MULTI_CITY_TOUR]: {
+          place: true,
+          fromLocation: false,
+          toLocation: false,
+          multipleDestinations: true,
+          pickupPoints: true,
+          durationHours: false,
+          durationDays: true,
+          startTime: true,
+          endTime: false,
+          timingNotes: true
+        }
+      };
+      
+      const visibleFields = FIELD_VISIBILITY[packageType] || {};
+      
+      // Always required fields (always visible)
       if (!formValues.place || formValues.place.trim() === '') {
         errors.push('Place is required');
       }
@@ -220,48 +374,213 @@ export function useSupabasePackageWizard() {
         errors.push('Timing notes are required');
       }
       
-      // Package type specific validations
-      if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
-        if (!formValues.fromLocation || formValues.fromLocation.trim() === '') {
-          errors.push('From location is required for this package type');
-        }
-        if (!formValues.toLocation || formValues.toLocation.trim() === '') {
-          errors.push('To location is required for this package type');
-        }
+      // Package type specific validations - only validate visible fields
+      if (visibleFields.fromLocation && (!formValues.fromLocation || formValues.fromLocation.trim() === '')) {
+        errors.push('From location is required');
       }
       
-      if (packageType === 'DAY_TOUR' || packageType === 'ACTIVITY') {
-        if (!formValues.durationHours || formValues.durationHours <= 0) {
-          errors.push('Duration in hours is required for this package type');
-        }
+      if (visibleFields.toLocation && (!formValues.toLocation || formValues.toLocation.trim() === '')) {
+        errors.push('To location is required');
       }
       
-      if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL' || packageType === 'MULTI_CITY_TOUR') {
-        if (!formValues.durationDays || formValues.durationDays <= 0) {
-          errors.push('Duration in days is required for this package type');
-        }
+      if (visibleFields.durationHours && (!formValues.durationHours || formValues.durationHours <= 0)) {
+        errors.push('Duration in hours is required');
       }
       
-      console.log('🔍 Location-timing validation result:', { isValid: errors.length === 0, errors, formValues });
+      if (visibleFields.durationDays && (!formValues.durationDays || formValues.durationDays <= 0)) {
+        errors.push('Duration in days is required');
+      }
+      
+      if (visibleFields.startTime && (!formValues.startTime || formValues.startTime.trim() === '')) {
+        errors.push('Start time is required');
+      }
+      
+      if (visibleFields.endTime && (!formValues.endTime || formValues.endTime.trim() === '')) {
+        errors.push('End time is required');
+      }
+      
+      console.log('🔍 Location-timing validation result:', { 
+        isValid: errors.length === 0, 
+        errors, 
+        formValues, 
+        packageType,
+        visibleFields 
+      });
       return { isValid: errors.length === 0, errors };
     }
 
     // Special validation for detailed-planning step
     if (step === 'detailed-planning') {
-      // Check if difficulty is selected (this should be required)
+      const packageType = formValues.type;
+      
+      // Field visibility matrix for detailed planning (matching the component)
+      const PLANNING_FIELDS = {
+        [PackageType.ACTIVITY]: {
+          itinerary: false,
+          activitiesPerDay: false,
+          mealPlanPerDay: false,
+          freeTimeLeisure: false,
+          hotelCategory: false,
+          roomType: false,
+          hotelNameOptions: false,
+          checkInCheckOut: false,
+          vehicleType: true,
+          acNonAc: true,
+          driverDetails: false,
+          fuelInclusion: true,
+          departureAirport: false,
+          arrivalAirport: false,
+          flightClass: false,
+          airlinePreference: false,
+          baggageAllowance: false
+        },
+        [PackageType.TRANSFERS]: {
+          itinerary: false,
+          activitiesPerDay: false,
+          mealPlanPerDay: false,
+          freeTimeLeisure: false,
+          hotelCategory: false,
+          roomType: false,
+          hotelNameOptions: false,
+          checkInCheckOut: false,
+          vehicleType: true,
+          acNonAc: true,
+          driverDetails: true,
+          fuelInclusion: true,
+          departureAirport: false,
+          arrivalAirport: false,
+          flightClass: false,
+          airlinePreference: false,
+          baggageAllowance: false
+        },
+        [PackageType.LAND_PACKAGE]: {
+          itinerary: true,
+          activitiesPerDay: true,
+          mealPlanPerDay: true,
+          freeTimeLeisure: true,
+          hotelCategory: false,
+          roomType: false,
+          hotelNameOptions: false,
+          checkInCheckOut: false,
+          vehicleType: true,
+          acNonAc: true,
+          driverDetails: true,
+          fuelInclusion: true,
+          departureAirport: false,
+          arrivalAirport: false,
+          flightClass: false,
+          airlinePreference: false,
+          baggageAllowance: false
+        },
+        [PackageType.LAND_PACKAGE_WITH_HOTEL]: {
+          itinerary: true,
+          activitiesPerDay: true,
+          mealPlanPerDay: true,
+          freeTimeLeisure: true,
+          hotelCategory: true,
+          roomType: true,
+          hotelNameOptions: true,
+          checkInCheckOut: true,
+          vehicleType: true,
+          acNonAc: true,
+          driverDetails: true,
+          fuelInclusion: true,
+          departureAirport: false,
+          arrivalAirport: false,
+          flightClass: false,
+          airlinePreference: false,
+          baggageAllowance: false
+        },
+        [PackageType.FIXED_DEPARTURE_WITH_FLIGHT]: {
+          itinerary: true,
+          activitiesPerDay: true,
+          mealPlanPerDay: true,
+          freeTimeLeisure: true,
+          hotelCategory: true,
+          roomType: true,
+          hotelNameOptions: true,
+          checkInCheckOut: true,
+          vehicleType: true,
+          acNonAc: true,
+          driverDetails: true,
+          fuelInclusion: true,
+          departureAirport: true,
+          arrivalAirport: true,
+          flightClass: true,
+          airlinePreference: true,
+          baggageAllowance: true
+        },
+        [PackageType.DAY_TOUR]: {
+          itinerary: true,
+          activitiesPerDay: true,
+          mealPlanPerDay: true,
+          freeTimeLeisure: true,
+          hotelCategory: false,
+          roomType: false,
+          hotelNameOptions: false,
+          checkInCheckOut: false,
+          vehicleType: true,
+          acNonAc: true,
+          driverDetails: true,
+          fuelInclusion: true,
+          departureAirport: false,
+          arrivalAirport: false,
+          flightClass: false,
+          airlinePreference: false,
+          baggageAllowance: false
+        },
+        [PackageType.MULTI_CITY_TOUR]: {
+          itinerary: true,
+          activitiesPerDay: true,
+          mealPlanPerDay: true,
+          freeTimeLeisure: true,
+          hotelCategory: true,
+          roomType: true,
+          hotelNameOptions: true,
+          checkInCheckOut: true,
+          vehicleType: true,
+          acNonAc: true,
+          driverDetails: true,
+          fuelInclusion: true,
+          departureAirport: false,
+          arrivalAirport: false,
+          flightClass: false,
+          airlinePreference: false,
+          baggageAllowance: false
+        }
+      };
+      
+      const visibleFields = PLANNING_FIELDS[packageType] || {};
+      
+      // Only validate fields that are visible/required for this package type
+      if (visibleFields.itinerary && (!formValues.itinerary || formValues.itinerary.length === 0)) {
+        errors.push('Detailed itinerary is required');
+      }
+      
+      if (visibleFields.vehicleType && (!formValues.vehicleType || formValues.vehicleType.trim() === '')) {
+        errors.push('Vehicle type is required');
+      }
+      
+      if (visibleFields.acNonAc && (!formValues.acNonAc || formValues.acNonAc.trim() === '')) {
+        errors.push('AC/Non-AC selection is required');
+      }
+      
+      if (visibleFields.driverDetails && (!formValues.driverDetails || formValues.driverDetails.trim() === '')) {
+        errors.push('Driver details are required');
+      }
+      
+      // Check if difficulty is selected (this should be required for all package types)
       if (!formValues.difficulty) {
         errors.push('Difficulty level is required');
       }
       
-      // Note: Itinerary validation is handled in navigation logic
-      // This allows users to enter the step even with empty itinerary
-      
       console.log('🔍 Detailed-planning validation result:', { 
         isValid: errors.length === 0, 
         errors, 
+        packageType,
+        visibleFields,
         itinerary: formValues.itinerary,
-        difficulty: formValues.difficulty,
-        note: 'Only difficulty validated - itinerary handled in navigation'
+        difficulty: formValues.difficulty
       });
       return { isValid: errors.length === 0, errors };
     }

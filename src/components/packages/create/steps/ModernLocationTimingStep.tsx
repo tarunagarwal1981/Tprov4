@@ -127,8 +127,8 @@ export default function ModernLocationTimingStep({
     toLocation: formData.toLocation || '',
     multipleDestinations: formData.multipleDestinations || [],
     pickupPoints: formData.pickupPoints || [],
-    durationHours: formData.durationHours || 0,
-    durationDays: formData.durationDays || 0,
+    durationHours: formData.durationHours ?? undefined, // Use nullish coalescing to preserve undefined
+    durationDays: formData.durationDays ?? undefined, // Use nullish coalescing to preserve undefined
     startTime: formData.startTime || '',
     endTime: formData.endTime || '',
     timingNotes: formData.timingNotes || '',
