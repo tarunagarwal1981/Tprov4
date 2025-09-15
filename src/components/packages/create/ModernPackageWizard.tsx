@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePackageWizard } from '@/hooks/usePackageWizard';
+import { useSupabasePackageWizard } from '@/hooks/useSupabasePackageWizard';
 import { WizardStep, StepProps } from '@/lib/types/wizard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -112,7 +112,7 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
     publishPackage,
     resetWizard,
     form
-  } = usePackageWizard();
+  } = useSupabasePackageWizard();
 
   // Get current step component
   const CurrentStepComponent = STEP_COMPONENTS[currentStep];
