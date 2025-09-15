@@ -355,6 +355,7 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                     onNext={nextStep}
                     onPrevious={previousStep}
                     onSave={handleSaveDraft}
+                    onPublish={handlePublish}
                   />
                 )}
               </CardContent>

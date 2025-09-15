@@ -193,6 +193,7 @@ export interface StepProps {
   onNext: () => void;
   onPrevious: () => void;
   onSave: () => void;
+  onPublish?: () => Promise<PackageCreationResult>;
 }
 
 // Auto-save Configuration

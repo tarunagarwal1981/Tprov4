@@ -36,7 +36,8 @@ export default function ModernReviewStep({
   errors, 
   isValid, 
   onNext,
-  onPrevious
+  onPrevious,
+  onPublish
 }: StepProps) {
   const [isPublishing, setIsPublishing] = useState(false);
   const packageTypeInfo = formData.type ? getPackageTypeInfo(formData.type) : null;
@@ -46,9 +47,26 @@ export default function ModernReviewStep({
   };
 
   const handlePublish = async () => {
+    if (!onPublish) {
+      console.error('❌ onPublish function not provided');
+      return;
+    }
+    
     setIsPublishing(true);
     try {
-      await onNext(); // This will trigger the publishPackage function
+      console.log('🚀 Calling onPublish function...');
+      const result = await onPublish();
+      console.log('📦 Publish result:', result);
+      
+      if (result && result.success) {
+        console.log('✅ Package published successfully!');
+        // The wizard will handle navigation after successful publish
+      } else {
+        console.log('❌ Publishing failed:', result?.message);
+        // Handle error - could show a toast or error message
+      }
+    } catch (error) {
+      console.error('❌ Error publishing package:', error);
     } finally {
       setIsPublishing(false);
     }
