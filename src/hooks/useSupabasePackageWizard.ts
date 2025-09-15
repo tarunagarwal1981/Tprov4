@@ -588,6 +588,113 @@ export function useSupabasePackageWizard() {
       return { isValid: errors.length === 0, errors };
     }
 
+    // Special validation for inclusions-exclusions step
+    if (step === 'inclusions-exclusions') {
+      const packageType = formValues.type;
+      
+      // Inclusion/Exclusion fields based on package type (matching the component)
+      const INCLUSION_FIELDS = {
+        [PackageType.ACTIVITY]: {
+          tourInclusions: true,
+          mealInclusions: true,
+          entryTickets: true,
+          guideServices: true,
+          insurance: false,
+          tourExclusions: true,
+          personalExpenses: true,
+          optionalActivities: true,
+          visaDocumentation: false
+        },
+        [PackageType.TRANSFERS]: {
+          tourInclusions: true,
+          mealInclusions: false,
+          entryTickets: false,
+          guideServices: false,
+          insurance: false,
+          tourExclusions: true,
+          personalExpenses: true,
+          optionalActivities: false,
+          visaDocumentation: false
+        },
+        [PackageType.LAND_PACKAGE]: {
+          tourInclusions: true,
+          mealInclusions: true,
+          entryTickets: true,
+          guideServices: true,
+          insurance: true,
+          tourExclusions: true,
+          personalExpenses: true,
+          optionalActivities: true,
+          visaDocumentation: true
+        },
+        [PackageType.LAND_PACKAGE_WITH_HOTEL]: {
+          tourInclusions: true,
+          mealInclusions: true,
+          entryTickets: true,
+          guideServices: true,
+          insurance: true,
+          tourExclusions: true,
+          personalExpenses: true,
+          optionalActivities: true,
+          visaDocumentation: true
+        },
+        [PackageType.FIXED_DEPARTURE_WITH_FLIGHT]: {
+          tourInclusions: true,
+          mealInclusions: true,
+          entryTickets: true,
+          guideServices: true,
+          insurance: true,
+          tourExclusions: true,
+          personalExpenses: true,
+          optionalActivities: true,
+          visaDocumentation: true
+        },
+        [PackageType.DAY_TOUR]: {
+          tourInclusions: true,
+          mealInclusions: true,
+          entryTickets: true,
+          guideServices: true,
+          insurance: true,
+          tourExclusions: true,
+          personalExpenses: true,
+          optionalActivities: true,
+          visaDocumentation: false
+        },
+        [PackageType.MULTI_CITY_TOUR]: {
+          tourInclusions: true,
+          mealInclusions: true,
+          entryTickets: true,
+          guideServices: true,
+          insurance: true,
+          tourExclusions: true,
+          personalExpenses: true,
+          optionalActivities: true,
+          visaDocumentation: true
+        }
+      };
+      
+      const visibleFields = INCLUSION_FIELDS[packageType] || {};
+      
+      // Only validate fields that are visible/required for this package type
+      if (visibleFields.tourInclusions && (!formValues.tourInclusions || formValues.tourInclusions.length === 0)) {
+        errors.push('At least one tour inclusion is required');
+      }
+      
+      if (visibleFields.tourExclusions && (!formValues.tourExclusions || formValues.tourExclusions.length === 0)) {
+        errors.push('At least one tour exclusion is required');
+      }
+      
+      console.log('🔍 Inclusions-exclusions validation result:', { 
+        isValid: errors.length === 0, 
+        errors, 
+        packageType,
+        visibleFields,
+        tourInclusions: formValues.tourInclusions,
+        tourExclusions: formValues.tourExclusions
+      });
+      return { isValid: errors.length === 0, errors };
+    }
+
     // Standard validation for other steps
     stepValidation.rules.forEach(rule => {
       const fieldValue = formValues[rule.field as keyof PackageFormData];
