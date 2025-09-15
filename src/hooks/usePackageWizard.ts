@@ -201,43 +201,55 @@ export function usePackageWizard() {
           break;
         case 'location-timing':
           // Validate required fields based on package type
-          const packageType = wizardState.formData.type;
+          const packageType = prev.formData.type;
           const validationErrors: string[] = [];
           
+          console.log('🔍 Location-timing validation - packageType:', packageType);
+          console.log('🔍 Location-timing validation - formData:', prev.formData);
+          
           // Always required fields
-          if (!wizardState.formData.place || wizardState.formData.place.trim() === '') {
+          if (!prev.formData.place || prev.formData.place.trim() === '') {
             validationErrors.push('Place is required');
+            console.log('❌ Missing place field');
           }
           
-          if (!wizardState.formData.pickupPoints || wizardState.formData.pickupPoints.length === 0) {
+          if (!prev.formData.pickupPoints || prev.formData.pickupPoints.length === 0) {
             validationErrors.push('At least one pickup point is required');
+            console.log('❌ Missing pickup points');
           }
           
-          if (!wizardState.formData.timingNotes || wizardState.formData.timingNotes.trim() === '') {
+          if (!prev.formData.timingNotes || prev.formData.timingNotes.trim() === '') {
             validationErrors.push('Timing notes are required');
+            console.log('❌ Missing timing notes');
           }
           
           // Package type specific validations
           if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
-            if (!wizardState.formData.fromLocation || wizardState.formData.fromLocation.trim() === '') {
+            if (!prev.formData.fromLocation || prev.formData.fromLocation.trim() === '') {
               validationErrors.push('From location is required for this package type');
+              console.log('❌ Missing from location');
             }
-            if (!wizardState.formData.toLocation || wizardState.formData.toLocation.trim() === '') {
+            if (!prev.formData.toLocation || prev.formData.toLocation.trim() === '') {
               validationErrors.push('To location is required for this package type');
+              console.log('❌ Missing to location');
             }
           }
           
           if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
-            if (!wizardState.formData.durationHours || wizardState.formData.durationHours <= 0) {
+            if (!prev.formData.durationHours || prev.formData.durationHours <= 0) {
               validationErrors.push('Duration in hours is required for this package type');
+              console.log('❌ Missing duration hours');
             }
           }
           
           if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
-            if (!wizardState.formData.durationDays || wizardState.formData.durationDays <= 0) {
+            if (!prev.formData.durationDays || prev.formData.durationDays <= 0) {
               validationErrors.push('Duration in days is required for this package type');
+              console.log('❌ Missing duration days');
             }
           }
+          
+          console.log('🔍 Location-timing validation errors:', validationErrors);
           
           validationResult = validationErrors.length === 0 ? { success: true } : { 
             success: false, 
