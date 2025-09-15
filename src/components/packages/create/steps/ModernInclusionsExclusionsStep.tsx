@@ -143,7 +143,7 @@ export default function ModernInclusionsExclusionsStep({
 
   useEffect(() => {
     updateFormData(localData);
-  }, [localData, updateFormData]);
+  }, [localData]);
 
   const handleInputChange = (field: string, value: any) => {
     setLocalData(prev => ({ ...prev, [field]: value }));

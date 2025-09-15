@@ -176,14 +176,10 @@ export function usePackageWizard() {
 
   // Go to next step
   const nextStep = useCallback(() => {
-    console.log('🚀 nextStep called');
     setWizardState(prev => {
-      console.log('🔍 Current state:', prev);
       const currentIndex = prev.steps.findIndex(s => s.id === prev.currentStep);
-      console.log('🔍 Current step index:', currentIndex);
       
       if (currentIndex === -1 || currentIndex >= prev.steps.length - 1) {
-        console.log('❌ Cannot proceed - at last step or invalid index');
         return prev;
       }
 
@@ -217,11 +213,8 @@ export function usePackageWizard() {
           validationResult = { success: true };
       }
 
-      console.log('🔍 Validation result:', validationResult);
-
       if (!validationResult.success) {
         const formattedErrors = formatValidationErrors(validationResult.error);
-        console.log('❌ Validation failed:', formattedErrors);
         return {
           ...prev,
           errors: formattedErrors,
@@ -230,10 +223,8 @@ export function usePackageWizard() {
       }
 
       const nextStepConfig = prev.steps[currentIndex + 1];
-      console.log('🔍 Next step config:', nextStepConfig);
       
       if (nextStepConfig) {
-        console.log('✅ Proceeding to next step:', nextStepConfig.id);
         return {
           ...prev,
           currentStep: nextStepConfig.id,
@@ -478,23 +469,18 @@ export function usePackageWizard() {
   // Load draft on mount
   useEffect(() => {
     const savedDraft = localStorage.getItem('package-draft');
-    console.log('🔍 Checking for saved draft:', savedDraft);
     
     if (savedDraft) {
       try {
         const draft: DraftPackage = JSON.parse(savedDraft);
-        console.log('📦 Found saved draft:', draft);
         
         // Clear the draft to start fresh
         localStorage.removeItem('package-draft');
-        console.log('🗑️ Cleared saved draft to start fresh');
       } catch (error) {
         console.error('Error loading draft:', error);
         // Clear invalid draft
         localStorage.removeItem('package-draft');
       }
-    } else {
-      console.log('✨ No saved draft found, starting fresh');
     }
   }, []);
 

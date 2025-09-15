@@ -120,7 +120,6 @@ export default function ModernLocationTimingStep({
   onNext,
   onPrevious
 }: StepProps) {
-  console.log('📍 ModernLocationTimingStep loaded with dynamic fields!');
   
   const [localData, setLocalData] = useState({
     place: formData.place || '',
@@ -142,7 +141,7 @@ export default function ModernLocationTimingStep({
 
   useEffect(() => {
     updateFormData(localData);
-  }, [localData, updateFormData]);
+  }, [localData]);
 
   const handleInputChange = (field: string, value: any) => {
     setLocalData(prev => ({ ...prev, [field]: value }));

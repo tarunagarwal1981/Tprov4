@@ -31,7 +31,6 @@ export default function ModernBasicInfoStep({
   onNext,
   onPrevious
 }: StepProps) {
-  console.log('📝 ModernBasicInfoStep loaded with updated fields!');
   
   const [localData, setLocalData] = useState({
     title: formData.title || '',
@@ -45,7 +44,7 @@ export default function ModernBasicInfoStep({
 
   useEffect(() => {
     updateFormData(localData);
-  }, [localData, updateFormData]);
+  }, [localData]);
 
   const handleInputChange = (field: string, value: any) => {
     setLocalData(prev => ({ ...prev, [field]: value }));
