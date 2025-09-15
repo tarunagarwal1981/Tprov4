@@ -16,9 +16,13 @@ export class TourOperatorService {
         .from('tour_operators')
         .select('*')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle() // Use maybeSingle() instead of single() to handle no results gracefully
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching tour operator by user ID:', error)
+        return { data: null, error }
+      }
+      
       return { data, error: null }
     } catch (error) {
       console.error('Error fetching tour operator by user ID:', error)
@@ -33,9 +37,13 @@ export class TourOperatorService {
         .from('tour_operators')
         .select('*')
         .eq('id', id)
-        .single()
+        .maybeSingle() // Use maybeSingle() instead of single() to handle no results gracefully
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching tour operator by ID:', error)
+        return { data: null, error }
+      }
+      
       return { data, error: null }
     } catch (error) {
       console.error('Error fetching tour operator by ID:', error)
@@ -154,12 +162,31 @@ export class TourOperatorService {
         return existingProfile
       }
 
+      console.log('🔧 Creating tour operator profile for user:', userId)
+
       // Create tour operator profile if it doesn't exist
       const newProfile = await this.createTourOperator({
         user_id: userId,
         company_name: companyName,
-        company_details: {},
-        commission_rates: {},
+        company_details: {
+          legalName: companyName,
+          registrationNumber: `REG-${userId.substring(0, 8)}`,
+          taxId: `TAX-${userId.substring(0, 8)}`,
+          website: `https://${companyName.toLowerCase().replace(/\s+/g, '')}.com`,
+          phone: '+1-555-0123',
+          address: {
+            street: '123 Travel Street',
+            city: 'San Francisco',
+            state: 'CA',
+            country: 'USA',
+            postalCode: '94102'
+          }
+        },
+        commission_rates: {
+          standard: 15.0,
+          premium: 20.0,
+          luxury: 25.0
+        },
         licenses: [],
         certifications: [],
         is_verified: false,
@@ -167,6 +194,12 @@ export class TourOperatorService {
         review_count: 0
       })
 
+      if (newProfile.error) {
+        console.error('Error creating tour operator profile:', newProfile.error)
+        return newProfile
+      }
+
+      console.log('✅ Tour operator profile created successfully:', newProfile.data)
       return newProfile
     } catch (error) {
       console.error('Error ensuring tour operator profile:', error)

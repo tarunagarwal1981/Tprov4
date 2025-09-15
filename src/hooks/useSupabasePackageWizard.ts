@@ -147,11 +147,14 @@ export function useSupabasePackageWizard() {
     isValid: false
   });
 
-  console.log('🚀 useSupabasePackageWizard initialized with:', {
-    currentStep: wizardState.currentStep,
-    formData: wizardState.formData,
-    steps: wizardState.steps.map(s => ({ id: s.id, isCompleted: s.isCompleted, isAccessible: s.isAccessible }))
-  });
+  // Only log when the hook actually initializes, not on every render
+  useEffect(() => {
+    console.log('🚀 useSupabasePackageWizard initialized with:', {
+      currentStep: wizardState.currentStep,
+      formData: wizardState.formData,
+      steps: wizardState.steps.map(s => ({ id: s.id, isCompleted: s.isCompleted, isAccessible: s.isAccessible }))
+    });
+  }, []); // Empty dependency array - only log once
 
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<Partial<PackageFormData>>({});
@@ -243,6 +246,27 @@ export function useSupabasePackageWizard() {
       return { isValid: errors.length === 0, errors };
     }
 
+    // Special validation for detailed-planning step
+    if (step === 'detailed-planning') {
+      // Check if itinerary has at least one item
+      if (!formValues.itinerary || formValues.itinerary.length === 0) {
+        errors.push('Detailed itinerary is required');
+      }
+      
+      // Check if difficulty is selected
+      if (!formValues.difficulty) {
+        errors.push('Difficulty level is required');
+      }
+      
+      console.log('🔍 Detailed-planning validation result:', { 
+        isValid: errors.length === 0, 
+        errors, 
+        itinerary: formValues.itinerary,
+        difficulty: formValues.difficulty 
+      });
+      return { isValid: errors.length === 0, errors };
+    }
+
     // Standard validation for other steps
     stepValidation.rules.forEach(rule => {
       const fieldValue = formValues[rule.field as keyof PackageFormData];
@@ -317,15 +341,18 @@ export function useSupabasePackageWizard() {
 
       const formData = form.getValues();
       
-      // Get tour operator profile for the current user
-      const { data: tourOperator, error: tourOperatorError } = await TourOperatorService.getTourOperatorByUserId(authState.user.id);
+      // Get or create tour operator profile for the current user
+      const { data: tourOperator, error: tourOperatorError } = await TourOperatorService.ensureTourOperatorProfile(
+        authState.user.id, 
+        authState.user.name || 'My Travel Company'
+      );
       
       if (tourOperatorError || !tourOperator) {
-        console.error('Error getting tour operator profile:', tourOperatorError);
+        console.error('Error getting/creating tour operator profile:', tourOperatorError);
         setWizardState(prev => ({ 
           ...prev, 
           isSaving: false,
-          errors: { general: 'Tour operator profile not found. Please contact support.' }
+          errors: { general: 'Failed to get tour operator profile. Please contact support.' }
         }));
         return false;
       }
@@ -403,17 +430,20 @@ export function useSupabasePackageWizard() {
         return { success: false, message: validationErrors.join(', ') };
       }
 
-      // Get tour operator profile for the current user
-      const { data: tourOperator, error: tourOperatorError } = await TourOperatorService.getTourOperatorByUserId(authState.user.id);
+      // Get or create tour operator profile for the current user
+      const { data: tourOperator, error: tourOperatorError } = await TourOperatorService.ensureTourOperatorProfile(
+        authState.user.id, 
+        authState.user.name || 'My Travel Company'
+      );
       
       if (tourOperatorError || !tourOperator) {
-        console.error('Error getting tour operator profile:', tourOperatorError);
+        console.error('Error getting/creating tour operator profile:', tourOperatorError);
         setWizardState(prev => ({ 
           ...prev, 
           isSaving: false,
-          errors: { general: 'Tour operator profile not found. Please contact support.' }
+          errors: { general: 'Failed to get tour operator profile. Please contact support.' }
         }));
-        return { success: false, message: 'Tour operator profile not found. Please contact support.' };
+        return { success: false, message: 'Failed to get tour operator profile. Please contact support.' };
       }
 
       // Convert to database format
