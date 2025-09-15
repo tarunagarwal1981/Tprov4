@@ -105,10 +105,9 @@ const STEP_VALIDATIONS: StepValidation[] = [
   {
     step: 'location-timing',
     rules: [
-      { field: 'destinations', type: 'required', message: 'At least one destination is required' },
-      { field: 'itinerary', type: 'required', message: 'Itinerary is required' },
-      { field: 'inclusions', type: 'required', message: 'At least one inclusion is required' },
-      { field: 'exclusions', type: 'required', message: 'At least one exclusion is required' }
+      { field: 'place', type: 'required', message: 'Place is required' },
+      { field: 'pickupPoints', type: 'required', message: 'At least one pickup point is required' },
+      { field: 'timingNotes', type: 'required', message: 'Timing notes are required' }
     ]
   },
   {
@@ -201,6 +200,50 @@ export function useSupabasePackageWizard() {
     const errors: string[] = [];
     const formValues = form.getValues();
 
+    // Special validation for location-timing step
+    if (step === 'location-timing') {
+      const packageType = formValues.type;
+      
+      // Always required fields
+      if (!formValues.place || formValues.place.trim() === '') {
+        errors.push('Place is required');
+      }
+      
+      if (!formValues.pickupPoints || formValues.pickupPoints.length === 0) {
+        errors.push('At least one pickup point is required');
+      }
+      
+      if (!formValues.timingNotes || formValues.timingNotes.trim() === '') {
+        errors.push('Timing notes are required');
+      }
+      
+      // Package type specific validations
+      if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+        if (!formValues.fromLocation || formValues.fromLocation.trim() === '') {
+          errors.push('From location is required for this package type');
+        }
+        if (!formValues.toLocation || formValues.toLocation.trim() === '') {
+          errors.push('To location is required for this package type');
+        }
+      }
+      
+      if (packageType === 'DAY_TOUR' || packageType === 'ACTIVITY') {
+        if (!formValues.durationHours || formValues.durationHours <= 0) {
+          errors.push('Duration in hours is required for this package type');
+        }
+      }
+      
+      if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL' || packageType === 'MULTI_CITY_TOUR') {
+        if (!formValues.durationDays || formValues.durationDays <= 0) {
+          errors.push('Duration in days is required for this package type');
+        }
+      }
+      
+      console.log('🔍 Location-timing validation result:', { isValid: errors.length === 0, errors, formValues });
+      return { isValid: errors.length === 0, errors };
+    }
+
+    // Standard validation for other steps
     stepValidation.rules.forEach(rule => {
       const fieldValue = formValues[rule.field as keyof PackageFormData];
       
@@ -425,9 +468,10 @@ export function useSupabasePackageWizard() {
 
     if (stepIndex > currentStepIndex) {
       // Going forward - validate current step first
-      const { isValid } = validateStep(wizardState.currentStep);
-      if (!isValid) {
-        console.log('❌ Cannot proceed - current step is invalid');
+      const validationResult = validateStep(wizardState.currentStep);
+      console.log('🔍 Validation result for', wizardState.currentStep, ':', validationResult);
+      if (!validationResult.isValid) {
+        console.log('❌ Cannot proceed - current step is invalid:', validationResult.errors);
         return;
       }
     }
