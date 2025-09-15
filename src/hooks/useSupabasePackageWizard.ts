@@ -248,21 +248,20 @@ export function useSupabasePackageWizard() {
 
     // Special validation for detailed-planning step
     if (step === 'detailed-planning') {
-      // Check if itinerary has at least one item
-      if (!formValues.itinerary || formValues.itinerary.length === 0) {
-        errors.push('Detailed itinerary is required');
-      }
-      
-      // Check if difficulty is selected
+      // Check if difficulty is selected (this should be required)
       if (!formValues.difficulty) {
         errors.push('Difficulty level is required');
       }
+      
+      // Note: Itinerary validation is handled in navigation logic
+      // This allows users to enter the step even with empty itinerary
       
       console.log('🔍 Detailed-planning validation result:', { 
         isValid: errors.length === 0, 
         errors, 
         itinerary: formValues.itinerary,
-        difficulty: formValues.difficulty 
+        difficulty: formValues.difficulty,
+        note: 'Only difficulty validated - itinerary handled in navigation'
       });
       return { isValid: errors.length === 0, errors };
     }
@@ -500,6 +499,16 @@ export function useSupabasePackageWizard() {
       // Going forward - validate current step first
       const validationResult = validateStep(wizardState.currentStep);
       console.log('🔍 Validation result for', wizardState.currentStep, ':', validationResult);
+      
+      // Special validation for detailed-planning step when proceeding forward
+      if (wizardState.currentStep === 'detailed-planning') {
+        const formValues = form.getValues();
+        if (!formValues.itinerary || formValues.itinerary.length === 0) {
+          console.log('❌ Cannot proceed from detailed-planning - itinerary is required');
+          return;
+        }
+      }
+      
       if (!validationResult.isValid) {
         console.log('❌ Cannot proceed - current step is invalid:', validationResult.errors);
         return;
@@ -510,7 +519,7 @@ export function useSupabasePackageWizard() {
       ...prev,
       currentStep: step
     }));
-  }, [wizardState.currentStep, validateStep]);
+  }, [wizardState.currentStep, validateStep, form]);
 
   // Go to next step
   const nextStep = useCallback(() => {
