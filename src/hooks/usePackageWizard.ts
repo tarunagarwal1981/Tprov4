@@ -358,99 +358,105 @@ export function usePackageWizard() {
     console.log('🚀 Starting package publish process...');
     console.log('🔍 Current wizard state:', wizardState);
     
-    // Validate all steps
-    const allStepsValid = wizardState.steps.every(step => {
-      if (step.isCompleted) return true;
-      
-      // Inline validation for each step
-      let validationResult;
-      switch (step.id) {
-        case 'package-type':
-          validationResult = validatePackageType({ type: wizardState.formData.type });
-          break;
-        case 'basic-info':
-          validationResult = validateBasicInfo({
-            title: wizardState.formData.title,
-            description: wizardState.formData.description,
-            shortDescription: wizardState.formData.shortDescription,
-            bannerImage: wizardState.formData.bannerImage,
-            additionalImages: wizardState.formData.additionalImages || [],
-            additionalNotes: wizardState.formData.additionalNotes || ''
-          });
-          break;
-        case 'location-timing':
-          // Validate required fields based on package type
-          const packageType = wizardState.formData.type;
-          const validationErrors: string[] = [];
-          
-          // Always required fields
-          if (!wizardState.formData.place || wizardState.formData.place.trim() === '') {
-            validationErrors.push('Place is required');
-          }
-          
-          if (!wizardState.formData.pickupPoints || wizardState.formData.pickupPoints.length === 0) {
-            validationErrors.push('At least one pickup point is required');
-          }
-          
-          if (!wizardState.formData.timingNotes || wizardState.formData.timingNotes.trim() === '') {
-            validationErrors.push('Timing notes are required');
-          }
-          
-          // Package type specific validations
-          if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
-            if (!wizardState.formData.fromLocation || wizardState.formData.fromLocation.trim() === '') {
-              validationErrors.push('From location is required for this package type');
-            }
-            if (!wizardState.formData.toLocation || wizardState.formData.toLocation.trim() === '') {
-              validationErrors.push('To location is required for this package type');
-            }
-          }
-          
-          if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
-            if (!wizardState.formData.durationHours || wizardState.formData.durationHours <= 0) {
-              validationErrors.push('Duration in hours is required for this package type');
-            }
-          }
-          
-          if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
-            if (!wizardState.formData.durationDays || wizardState.formData.durationDays <= 0) {
-              validationErrors.push('Duration in days is required for this package type');
-            }
-          }
-          
-          validationResult = validationErrors.length === 0 ? { success: true } : { 
-            success: false, 
-            error: { 
-              issues: validationErrors.map(error => ({ 
-                path: ['general'], 
-                message: error 
-              })) 
-            } 
-          };
-          break;
-        case 'detailed-planning':
-          validationResult = { success: true }; // Add validation logic
-          break;
-        case 'inclusions-exclusions':
-          validationResult = { success: true }; // Add validation logic
-          break;
-        case 'pricing-policies':
-          validationResult = { success: true }; // Add validation logic
-          break;
-        default:
-          validationResult = { success: true };
+    // Validate all steps based on current form data
+    const validationErrors: string[] = [];
+    
+    // Step 1: Package Type
+    if (!wizardState.formData.type) {
+      validationErrors.push('Package type is required');
+    }
+    
+    // Step 2: Basic Info
+    if (!wizardState.formData.title || wizardState.formData.title.trim() === '') {
+      validationErrors.push('Title is required');
+    }
+    if (!wizardState.formData.description || wizardState.formData.description.trim() === '') {
+      validationErrors.push('Description is required');
+    }
+    if (!wizardState.formData.shortDescription || wizardState.formData.shortDescription.trim() === '') {
+      validationErrors.push('Short description is required');
+    }
+    if (!wizardState.formData.bannerImage || wizardState.formData.bannerImage.trim() === '') {
+      validationErrors.push('Banner image is required');
+    }
+    
+    // Step 3: Location & Timing
+    if (!wizardState.formData.place || wizardState.formData.place.trim() === '') {
+      validationErrors.push('Place is required');
+    }
+    if (!wizardState.formData.pickupPoints || wizardState.formData.pickupPoints.length === 0) {
+      validationErrors.push('At least one pickup point is required');
+    }
+    if (!wizardState.formData.timingNotes || wizardState.formData.timingNotes.trim() === '') {
+      validationErrors.push('Timing notes are required');
+    }
+    
+    // Package type specific validations
+    const packageType = wizardState.formData.type;
+    if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+      if (!wizardState.formData.fromLocation || wizardState.formData.fromLocation.trim() === '') {
+        validationErrors.push('From location is required for this package type');
       }
-      
-      return validationResult.success;
-    });
+      if (!wizardState.formData.toLocation || wizardState.formData.toLocation.trim() === '') {
+        validationErrors.push('To location is required for this package type');
+      }
+    }
+    
+    if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
+      if (!wizardState.formData.durationHours || wizardState.formData.durationHours <= 0) {
+        validationErrors.push('Duration in hours is required for this package type');
+      }
+    }
+    
+    if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+      if (!wizardState.formData.durationDays || wizardState.formData.durationDays <= 0) {
+        validationErrors.push('Duration in days is required for this package type');
+      }
+    }
+    
+    // Step 4: Detailed Planning
+    if (!wizardState.formData.vehicleType || wizardState.formData.vehicleType.trim() === '') {
+      validationErrors.push('Vehicle type is required');
+    }
+    if (!wizardState.formData.acNonAc || wizardState.formData.acNonAc.trim() === '') {
+      validationErrors.push('AC/Non-AC selection is required');
+    }
+    
+    // Step 5: Inclusions & Exclusions
+    if (!wizardState.formData.tourInclusions || wizardState.formData.tourInclusions.length === 0) {
+      validationErrors.push('At least one tour inclusion is required');
+    }
+    if (!wizardState.formData.tourExclusions || wizardState.formData.tourExclusions.length === 0) {
+      validationErrors.push('At least one tour exclusion is required');
+    }
+    
+    // Step 6: Pricing & Policies
+    if (!wizardState.formData.adultPrice || wizardState.formData.adultPrice <= 0) {
+      validationErrors.push('Adult price is required and must be greater than 0');
+    }
+    if (!wizardState.formData.childPrice || wizardState.formData.childPrice <= 0) {
+      validationErrors.push('Child price is required and must be greater than 0');
+    }
+    if (!wizardState.formData.currency || wizardState.formData.currency.trim() === '') {
+      validationErrors.push('Currency is required');
+    }
+    if (!wizardState.formData.minGroupSize || wizardState.formData.minGroupSize <= 0) {
+      validationErrors.push('Minimum group size is required');
+    }
+    if (!wizardState.formData.maxGroupSize || wizardState.formData.maxGroupSize <= 0) {
+      validationErrors.push('Maximum group size is required');
+    }
+    
+    const allStepsValid = validationErrors.length === 0;
 
     console.log('🔍 All steps valid:', allStepsValid);
 
     if (!allStepsValid) {
       console.log('❌ Validation failed - not all steps are valid');
+      console.log('🔍 Validation errors:', validationErrors);
       return {
         success: false,
-        errors: wizardState.errors,
+        errors: { general: validationErrors },
         message: 'Please fix all validation errors before publishing'
       };
     }
