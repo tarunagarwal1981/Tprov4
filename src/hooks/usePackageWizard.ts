@@ -198,7 +198,54 @@ export function usePackageWizard() {
           });
           break;
         case 'location-timing':
-          validationResult = { success: true }; // Add validation logic
+          // Validate required fields based on package type
+          const packageType = wizardState.formData.type;
+          const validationErrors: string[] = [];
+          
+          // Always required fields
+          if (!wizardState.formData.place || wizardState.formData.place.trim() === '') {
+            validationErrors.push('Place is required');
+          }
+          
+          if (!wizardState.formData.pickupPoints || wizardState.formData.pickupPoints.length === 0) {
+            validationErrors.push('At least one pickup point is required');
+          }
+          
+          if (!wizardState.formData.timingNotes || wizardState.formData.timingNotes.trim() === '') {
+            validationErrors.push('Timing notes are required');
+          }
+          
+          // Package type specific validations
+          if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+            if (!wizardState.formData.fromLocation || wizardState.formData.fromLocation.trim() === '') {
+              validationErrors.push('From location is required for this package type');
+            }
+            if (!wizardState.formData.toLocation || wizardState.formData.toLocation.trim() === '') {
+              validationErrors.push('To location is required for this package type');
+            }
+          }
+          
+          if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
+            if (!wizardState.formData.durationHours || wizardState.formData.durationHours <= 0) {
+              validationErrors.push('Duration in hours is required for this package type');
+            }
+          }
+          
+          if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+            if (!wizardState.formData.durationDays || wizardState.formData.durationDays <= 0) {
+              validationErrors.push('Duration in days is required for this package type');
+            }
+          }
+          
+          validationResult = validationErrors.length === 0 ? { success: true } : { 
+            success: false, 
+            error: { 
+              issues: validationErrors.map(error => ({ 
+                path: ['general'], 
+                message: error 
+              })) 
+            } 
+          };
           break;
         case 'detailed-planning':
           validationResult = { success: true }; // Add validation logic
@@ -215,6 +262,7 @@ export function usePackageWizard() {
 
       if (!validationResult.success) {
         const formattedErrors = formatValidationErrors(validationResult.error);
+        console.log('❌ Validation failed for step:', prev.currentStep, formattedErrors);
         return {
           ...prev,
           errors: formattedErrors,
@@ -225,6 +273,7 @@ export function usePackageWizard() {
       const nextStepConfig = prev.steps[currentIndex + 1];
       
       if (nextStepConfig) {
+        console.log('✅ Validation passed, proceeding to next step:', nextStepConfig.id);
         return {
           ...prev,
           currentStep: nextStepConfig.id,
@@ -313,7 +362,54 @@ export function usePackageWizard() {
           });
           break;
         case 'location-timing':
-          validationResult = { success: true }; // Add validation logic
+          // Validate required fields based on package type
+          const packageType = wizardState.formData.type;
+          const validationErrors: string[] = [];
+          
+          // Always required fields
+          if (!wizardState.formData.place || wizardState.formData.place.trim() === '') {
+            validationErrors.push('Place is required');
+          }
+          
+          if (!wizardState.formData.pickupPoints || wizardState.formData.pickupPoints.length === 0) {
+            validationErrors.push('At least one pickup point is required');
+          }
+          
+          if (!wizardState.formData.timingNotes || wizardState.formData.timingNotes.trim() === '') {
+            validationErrors.push('Timing notes are required');
+          }
+          
+          // Package type specific validations
+          if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+            if (!wizardState.formData.fromLocation || wizardState.formData.fromLocation.trim() === '') {
+              validationErrors.push('From location is required for this package type');
+            }
+            if (!wizardState.formData.toLocation || wizardState.formData.toLocation.trim() === '') {
+              validationErrors.push('To location is required for this package type');
+            }
+          }
+          
+          if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
+            if (!wizardState.formData.durationHours || wizardState.formData.durationHours <= 0) {
+              validationErrors.push('Duration in hours is required for this package type');
+            }
+          }
+          
+          if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+            if (!wizardState.formData.durationDays || wizardState.formData.durationDays <= 0) {
+              validationErrors.push('Duration in days is required for this package type');
+            }
+          }
+          
+          validationResult = validationErrors.length === 0 ? { success: true } : { 
+            success: false, 
+            error: { 
+              issues: validationErrors.map(error => ({ 
+                path: ['general'], 
+                message: error 
+              })) 
+            } 
+          };
           break;
         case 'detailed-planning':
           validationResult = { success: true }; // Add validation logic
