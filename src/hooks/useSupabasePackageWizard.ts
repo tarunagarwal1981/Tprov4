@@ -932,9 +932,23 @@ export function useSupabasePackageWizard() {
       // Special validation for detailed-planning step when proceeding forward
       if (wizardState.currentStep === 'detailed-planning') {
         const formValues = form.getValues();
-        if (!formValues.itinerary || formValues.itinerary.length === 0) {
-          console.log('❌ Cannot proceed from detailed-planning - itinerary is required');
+        const packageType = formValues.type;
+        
+        // Only require itinerary for package types that actually need it
+        const requiresItinerary = packageType === 'LAND_PACKAGE' || 
+                                packageType === 'LAND_PACKAGE_WITH_HOTEL' || 
+                                packageType === 'FIXED_DEPARTURE_WITH_FLIGHT' || 
+                                packageType === 'DAY_TOUR' || 
+                                packageType === 'MULTI_CITY_TOUR';
+        
+        if (requiresItinerary && (!formValues.itinerary || formValues.itinerary.length === 0)) {
+          console.log('❌ Cannot proceed from detailed-planning - itinerary is required for', packageType);
           return;
+        }
+        
+        // For TRANSFERS and ACTIVITY, itinerary is not required
+        if (!requiresItinerary) {
+          console.log('✅ Proceeding from detailed-planning - itinerary not required for', packageType);
         }
       }
       
