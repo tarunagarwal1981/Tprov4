@@ -23,53 +23,18 @@ export const basicInfoSchema = z.object({
     .min(10, 'Short description must be at least 10 characters')
     .max(200, 'Short description must be no more than 200 characters'),
   
-  duration: z.object({
-    days: z.number()
-      .min(1, 'Duration must be at least 1 day')
-      .max(365, 'Duration cannot exceed 365 days'),
-    nights: z.number()
-      .min(0, 'Nights cannot be negative')
-      .max(364, 'Nights cannot exceed 364')
-  }).refine(
-    (data) => data.nights <= data.days,
-    'Nights cannot exceed days'
-  ),
+  bannerImage: z.string()
+    .min(1, 'Banner image is required'),
   
-  groupSize: z.object({
-    min: z.number()
-      .min(1, 'Minimum group size must be at least 1')
-      .max(100, 'Minimum group size cannot exceed 100'),
-    max: z.number()
-      .min(1, 'Maximum group size must be at least 1')
-      .max(100, 'Maximum group size cannot exceed 100'),
-    ideal: z.number()
-      .min(1, 'Ideal group size must be at least 1')
-      .max(100, 'Ideal group size cannot exceed 100')
-  }).refine(
-    (data) => data.min <= data.max,
-    'Minimum group size cannot exceed maximum group size'
-  ).refine(
-    (data) => data.ideal >= data.min && data.ideal <= data.max,
-    'Ideal group size must be between minimum and maximum'
-  ),
-  
-  difficulty: z.nativeEnum(DifficultyLevel, {
-    message: 'Please select a difficulty level'
-  }),
-  
-  destinations: z.array(z.string())
-    .min(1, 'Please select at least one destination')
-    .max(10, 'Cannot select more than 10 destinations'),
-  
-  category: z.string()
-    .min(1, 'Please select a package category'),
-  
-  tags: z.array(z.string())
-    .max(10, 'Cannot have more than 10 tags')
+  additionalImages: z.array(z.string())
+    .max(10, 'Cannot have more than 10 additional images')
     .optional()
     .default([]),
   
-  isFeatured: z.boolean().default(false)
+  additionalNotes: z.string()
+    .max(500, 'Additional notes cannot exceed 500 characters')
+    .optional()
+    .default('')
 });
 
 // Combined validation for both steps

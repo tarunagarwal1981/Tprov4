@@ -194,7 +194,9 @@ export function usePackageWizard() {
             title: prev.formData.title,
             description: prev.formData.description,
             shortDescription: prev.formData.shortDescription,
-            bannerImage: prev.formData.bannerImage
+            bannerImage: prev.formData.bannerImage,
+            additionalImages: prev.formData.additionalImages || [],
+            additionalNotes: prev.formData.additionalNotes || ''
           });
           break;
         case 'location-timing':
@@ -262,7 +264,6 @@ export function usePackageWizard() {
 
       if (!validationResult.success) {
         const formattedErrors = formatValidationErrors(validationResult.error);
-        console.log('❌ Validation failed for step:', prev.currentStep, formattedErrors);
         return {
           ...prev,
           errors: formattedErrors,
@@ -273,7 +274,6 @@ export function usePackageWizard() {
       const nextStepConfig = prev.steps[currentIndex + 1];
       
       if (nextStepConfig) {
-        console.log('✅ Validation passed, proceeding to next step:', nextStepConfig.id);
         return {
           ...prev,
           currentStep: nextStepConfig.id,
@@ -358,7 +358,9 @@ export function usePackageWizard() {
             title: wizardState.formData.title,
             description: wizardState.formData.description,
             shortDescription: wizardState.formData.shortDescription,
-            bannerImage: wizardState.formData.bannerImage
+            bannerImage: wizardState.formData.bannerImage,
+            additionalImages: wizardState.formData.additionalImages || [],
+            additionalNotes: wizardState.formData.additionalNotes || ''
           });
           break;
         case 'location-timing':
