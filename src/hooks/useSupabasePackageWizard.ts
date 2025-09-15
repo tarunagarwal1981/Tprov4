@@ -40,28 +40,36 @@ const STEP_CONFIGS: StepConfig[] = [
     order: 2
   },
   {
-    id: 'destinations',
-    title: 'Destinations & Itinerary',
-    description: 'Set destinations and create your itinerary',
+    id: 'location-timing',
+    title: 'Location & Timing',
+    description: 'Set destinations, timing, and duration',
     isCompleted: false,
     isAccessible: false,
     order: 3
   },
   {
-    id: 'pricing',
-    title: 'Pricing & Commission',
-    description: 'Configure pricing and commission settings',
+    id: 'detailed-planning',
+    title: 'Detailed Planning',
+    description: 'Create itinerary and detailed planning',
     isCompleted: false,
     isAccessible: false,
     order: 4
   },
   {
-    id: 'media',
-    title: 'Media & Gallery',
-    description: 'Upload images and media for your package',
+    id: 'inclusions-exclusions',
+    title: 'Inclusions & Exclusions',
+    description: 'Define what\'s included and excluded',
     isCompleted: false,
     isAccessible: false,
     order: 5
+  },
+  {
+    id: 'pricing-policies',
+    title: 'Pricing & Policies',
+    description: 'Set pricing and booking policies',
+    isCompleted: false,
+    isAccessible: false,
+    order: 6
   },
   {
     id: 'review',
@@ -69,7 +77,7 @@ const STEP_CONFIGS: StepConfig[] = [
     description: 'Review your package and publish it',
     isCompleted: false,
     isAccessible: false,
-    order: 6
+    order: 7
   }
 ];
 
@@ -95,7 +103,7 @@ const STEP_VALIDATIONS: StepValidation[] = [
     ]
   },
   {
-    step: 'destinations',
+    step: 'location-timing',
     rules: [
       { field: 'destinations', type: 'required', message: 'At least one destination is required' },
       { field: 'itinerary', type: 'required', message: 'Itinerary is required' },
@@ -104,18 +112,25 @@ const STEP_VALIDATIONS: StepValidation[] = [
     ]
   },
   {
-    step: 'pricing',
+    step: 'detailed-planning',
+    rules: [
+      { field: 'itinerary', type: 'required', message: 'Detailed itinerary is required' },
+      { field: 'difficulty', type: 'required', message: 'Difficulty level is required' }
+    ]
+  },
+  {
+    step: 'inclusions-exclusions',
+    rules: [
+      { field: 'inclusions', type: 'required', message: 'At least one inclusion is required' },
+      { field: 'exclusions', type: 'required', message: 'At least one exclusion is required' }
+    ]
+  },
+  {
+    step: 'pricing-policies',
     rules: [
       { field: 'pricing.basePrice', type: 'required', message: 'Base price is required' },
       { field: 'pricing.basePrice', type: 'min', value: 1, message: 'Base price must be greater than 0' },
       { field: 'pricing.currency', type: 'required', message: 'Currency is required' }
-    ]
-  },
-  {
-    step: 'media',
-    rules: [
-      { field: 'images', type: 'required', message: 'At least one image is required' },
-      { field: 'coverImage', type: 'required', message: 'Cover image is required' }
     ]
   }
 ];
