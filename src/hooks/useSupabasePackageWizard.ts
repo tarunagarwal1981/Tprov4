@@ -17,7 +17,7 @@ import {
 } from '@/lib/types/wizard';
 import { validatePackageType, validateBasicInfo, formatValidationErrors } from '@/lib/validations/packageWizard';
 import { PackageType, PackageStatus, DifficultyLevel, Package } from '@/lib/types';
-import { PackageService } from '@/lib/services/packageService';
+import { packageService, PackageService } from '@/lib/services/packageService';
 import { TourOperatorService } from '@/lib/services/tourOperatorService';
 import { useSimpleAuth } from '@/context/SimpleAuthContext';
 
@@ -98,8 +98,7 @@ const STEP_VALIDATIONS: StepValidation[] = [
       { field: 'description', type: 'min', value: 50, message: 'Description must be at least 50 characters' },
       { field: 'shortDescription', type: 'required', message: 'Short description is required' },
       { field: 'shortDescription', type: 'min', value: 20, message: 'Short description must be at least 20 characters' },
-      { field: 'duration', type: 'required', message: 'Duration is required' },
-      { field: 'groupSize', type: 'required', message: 'Group size is required' }
+      { field: 'bannerImage', type: 'required', message: 'Banner image is required' }
     ]
   },
   {
@@ -120,16 +119,20 @@ const STEP_VALIDATIONS: StepValidation[] = [
   {
     step: 'inclusions-exclusions',
     rules: [
-      { field: 'inclusions', type: 'required', message: 'At least one inclusion is required' },
-      { field: 'exclusions', type: 'required', message: 'At least one exclusion is required' }
+      { field: 'tourInclusions', type: 'required', message: 'At least one tour inclusion is required' },
+      { field: 'tourExclusions', type: 'required', message: 'At least one tour exclusion is required' }
     ]
   },
   {
     step: 'pricing-policies',
     rules: [
-      { field: 'pricing.basePrice', type: 'required', message: 'Base price is required' },
-      { field: 'pricing.basePrice', type: 'min', value: 1, message: 'Base price must be greater than 0' },
-      { field: 'pricing.currency', type: 'required', message: 'Currency is required' }
+      { field: 'adultPrice', type: 'required', message: 'Adult price is required' },
+      { field: 'adultPrice', type: 'min', value: 1, message: 'Adult price must be greater than 0' },
+      { field: 'childPrice', type: 'required', message: 'Child price is required' },
+      { field: 'childPrice', type: 'min', value: 1, message: 'Child price must be greater than 0' },
+      { field: 'currency', type: 'required', message: 'Currency is required' },
+      { field: 'minGroupSize', type: 'required', message: 'Minimum group size is required' },
+      { field: 'maxGroupSize', type: 'required', message: 'Maximum group size is required' }
     ]
   }
 ];
@@ -683,7 +686,7 @@ export function useSupabasePackageWizard() {
       });
 
       // Save to Supabase
-      const { data, error } = await PackageService.createPackage(dbPackage);
+      const { data, error } = await packageService.createPackage(dbPackage);
 
       if (error) {
         console.error('Error saving draft:', error);
@@ -772,7 +775,7 @@ export function useSupabasePackageWizard() {
       });
 
       // Save to Supabase
-      const { data, error } = await PackageService.createPackage(dbPackage);
+      const { data, error } = await packageService.createPackage(dbPackage);
 
       if (error) {
         console.error('Error publishing package:', error);
