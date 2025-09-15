@@ -18,6 +18,7 @@ import {
 import { validatePackageType, validateBasicInfo, formatValidationErrors } from '@/lib/validations/packageWizard';
 import { PackageType, PackageStatus, DifficultyLevel, Package } from '@/lib/types';
 import { PackageService } from '@/lib/services/packageService';
+import { TourOperatorService } from '@/lib/services/tourOperatorService';
 import { useSimpleAuth } from '@/context/SimpleAuthContext';
 
 // Step configurations
@@ -258,10 +259,23 @@ export function useSupabasePackageWizard() {
 
       const formData = form.getValues();
       
+      // Get tour operator profile for the current user
+      const { data: tourOperator, error: tourOperatorError } = await TourOperatorService.getTourOperatorByUserId(authState.user.id);
+      
+      if (tourOperatorError || !tourOperator) {
+        console.error('Error getting tour operator profile:', tourOperatorError);
+        setWizardState(prev => ({ 
+          ...prev, 
+          isSaving: false,
+          errors: { general: 'Tour operator profile not found. Please contact support.' }
+        }));
+        return false;
+      }
+      
       // Convert to database format
       const dbPackage = PackageService.convertToDbPackage({
         ...formData,
-        tourOperatorId: authState.user.id, // This should be the tour operator ID
+        tourOperatorId: tourOperator.id, // Use the actual tour operator ID
         status: PackageStatus.DRAFT
       });
 
@@ -331,10 +345,23 @@ export function useSupabasePackageWizard() {
         return { success: false, message: validationErrors.join(', ') };
       }
 
+      // Get tour operator profile for the current user
+      const { data: tourOperator, error: tourOperatorError } = await TourOperatorService.getTourOperatorByUserId(authState.user.id);
+      
+      if (tourOperatorError || !tourOperator) {
+        console.error('Error getting tour operator profile:', tourOperatorError);
+        setWizardState(prev => ({ 
+          ...prev, 
+          isSaving: false,
+          errors: { general: 'Tour operator profile not found. Please contact support.' }
+        }));
+        return { success: false, message: 'Tour operator profile not found. Please contact support.' };
+      }
+
       // Convert to database format
       const dbPackage = PackageService.convertToDbPackage({
         ...formData,
-        tourOperatorId: authState.user.id,
+        tourOperatorId: tourOperator.id, // Use the actual tour operator ID
         status: PackageStatus.ACTIVE
       });
 
