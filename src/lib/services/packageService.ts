@@ -53,7 +53,7 @@ export class PackageService {
   // Create a new package
   async createPackage(packageData: DbPackageInsert): Promise<ServiceResponse<DbPackage>> {
     try {
-      const { data, error } = await PackageService.createPackage(packageData);
+      const { data, error } = await PackageService.createPackageStatic(packageData);
       
       if (error) {
         return { data: null as any, success: false, error: error.message || 'Failed to create package' };
@@ -273,7 +273,7 @@ export class PackageService {
   }
 
   // Static methods from the original PackageService (for backward compatibility)
-  static async createPackage(packageData: DbPackageInsert): Promise<SupabaseResponse<DbPackage>> {
+  static async createPackageStatic(packageData: DbPackageInsert): Promise<SupabaseResponse<DbPackage>> {
     try {
       const { data, error } = await supabase
         .from('packages')

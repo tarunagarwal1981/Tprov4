@@ -144,13 +144,18 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
 
   // Handle publish
   const handlePublish = async () => {
+    console.log('🚀 HandlePublish called');
     try {
       const result = await publishPackage();
+      console.log('📦 Publish result:', result);
       if (result && result.success) {
+        console.log('✅ Publishing successful, redirecting...');
         router.push('/operator/packages');
+      } else {
+        console.log('❌ Publishing failed:', result?.message);
       }
     } catch (error) {
-      console.error('Error publishing package:', error);
+      console.error('❌ Error publishing package:', error);
     }
   };
 

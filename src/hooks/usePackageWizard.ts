@@ -355,6 +355,9 @@ export function usePackageWizard() {
 
   // Publish package
   const publishPackage = useCallback(async (): Promise<PackageCreationResult> => {
+    console.log('🚀 Starting package publish process...');
+    console.log('🔍 Current wizard state:', wizardState);
+    
     // Validate all steps
     const allStepsValid = wizardState.steps.every(step => {
       if (step.isCompleted) return true;
@@ -441,7 +444,10 @@ export function usePackageWizard() {
       return validationResult.success;
     });
 
+    console.log('🔍 All steps valid:', allStepsValid);
+
     if (!allStepsValid) {
+      console.log('❌ Validation failed - not all steps are valid');
       return {
         success: false,
         errors: wizardState.errors,
@@ -449,6 +455,7 @@ export function usePackageWizard() {
       };
     }
 
+    console.log('✅ All steps validated successfully');
     setWizardState(prev => ({ ...prev, isSaving: true }));
 
     try {
@@ -509,7 +516,12 @@ export function usePackageWizard() {
         updatedAt: new Date()
       } as Package;
 
+      console.log('📦 Package data prepared:', packageData);
+      console.log('🔄 Calling packageService.createPackage...');
+
       const response = await packageService.createPackage(packageData);
+
+      console.log('📦 Package service response:', response);
 
       if (response.success) {
         // Clear draft
@@ -517,12 +529,14 @@ export function usePackageWizard() {
         
         setWizardState(prev => ({ ...prev, isSaving: false }));
         
+        console.log('✅ Package published successfully!');
         return {
           success: true,
           package: response.data,
           message: 'Package created successfully!'
         };
       } else {
+        console.log('❌ Package service returned error:', response.error);
         return {
           success: false,
           errors: { general: [response.error || 'Failed to create package'] },
@@ -530,7 +544,7 @@ export function usePackageWizard() {
         };
       }
     } catch (error) {
-      console.error('Error publishing package:', error);
+      console.error('❌ Error publishing package:', error);
       return {
         success: false,
         errors: { general: ['An unexpected error occurred'] },
