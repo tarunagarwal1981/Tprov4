@@ -16,7 +16,7 @@ import {
 } from '@/lib/types/wizard';
 import { validatePackageType, validateBasicInfo, formatValidationErrors } from '@/lib/validations/packageWizard';
 import { PackageType, PackageStatus, DifficultyLevel, Package } from '@/lib/types';
-import { packageService } from '@/lib/services/packageService';
+import { packageService, PackageService } from '@/lib/services/packageService';
 
 // Step configurations
 const STEP_CONFIGS: StepConfig[] = [
@@ -369,8 +369,8 @@ export function usePackageWizard() {
     });
     
     // Validate all steps based on current form data
-    const validationErrors: string[] = [];
-    
+          const validationErrors: string[] = [];
+          
     // Step 1: Package Type
     if (!currentFormData.type) {
       validationErrors.push('Package type is required');
@@ -392,38 +392,38 @@ export function usePackageWizard() {
     
     // Step 3: Location & Timing
     if (!currentFormData.place || currentFormData.place.trim() === '') {
-      validationErrors.push('Place is required');
-    }
+            validationErrors.push('Place is required');
+          }
     if (!currentFormData.pickupPoints || currentFormData.pickupPoints.length === 0) {
-      validationErrors.push('At least one pickup point is required');
-    }
+            validationErrors.push('At least one pickup point is required');
+          }
     if (!currentFormData.timingNotes || currentFormData.timingNotes.trim() === '') {
-      validationErrors.push('Timing notes are required');
-    }
-    
-    // Package type specific validations
+            validationErrors.push('Timing notes are required');
+          }
+          
+          // Package type specific validations
     const packageType = currentFormData.type;
-    if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+          if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
       if (!currentFormData.fromLocation || currentFormData.fromLocation.trim() === '') {
-        validationErrors.push('From location is required for this package type');
-      }
+              validationErrors.push('From location is required for this package type');
+            }
       if (!currentFormData.toLocation || currentFormData.toLocation.trim() === '') {
-        validationErrors.push('To location is required for this package type');
-      }
-    }
-    
-    if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
+              validationErrors.push('To location is required for this package type');
+            }
+          }
+          
+          if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
       if (!currentFormData.durationHours || currentFormData.durationHours <= 0) {
-        validationErrors.push('Duration in hours is required for this package type');
-      }
-    }
-    
-    if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
+              validationErrors.push('Duration in hours is required for this package type');
+            }
+          }
+          
+          if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
       if (!currentFormData.durationDays || currentFormData.durationDays <= 0) {
-        validationErrors.push('Duration in days is required for this package type');
-      }
-    }
-    
+              validationErrors.push('Duration in days is required for this package type');
+            }
+          }
+          
     // Step 4: Detailed Planning
     if (!currentFormData.vehicleType || currentFormData.vehicleType.trim() === '') {
       validationErrors.push('Vehicle type is required');
@@ -476,13 +476,14 @@ export function usePackageWizard() {
     setWizardState(prev => ({ ...prev, isSaving: true }));
 
     try {
-      const packageData = {
+      // Create package data in the format expected by the app
+      const appPackageData = {
         id: `pkg-${Date.now()}`,
         tourOperatorId: 'op-001', // This would come from auth context
         title: currentFormData.title || '',
         description: currentFormData.description || '',
         type: currentFormData.type || PackageType.ACTIVITY,
-        status: currentFormData.status || PackageStatus.DRAFT,
+        status: PackageStatus.ACTIVE, // Set to ACTIVE when publishing
         pricing: {
           basePrice: currentFormData.adultPrice || 0,
           currency: currentFormData.currency || 'USD',
@@ -533,10 +534,14 @@ export function usePackageWizard() {
         updatedAt: new Date()
       } as Package;
 
-      console.log('📦 Package data prepared:', packageData);
+      console.log('📦 App package data prepared:', appPackageData);
+      
+      // Convert to database format using the service's conversion method
+      const dbPackageData = PackageService.convertToDbPackage(appPackageData);
+      console.log('📦 Database package data prepared:', dbPackageData);
+      
       console.log('🔄 Calling packageService.createPackage...');
-
-      const response = await packageService.createPackage(packageData);
+      const response = await packageService.createPackage(dbPackageData);
 
       console.log('📦 Package service response:', response);
 
