@@ -356,100 +356,111 @@ export function usePackageWizard() {
   // Publish package
   const publishPackage = useCallback(async (): Promise<PackageCreationResult> => {
     console.log('🚀 Starting package publish process...');
-    console.log('🔍 Current wizard state:', wizardState);
+    
+    // Get the current state at the time of execution
+    let currentFormData: Partial<PackageFormData> = {};
+    let currentErrors: Record<string, string[]> = {};
+    
+    setWizardState(currentState => {
+      console.log('🔍 Current wizard state:', currentState);
+      currentFormData = currentState.formData;
+      currentErrors = currentState.errors;
+      return currentState; // Don't modify state here
+    });
     
     // Validate all steps based on current form data
     const validationErrors: string[] = [];
     
     // Step 1: Package Type
-    if (!wizardState.formData.type) {
+    if (!currentFormData.type) {
       validationErrors.push('Package type is required');
     }
     
     // Step 2: Basic Info
-    if (!wizardState.formData.title || wizardState.formData.title.trim() === '') {
+    if (!currentFormData.title || currentFormData.title.trim() === '') {
       validationErrors.push('Title is required');
     }
-    if (!wizardState.formData.description || wizardState.formData.description.trim() === '') {
+    if (!currentFormData.description || currentFormData.description.trim() === '') {
       validationErrors.push('Description is required');
     }
-    if (!wizardState.formData.shortDescription || wizardState.formData.shortDescription.trim() === '') {
+    if (!currentFormData.shortDescription || currentFormData.shortDescription.trim() === '') {
       validationErrors.push('Short description is required');
     }
-    if (!wizardState.formData.bannerImage || wizardState.formData.bannerImage.trim() === '') {
+    if (!currentFormData.bannerImage || currentFormData.bannerImage.trim() === '') {
       validationErrors.push('Banner image is required');
     }
     
     // Step 3: Location & Timing
-    if (!wizardState.formData.place || wizardState.formData.place.trim() === '') {
+    if (!currentFormData.place || currentFormData.place.trim() === '') {
       validationErrors.push('Place is required');
     }
-    if (!wizardState.formData.pickupPoints || wizardState.formData.pickupPoints.length === 0) {
+    if (!currentFormData.pickupPoints || currentFormData.pickupPoints.length === 0) {
       validationErrors.push('At least one pickup point is required');
     }
-    if (!wizardState.formData.timingNotes || wizardState.formData.timingNotes.trim() === '') {
+    if (!currentFormData.timingNotes || currentFormData.timingNotes.trim() === '') {
       validationErrors.push('Timing notes are required');
     }
     
     // Package type specific validations
-    const packageType = wizardState.formData.type;
+    const packageType = currentFormData.type;
     if (packageType === 'TRANSFERS' || packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
-      if (!wizardState.formData.fromLocation || wizardState.formData.fromLocation.trim() === '') {
+      if (!currentFormData.fromLocation || currentFormData.fromLocation.trim() === '') {
         validationErrors.push('From location is required for this package type');
       }
-      if (!wizardState.formData.toLocation || wizardState.formData.toLocation.trim() === '') {
+      if (!currentFormData.toLocation || currentFormData.toLocation.trim() === '') {
         validationErrors.push('To location is required for this package type');
       }
     }
     
     if (packageType === 'ACTIVITY' || packageType === 'TRANSFERS') {
-      if (!wizardState.formData.durationHours || wizardState.formData.durationHours <= 0) {
+      if (!currentFormData.durationHours || currentFormData.durationHours <= 0) {
         validationErrors.push('Duration in hours is required for this package type');
       }
     }
     
     if (packageType === 'LAND_PACKAGE' || packageType === 'LAND_PACKAGE_WITH_HOTEL') {
-      if (!wizardState.formData.durationDays || wizardState.formData.durationDays <= 0) {
+      if (!currentFormData.durationDays || currentFormData.durationDays <= 0) {
         validationErrors.push('Duration in days is required for this package type');
       }
     }
     
     // Step 4: Detailed Planning
-    if (!wizardState.formData.vehicleType || wizardState.formData.vehicleType.trim() === '') {
+    if (!currentFormData.vehicleType || currentFormData.vehicleType.trim() === '') {
       validationErrors.push('Vehicle type is required');
     }
-    if (!wizardState.formData.acNonAc || wizardState.formData.acNonAc.trim() === '') {
+    if (!currentFormData.acNonAc || currentFormData.acNonAc.trim() === '') {
       validationErrors.push('AC/Non-AC selection is required');
     }
     
     // Step 5: Inclusions & Exclusions
-    if (!wizardState.formData.tourInclusions || wizardState.formData.tourInclusions.length === 0) {
+    if (!currentFormData.tourInclusions || currentFormData.tourInclusions.length === 0) {
       validationErrors.push('At least one tour inclusion is required');
     }
-    if (!wizardState.formData.tourExclusions || wizardState.formData.tourExclusions.length === 0) {
+    if (!currentFormData.tourExclusions || currentFormData.tourExclusions.length === 0) {
       validationErrors.push('At least one tour exclusion is required');
     }
     
     // Step 6: Pricing & Policies
-    if (!wizardState.formData.adultPrice || wizardState.formData.adultPrice <= 0) {
+    if (!currentFormData.adultPrice || currentFormData.adultPrice <= 0) {
       validationErrors.push('Adult price is required and must be greater than 0');
     }
-    if (!wizardState.formData.childPrice || wizardState.formData.childPrice <= 0) {
+    if (!currentFormData.childPrice || currentFormData.childPrice <= 0) {
       validationErrors.push('Child price is required and must be greater than 0');
     }
-    if (!wizardState.formData.currency || wizardState.formData.currency.trim() === '') {
+    if (!currentFormData.currency || currentFormData.currency.trim() === '') {
       validationErrors.push('Currency is required');
     }
-    if (!wizardState.formData.minGroupSize || wizardState.formData.minGroupSize <= 0) {
+    if (!currentFormData.minGroupSize || currentFormData.minGroupSize <= 0) {
       validationErrors.push('Minimum group size is required');
     }
-    if (!wizardState.formData.maxGroupSize || wizardState.formData.maxGroupSize <= 0) {
+    if (!currentFormData.maxGroupSize || currentFormData.maxGroupSize <= 0) {
       validationErrors.push('Maximum group size is required');
     }
     
     const allStepsValid = validationErrors.length === 0;
 
     console.log('🔍 All steps valid:', allStepsValid);
+    console.log('🔍 Current form data:', currentFormData);
 
     if (!allStepsValid) {
       console.log('❌ Validation failed - not all steps are valid');
@@ -468,25 +479,25 @@ export function usePackageWizard() {
       const packageData = {
         id: `pkg-${Date.now()}`,
         tourOperatorId: 'op-001', // This would come from auth context
-        title: wizardState.formData.title || '',
-        description: wizardState.formData.description || '',
-        type: wizardState.formData.type || PackageType.ACTIVITY,
-        status: wizardState.formData.status || PackageStatus.DRAFT,
+        title: currentFormData.title || '',
+        description: currentFormData.description || '',
+        type: currentFormData.type || PackageType.ACTIVITY,
+        status: currentFormData.status || PackageStatus.DRAFT,
         pricing: {
-          basePrice: wizardState.formData.adultPrice || 0,
-          currency: wizardState.formData.currency || 'USD',
+          basePrice: currentFormData.adultPrice || 0,
+          currency: currentFormData.currency || 'USD',
           pricePerPerson: true,
-          groupDiscounts: wizardState.formData.groupDiscounts || [],
-          seasonalPricing: wizardState.formData.seasonalPricing || [],
-          inclusions: wizardState.formData.tourInclusions || [],
+          groupDiscounts: currentFormData.groupDiscounts || [],
+          seasonalPricing: currentFormData.seasonalPricing || [],
+          inclusions: currentFormData.tourInclusions || [],
           taxes: { gst: 0, serviceTax: 0, tourismTax: 0, other: [] },
           fees: { bookingFee: 0, processingFee: 0, cancellationFee: 0, other: [] }
         },
-        itinerary: wizardState.formData.itinerary || [],
-        inclusions: wizardState.formData.tourInclusions || [],
-        exclusions: wizardState.formData.tourExclusions || [],
-        termsAndConditions: wizardState.formData.termsAndConditions || [],
-        cancellationPolicy: wizardState.formData.cancellationPolicy || {
+        itinerary: currentFormData.itinerary || [],
+        inclusions: currentFormData.tourInclusions || [],
+        exclusions: currentFormData.tourExclusions || [],
+        termsAndConditions: currentFormData.termsAndConditions || [],
+        cancellationPolicy: currentFormData.cancellationPolicy || {
           freeCancellationDays: 7,
           cancellationFees: [
             { daysBeforeTravel: 7, feePercentage: 0 },
@@ -502,20 +513,20 @@ export function usePackageWizard() {
           },
           forceMajeurePolicy: 'Full refund for force majeure events'
         },
-        images: wizardState.formData.additionalImages || [],
-        destinations: wizardState.formData.multipleDestinations || [],
+        images: currentFormData.additionalImages || [],
+        destinations: currentFormData.multipleDestinations || [],
         duration: {
-          days: wizardState.formData.durationDays || 1,
-          nights: wizardState.formData.durationDays ? wizardState.formData.durationDays - 1 : 0
+          days: currentFormData.durationDays || 1,
+          nights: currentFormData.durationDays ? currentFormData.durationDays - 1 : 0
         },
         groupSize: {
-          min: wizardState.formData.minGroupSize || 1,
-          max: wizardState.formData.maxGroupSize || 10,
-          ideal: Math.floor((wizardState.formData.minGroupSize || 1 + wizardState.formData.maxGroupSize || 10) / 2)
+          min: currentFormData.minGroupSize || 1,
+          max: currentFormData.maxGroupSize || 10,
+          ideal: Math.floor((currentFormData.minGroupSize || 1 + currentFormData.maxGroupSize || 10) / 2)
         },
-        difficulty: wizardState.formData.difficulty || DifficultyLevel.MODERATE,
-        tags: wizardState.formData.tags || [],
-        isFeatured: wizardState.formData.isFeatured || false,
+        difficulty: currentFormData.difficulty || DifficultyLevel.MODERATE,
+        tags: currentFormData.tags || [],
+        isFeatured: currentFormData.isFeatured || false,
         rating: 0,
         reviewCount: 0,
         createdAt: new Date(),
