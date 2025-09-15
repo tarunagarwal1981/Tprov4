@@ -104,24 +104,25 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
     lastSaved,
     errors,
     isValid,
+    actions,
+    form
+  } = useSupabasePackageWizard();
+  
+  const {
     goToStep,
     nextStep,
     previousStep,
     updateFormData,
     saveDraft,
     publishPackage,
-    resetWizard,
-    form
-  } = useSupabasePackageWizard();
+    resetWizard
+  } = actions;
 
   // Get current step component
   const CurrentStepComponent = STEP_COMPONENTS[currentStep];
   const currentStepConfig = STEP_CONFIG[currentStep];
   const currentStepIndex = steps.findIndex(s => s.id === currentStep);
   
-  console.log('🔍 ModernPackageWizard - currentStep:', currentStep);
-  console.log('🔍 ModernPackageWizard - CurrentStepComponent:', CurrentStepComponent);
-  console.log('🔍 ModernPackageWizard - STEP_COMPONENTS:', STEP_COMPONENTS);
 
   // Handle exit confirmation
   const handleExit = () => {
@@ -356,14 +357,7 @@ export default function ModernPackageWizard({ className }: ModernPackageWizardPr
                     updateFormData={updateFormData}
                     errors={errors}
                     isValid={isValid}
-                    onNext={() => {
-                      console.log('🔍 ModernPackageWizard - nextStep function:', typeof nextStep, nextStep);
-                      if (typeof nextStep === 'function') {
-                        nextStep();
-                      } else {
-                        console.error('❌ nextStep is not a function:', nextStep);
-                      }
-                    }}
+                    onNext={nextStep}
                     onPrevious={previousStep}
                     onSave={handleSaveDraft}
                     onPublish={handlePublish}

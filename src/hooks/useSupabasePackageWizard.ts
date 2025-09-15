@@ -440,15 +440,10 @@ export function useSupabasePackageWizard() {
 
   // Go to next step
   const nextStep = useCallback(() => {
-    console.log('🔍 nextStep called, current step:', wizardState.currentStep);
     const currentIndex = STEP_CONFIGS.findIndex(s => s.id === wizardState.currentStep);
-    console.log('🔍 currentIndex:', currentIndex, 'total steps:', STEP_CONFIGS.length);
     if (currentIndex < STEP_CONFIGS.length - 1) {
       const nextStepId = STEP_CONFIGS[currentIndex + 1].id as WizardStep;
-      console.log('🔍 going to next step:', nextStepId);
       goToStep(nextStepId);
-    } else {
-      console.log('🔍 already at last step');
     }
   }, [wizardState.currentStep, goToStep]);
 
