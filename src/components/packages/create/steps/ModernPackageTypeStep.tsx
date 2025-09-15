@@ -56,7 +56,12 @@ export default function ModernPackageTypeStep({
   const handleNext = () => {
     if (selectedType) {
       console.log('✅ Package type selected, proceeding to next step:', selectedType);
-      onNext();
+      console.log('🔍 onNext function:', typeof onNext, onNext);
+      if (typeof onNext === 'function') {
+        onNext();
+      } else {
+        console.error('❌ onNext is not a function:', onNext);
+      }
     } else {
       console.log('❌ No package type selected, cannot proceed');
     }
