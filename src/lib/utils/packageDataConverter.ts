@@ -1,5 +1,6 @@
 import { PackageWithDetails } from '@/lib/supabase-types';
-import { PackageFormData, PackageType } from '@/lib/types/wizard';
+import { PackageFormData } from '@/lib/types/wizard';
+import { PackageType } from '@/lib/types';
 
 export function convertDbPackageToFormData(dbPackage: PackageWithDetails): PackageFormData {
   // Extract pricing information
