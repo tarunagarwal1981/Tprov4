@@ -308,6 +308,42 @@ export default function PackageEditPage() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Child Price (USD)
+                    </label>
+                    <input
+                      type="number"
+                      value={packageData.childPrice || 0}
+                      onChange={(e) => setPackageData({
+                        ...packageData, 
+                        childPrice: parseFloat(e.target.value) || 0
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Currency
+                    </label>
+                    <select
+                      value={packageData.currency || 'USD'}
+                      onChange={(e) => setPackageData({
+                        ...packageData, 
+                        currency: e.target.value
+                      })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="USD">USD</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="INR">INR</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Duration (days)
                     </label>
                     <input
@@ -494,6 +530,54 @@ export default function PackageEditPage() {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          AC/Non-AC
+                        </label>
+                        <select
+                          value={packageData.acNonAc || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            acNonAc: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select</option>
+                          <option value="AC">AC</option>
+                          <option value="Non-AC">Non-AC</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Driver Details
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.driverDetails || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            driverDetails: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Driver experience, language, etc."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Fuel Inclusion
+                        </label>
+                        <select
+                          value={packageData.fuelInclusion ? 'true' : 'false'}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            fuelInclusion: e.target.value === 'true'
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="true">Included</option>
+                          <option value="false">Not Included</option>
+                        </select>
+                      </div>
                     </div>
                   )}
                   
@@ -654,10 +738,25 @@ export default function PackageEditPage() {
                 <div className="flex items-center space-x-3">
                   <DollarSign className="w-5 h-5 text-green-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Price per person</p>
-                    <p className="text-lg font-semibold">{formatPrice(packageData.price)}</p>
+                    <p className="text-sm text-gray-500">Adult Price</p>
+                    <p className="text-lg font-semibold">
+                      {packageData.adultPrice ? formatPrice(packageData.adultPrice) : 'Price not set'}
+                    </p>
                   </div>
                 </div>
+                
+                {packageData.childPrice && packageData.childPrice > 0 && (
+                  <>
+                    <Separator />
+                    <div className="flex items-center space-x-3">
+                      <DollarSign className="w-5 h-5 text-green-600" />
+                      <div>
+                        <p className="text-sm text-gray-500">Child Price</p>
+                        <p className="text-lg font-semibold">{formatPrice(packageData.childPrice)}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
                 
                 <Separator />
                 
