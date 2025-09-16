@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PackageService } from '@/lib/services/packageService';
 import { PackageWithDetails } from '@/lib/supabase-types';
+import { PackageFormData, PackageType } from '@/lib/types/wizard';
+import { convertDbPackageToFormData, getPackageTypeSpecificFields } from '@/lib/utils/packageDataConverter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +29,7 @@ import { cn } from '@/lib/utils';
 export default function PackageDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [packageData, setPackageData] = useState<PackageWithDetails | null>(null);
+  const [packageData, setPackageData] = useState<PackageFormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,22 +51,24 @@ export default function PackageDetailPage() {
           setError('Failed to load package details');
           console.error('Error fetching package:', response.error);
         } else {
-          setPackageData(response.data);
+          const formData = convertDbPackageToFormData(response.data);
+          setPackageData(formData);
           // Debug the loaded data
           if (response.data) {
             console.log('PackageData loaded:', {
-              title: typeof response.data?.title,
-              description: typeof response.data?.description,
-              status: typeof response.data?.status,
-              type: typeof response.data?.type,
-              pricing: typeof response.data?.pricing,
-              duration: typeof response.data?.duration,
-              group_size: typeof response.data?.group_size,
-              destinations: Array.isArray(response.data?.destinations),
-              itinerary: Array.isArray(response.data?.itinerary),
-              reviews: Array.isArray(response.data?.reviews),
-              images: Array.isArray(response.data?.images),
-              tour_operator: typeof response.data?.tour_operator,
+              title: typeof formData?.title,
+              description: typeof formData?.description,
+              status: typeof formData?.status,
+              type: typeof formData?.type,
+              adultPrice: typeof formData?.adultPrice,
+              durationDays: typeof formData?.durationDays,
+              minGroupSize: typeof formData?.minGroupSize,
+              maxGroupSize: typeof formData?.maxGroupSize,
+              multipleDestinations: Array.isArray(formData?.multipleDestinations),
+              itinerary: Array.isArray(formData?.itinerary),
+              tourInclusions: Array.isArray(formData?.tourInclusions),
+              tourExclusions: Array.isArray(formData?.tourExclusions),
+              images: Array.isArray(formData?.images),
             });
           }
         }
@@ -283,48 +287,164 @@ export default function PackageDetailPage() {
               </Card>
             )}
 
-            {/* Reviews */}
-            {packageData.reviews && packageData.reviews.length > 0 && (
+            {/* Inclusions */}
+            {packageData.tourInclusions && packageData.tourInclusions.length > 0 && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Star className="w-5 h-5 mr-2" />
-                    Reviews ({safeRender(packageData.reviews.length, '0')})
-                  </CardTitle>
+                  <CardTitle>Tour Inclusions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {packageData.tourInclusions.map((inclusion, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-1">✓</span>
+                        <span className="text-gray-700">{inclusion}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Exclusions */}
+            {packageData.tourExclusions && packageData.tourExclusions.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tour Exclusions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {packageData.tourExclusions.map((exclusion, index) => (
+                      <li key={index} className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">✗</span>
+                        <span className="text-gray-700">{exclusion}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            {/* Package Type Specific Fields */}
+            {packageData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Package Type Details</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {packageData.reviews.map((review, index) => (
-                      <div key={index} className="border-b pb-4 last:border-b-0">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-semibold">{String(review.user?.name || 'Anonymous')}</span>
-                            <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={cn(
-                                    "w-4 h-4",
-                                    i < (Number(review.rating) || 0) 
-                                      ? "text-yellow-400 fill-current" 
-                                      : "text-gray-300"
-                                  )}
-                                />
-                              ))}
+                    {/* Show type-specific fields based on package type */}
+                    {packageData.type === PackageType.ACTIVITY && (
+                      <>
+                        {packageData.startTime && (
+                          <div className="flex items-center space-x-3">
+                            <Clock className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Start Time</p>
+                              <p className="font-semibold">{packageData.startTime}</p>
                             </div>
                           </div>
-                          <span className="text-sm text-gray-500">
-                            {formatDate(review.created_at)}
-                          </span>
+                        )}
+                        {packageData.endTime && (
+                          <div className="flex items-center space-x-3">
+                            <Clock className="w-5 h-5 text-blue-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">End Time</p>
+                              <p className="font-semibold">{packageData.endTime}</p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {packageData.type === PackageType.TRANSFERS && (
+                      <>
+                        {packageData.fromLocation && (
+                          <div className="flex items-center space-x-3">
+                            <MapPin className="w-5 h-5 text-red-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">From Location</p>
+                              <p className="font-semibold">{packageData.fromLocation}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.toLocation && (
+                          <div className="flex items-center space-x-3">
+                            <MapPin className="w-5 h-5 text-red-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">To Location</p>
+                              <p className="font-semibold">{packageData.toLocation}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.vehicleType && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-green-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Vehicle Type</p>
+                              <p className="font-semibold">{packageData.vehicleType}</p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {packageData.type === PackageType.LAND_PACKAGE_WITH_HOTEL && (
+                      <>
+                        {packageData.hotelCategory && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-orange-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Hotel Category</p>
+                              <p className="font-semibold">{packageData.hotelCategory}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.roomType && (
+                          <div className="flex items-center space-x-3">
+                                <Globe className="w-5 h-5 text-orange-600" />
+                                <div>
+                                  <p className="text-sm text-gray-500">Room Type</p>
+                                  <p className="font-semibold">{packageData.roomType}</p>
+                                </div>
+                              </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {packageData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT && (
+                      <>
+                        {packageData.departureAirport && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-sky-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Departure Airport</p>
+                              <p className="font-semibold">{packageData.departureAirport}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.arrivalAirport && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-sky-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Arrival Airport</p>
+                              <p className="font-semibold">{packageData.arrivalAirport}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.flightClass && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-sky-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Flight Class</p>
+                              <p className="font-semibold">{packageData.flightClass}</p>
                         </div>
-                        <p className="text-gray-700">{String(review.comment || 'No comment')}</p>
                       </div>
-                    ))}
+                        )}
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             )}
-          </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
@@ -337,11 +457,9 @@ export default function PackageDetailPage() {
                 <div className="flex items-center space-x-3">
                   <DollarSign className="w-5 h-5 text-green-600" />
                   <div>
-                    <p className="text-sm text-gray-500">Price per person</p>
+                    <p className="text-sm text-gray-500">Adult Price</p>
                     <p className="text-lg font-semibold">
-                      {packageData.pricing && typeof packageData.pricing === 'object' && 'basePrice' in packageData.pricing 
-                        ? formatPrice((packageData.pricing as any).basePrice) 
-                        : 'Price not set'}
+                      {packageData.adultPrice ? formatPrice(packageData.adultPrice) : 'Price not set'}
                     </p>
                   </div>
                 </div>
@@ -353,9 +471,9 @@ export default function PackageDetailPage() {
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
                     <p className="font-semibold">
-                      {packageData.duration && typeof packageData.duration === 'object' && 'days' in packageData.duration 
-                        ? `${(packageData.duration as any).days} days` 
-                        : 'Duration not set'}
+                      {packageData.durationDays ? `${packageData.durationDays} days` : 
+                       packageData.durationHours ? `${packageData.durationHours} hours` : 
+                       'Duration not set'}
                     </p>
                   </div>
                 </div>
@@ -367,8 +485,8 @@ export default function PackageDetailPage() {
                   <div>
                     <p className="text-sm text-gray-500">Group Size</p>
                     <p className="font-semibold">
-                      {packageData.group_size && typeof packageData.group_size === 'object' 
-                        ? `${(packageData.group_size as any).min || 0} - ${(packageData.group_size as any).max || 0} people`
+                      {packageData.minGroupSize && packageData.maxGroupSize 
+                        ? `${packageData.minGroupSize} - ${packageData.maxGroupSize} people`
                         : 'Group size not set'}
                     </p>
                   </div>
@@ -380,7 +498,11 @@ export default function PackageDetailPage() {
                   <MapPin className="w-5 h-5 text-red-600" />
                   <div>
                     <p className="text-sm text-gray-500">Destinations</p>
-                    <p className="font-semibold">{safeRender(packageData.destinations?.join(', '), 'Not specified')}</p>
+                    <p className="font-semibold">
+                      {packageData.multipleDestinations?.length 
+                        ? packageData.multipleDestinations.join(', ')
+                        : 'No destinations specified'}
+                    </p>
                   </div>
                 </div>
                 

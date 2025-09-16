@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PackageService } from '@/lib/services/packageService';
 import { PackageWithDetails } from '@/lib/supabase-types';
+import { PackageFormData, PackageType } from '@/lib/types/wizard';
+import { convertDbPackageToFormData, getPackageTypeSpecificFields } from '@/lib/utils/packageDataConverter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +29,7 @@ import { cn } from '@/lib/utils';
 export default function PackageEditPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [packageData, setPackageData] = useState<PackageWithDetails | null>(null);
+  const [packageData, setPackageData] = useState<PackageFormData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -50,22 +52,24 @@ export default function PackageEditPage() {
           setError('Failed to load package details');
           console.error('Error fetching package:', response.error);
         } else {
-          setPackageData(response.data);
+          const formData = convertDbPackageToFormData(response.data);
+          setPackageData(formData);
           // Debug the loaded data
           if (response.data) {
             console.log('PackageData loaded in edit page:', {
-              title: typeof response.data?.title,
-              description: typeof response.data?.description,
-              status: typeof response.data?.status,
-              type: typeof response.data?.type,
-              pricing: typeof response.data?.pricing,
-              duration: typeof response.data?.duration,
-              group_size: typeof response.data?.group_size,
-              destinations: Array.isArray(response.data?.destinations),
-              itinerary: Array.isArray(response.data?.itinerary),
-              reviews: Array.isArray(response.data?.reviews),
-              images: Array.isArray(response.data?.images),
-              tour_operator: typeof response.data?.tour_operator,
+              title: typeof formData?.title,
+              description: typeof formData?.description,
+              status: typeof formData?.status,
+              type: typeof formData?.type,
+              adultPrice: typeof formData?.adultPrice,
+              durationDays: typeof formData?.durationDays,
+              minGroupSize: typeof formData?.minGroupSize,
+              maxGroupSize: typeof formData?.maxGroupSize,
+              multipleDestinations: Array.isArray(formData?.multipleDestinations),
+              itinerary: Array.isArray(formData?.itinerary),
+              tourInclusions: Array.isArray(formData?.tourInclusions),
+              tourExclusions: Array.isArray(formData?.tourExclusions),
+              images: Array.isArray(formData?.images),
             });
           }
         }
@@ -88,23 +92,34 @@ export default function PackageEditPage() {
       const response = await PackageService.updatePackage(packageId, {
         title: packageData.title,
         description: packageData.description,
-        pricing: packageData.pricing,
-        duration: packageData.duration,
-        group_size: packageData.group_size,
-        destinations: packageData.destinations,
+        pricing: {
+          basePrice: packageData.adultPrice,
+          currency: packageData.currency,
+          groupDiscounts: packageData.groupDiscounts,
+          seasonalPricing: packageData.seasonalPricing
+        },
+        duration: {
+          days: packageData.durationDays,
+          hours: packageData.durationHours
+        },
+        group_size: {
+          min: packageData.minGroupSize,
+          max: packageData.maxGroupSize
+        },
+        destinations: packageData.multipleDestinations,
         status: packageData.status,
         type: packageData.type,
         itinerary: packageData.itinerary,
-        inclusions: packageData.inclusions,
-        exclusions: packageData.exclusions,
-        terms_and_conditions: packageData.terms_and_conditions,
-        cancellation_policy: packageData.cancellation_policy,
+        inclusions: packageData.tourInclusions,
+        exclusions: packageData.tourExclusions,
+        terms_and_conditions: packageData.termsAndConditions,
+        cancellation_policy: packageData.cancellationPolicy,
         images: packageData.images,
         difficulty: packageData.difficulty,
         tags: packageData.tags,
-        is_featured: packageData.is_featured,
-        rating: packageData.rating,
-        review_count: packageData.review_count,
+        is_featured: packageData.isFeatured,
+        rating: 0,
+        review_count: 0,
       });
       
       if (response.error) {
@@ -277,19 +292,14 @@ export default function PackageEditPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Price (USD)
+                      Adult Price (USD)
                     </label>
                     <input
                       type="number"
-                      value={packageData.pricing && typeof packageData.pricing === 'object' && 'basePrice' in packageData.pricing 
-                        ? (packageData.pricing as any).basePrice 
-                        : 0}
+                      value={packageData.adultPrice || 0}
                       onChange={(e) => setPackageData({
                         ...packageData, 
-                        pricing: {
-                          ...(packageData.pricing as any || {}),
-                          basePrice: parseFloat(e.target.value) || 0
-                        }
+                        adultPrice: parseFloat(e.target.value) || 0
                       })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -301,15 +311,10 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={packageData.duration && typeof packageData.duration === 'object' && 'days' in packageData.duration 
-                        ? (packageData.duration as any).days 
-                        : 0}
+                      value={packageData.durationDays || 0}
                       onChange={(e) => setPackageData({
                         ...packageData, 
-                        duration: {
-                          ...(packageData.duration as any || {}),
-                          days: parseInt(e.target.value) || 0
-                        }
+                        durationDays: parseInt(e.target.value) || 0
                       })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -323,15 +328,10 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={packageData.group_size && typeof packageData.group_size === 'object' && 'min' in packageData.group_size 
-                        ? (packageData.group_size as any).min 
-                        : 0}
+                      value={packageData.minGroupSize || 0}
                       onChange={(e) => setPackageData({
                         ...packageData, 
-                        group_size: {
-                          ...(packageData.group_size as any || {}),
-                          min: parseInt(e.target.value) || 0
-                        }
+                        minGroupSize: parseInt(e.target.value) || 0
                       })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -343,15 +343,10 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={packageData.group_size && typeof packageData.group_size === 'object' && 'max' in packageData.group_size 
-                        ? (packageData.group_size as any).max 
-                        : 0}
+                      value={packageData.maxGroupSize || 0}
                       onChange={(e) => setPackageData({
                         ...packageData, 
-                        group_size: {
-                          ...(packageData.group_size as any || {}),
-                          max: parseInt(e.target.value) || 0
-                        }
+                        maxGroupSize: parseInt(e.target.value) || 0
                       })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -364,10 +359,10 @@ export default function PackageEditPage() {
                   </label>
                   <input
                     type="text"
-                    value={safeRender(packageData.destinations?.join(', '), '')}
+                    value={packageData.multipleDestinations?.join(', ') || ''}
                     onChange={(e) => setPackageData({
                       ...packageData, 
-                      destinations: e.target.value.split(',').map(d => d.trim()).filter(d => d)
+                      multipleDestinations: e.target.value.split(',').map(d => d.trim()).filter(d => d)
                     })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Paris, London, Rome"
@@ -411,6 +406,180 @@ export default function PackageEditPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Package Type Specific Fields */}
+            {packageData && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Package Type Specific Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Activity specific fields */}
+                  {packageData.type === PackageType.ACTIVITY && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Start Time
+                        </label>
+                        <input
+                          type="time"
+                          value={packageData.startTime || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            startTime: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          End Time
+                        </label>
+                        <input
+                          type="time"
+                          value={packageData.endTime || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            endTime: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Transfers specific fields */}
+                  {packageData.type === PackageType.TRANSFERS && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          From Location
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.fromLocation || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            fromLocation: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          To Location
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.toLocation || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            toLocation: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Vehicle Type
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.vehicleType || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            vehicleType: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Land Package with Hotel specific fields */}
+                  {packageData.type === PackageType.LAND_PACKAGE_WITH_HOTEL && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Hotel Category
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.hotelCategory || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            hotelCategory: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Room Type
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.roomType || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            roomType: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Fixed Departure with Flight specific fields */}
+                  {packageData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Departure Airport
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.departureAirport || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            departureAirport: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Arrival Airport
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.arrivalAirport || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            arrivalAirport: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Flight Class
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.flightClass || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            flightClass: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Itinerary */}
             <Card>
