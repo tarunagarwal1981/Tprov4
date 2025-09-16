@@ -99,6 +99,15 @@ export default function PackageDetailPage() {
     );
   }
 
+  const safeRender = (value: any, fallback: string = 'Not specified'): string => {
+    if (value === null || value === undefined) return fallback;
+    if (typeof value === 'object') {
+      console.warn('Attempting to render object:', value);
+      return fallback;
+    }
+    return String(value);
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -145,16 +154,16 @@ export default function PackageDetailPage() {
                 Back
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{packageData.title}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">{safeRender(packageData.title, 'Untitled Package')}</h1>
                 <div className="flex items-center space-x-2 mt-1">
                   <Badge className={cn(
                     packageData.status === 'ACTIVE' 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-gray-100 text-gray-800'
                   )}>
-                    {packageData.status}
+                    {safeRender(packageData.status, 'UNKNOWN')}
                   </Badge>
-                  <Badge variant="outline">{packageData.type}</Badge>
+                  <Badge variant="outline">{safeRender(packageData.type, 'UNKNOWN')}</Badge>
                 </div>
               </div>
             </div>
@@ -219,13 +228,13 @@ export default function PackageDetailPage() {
                   <div className="space-y-4">
                     {packageData.itinerary.map((day, index) => (
                       <div key={index} className="border-l-4 border-blue-500 pl-4">
-                        <h4 className="font-semibold text-gray-900">Day {day.day}</h4>
-                        <p className="text-gray-700 mt-1">{day.description}</p>
-                        {day.activities && day.activities.length > 0 && (
+                        <h4 className="font-semibold text-gray-900">Day {String(day.day || index + 1)}</h4>
+                        <p className="text-gray-700 mt-1">{String(day.description || 'No description')}</p>
+                        {day.activities && Array.isArray(day.activities) && day.activities.length > 0 && (
                           <ul className="mt-2 space-y-1">
                             {day.activities.map((activity, actIndex) => (
                               <li key={actIndex} className="text-sm text-gray-600">
-                                • {activity}
+                                • {String(activity || '')}
                               </li>
                             ))}
                           </ul>
@@ -252,14 +261,14 @@ export default function PackageDetailPage() {
                       <div key={index} className="border-b pb-4 last:border-b-0">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
-                            <span className="font-semibold">{review.customerName}</span>
+                            <span className="font-semibold">{String(review.customerName || 'Anonymous')}</span>
                             <div className="flex items-center">
                               {[...Array(5)].map((_, i) => (
                                 <Star
                                   key={i}
                                   className={cn(
                                     "w-4 h-4",
-                                    i < (review.rating || 0) 
+                                    i < (Number(review.rating) || 0) 
                                       ? "text-yellow-400 fill-current" 
                                       : "text-gray-300"
                                   )}
@@ -271,7 +280,7 @@ export default function PackageDetailPage() {
                             {formatDate(review.createdAt)}
                           </span>
                         </div>
-                        <p className="text-gray-700">{review.comment}</p>
+                        <p className="text-gray-700">{String(review.comment || 'No comment')}</p>
                       </div>
                     ))}
                   </div>
@@ -349,13 +358,13 @@ export default function PackageDetailPage() {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <p className="font-semibold">{packageData.tour_operator.companyName}</p>
-                      <p className="text-sm text-gray-600">{packageData.tour_operator.description}</p>
+                      <p className="font-semibold">{String(packageData.tour_operator.companyName || 'Unknown Company')}</p>
+                      <p className="text-sm text-gray-600">{String(packageData.tour_operator.description || 'No description')}</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Globe className="w-4 h-4 text-gray-400" />
                       <span className="text-sm text-gray-600">
-                        {packageData.tour_operator.website || 'No website'}
+                        {String(packageData.tour_operator.website || 'No website')}
                       </span>
                     </div>
                   </div>

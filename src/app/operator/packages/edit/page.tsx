@@ -356,7 +356,7 @@ export default function PackageEditPage() {
                     packageData.itinerary.map((day, index) => (
                       <div key={index} className="border border-gray-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-gray-900">Day {day.day}</h4>
+                          <h4 className="font-semibold text-gray-900">Day {String(day.day || index + 1)}</h4>
                           <Button
                             variant="outline"
                             size="sm"
@@ -369,7 +369,7 @@ export default function PackageEditPage() {
                           </Button>
                         </div>
                         <textarea
-                          value={day.description}
+                          value={String(day.description || '')}
                           onChange={(e) => {
                             const newItinerary = [...(packageData.itinerary || [])];
                             newItinerary[index] = {...day, description: e.target.value};
