@@ -51,34 +51,17 @@ export function SimpleAuthProvider({ children }: AuthProviderProps) {
     try {
       console.log('🔍 Loading user profile for:', supabaseUser.id);
       
-      const { data: userProfile, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', supabaseUser.id)
-        .single();
+      // Create user profile directly from Supabase auth user
+      const user: SimpleUser = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+        role: (supabaseUser.user_metadata?.role as UserRole) || 'TRAVEL_AGENT',
+        profile: supabaseUser.user_metadata?.profile || {},
+      };
 
-      if (error) {
-        console.error('❌ Error loading user profile:', error);
-        return null;
-      }
-
-      if (userProfile) {
-        console.log('✅ User profile loaded:', userProfile);
-        console.log('🔍 User role from database:', userProfile.role);
-        console.log('🔍 User role type:', typeof userProfile.role);
-        return {
-          id: userProfile.id,
-          email: userProfile.email,
-          name: userProfile.name,
-          role: userProfile.role as UserRole,
-          profile: userProfile.profile,
-        };
-      } else {
-        console.log('❌ No user profile found in database for user:', supabaseUser.id);
-        console.log('🔍 User email:', supabaseUser.email);
-      }
-
-      return null;
+      console.log('✅ User profile created from auth:', user);
+      return user;
     } catch (error) {
       console.error('💥 Error in loadUserProfile:', error);
       return null;
@@ -194,6 +177,7 @@ export function SimpleAuthProvider({ children }: AuthProviderProps) {
           data: {
             name,
             role,
+            profile: {}
           }
         }
       });

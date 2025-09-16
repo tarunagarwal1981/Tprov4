@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { UserService } from '@/lib/services/userService';
 import { User, UserRole } from '@/lib/types';
 
 // ===== AUTH STATE INTERFACE =====
@@ -113,26 +112,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      const { data: userProfile, error } = await UserService.getUserById(supabaseUser.id);
-      
-      if (error) {
-        console.error('Error loading user profile:', error);
-        dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
-        return;
-      }
+      // Create user profile directly from Supabase auth user
+      const user: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
+        role: (supabaseUser.user_metadata?.role as UserRole) || 'TRAVEL_AGENT',
+        profile: supabaseUser.user_metadata?.profile || {},
+        createdAt: new Date(supabaseUser.created_at),
+        updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
+        isActive: true,
+        lastLoginAt: new Date()
+      };
 
-      if (userProfile) {
-        console.log('📋 Raw user profile from database:', userProfile);
-        const user = UserService.convertToAppUser(userProfile);
-        console.log('👤 Converted user profile:', user);
-        dispatch({ type: 'SET_USER_PROFILE', payload: user });
-        
-        // Update last login
-        await UserService.updateLastLogin(supabaseUser.id);
-      } else {
-        console.log('❌ User profile not found for user:', supabaseUser.id);
-        dispatch({ type: 'SET_ERROR', payload: 'User profile not found' });
-      }
+      console.log('👤 User profile created from auth:', user);
+      dispatch({ type: 'SET_USER_PROFILE', payload: user });
+      
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
@@ -223,8 +218,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         password,
         options: {
           data: {
-            name: userData?.name || email,
-            role: userData?.role || 'TRAVEL_AGENT'
+            name: userData?.name || email.split('@')[0],
+            role: userData?.role || 'TRAVEL_AGENT',
+            profile: {}
           }
         }
       });
@@ -301,27 +297,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== UPDATE PROFILE =====
   const updateProfile = async (updates: Partial<User>): Promise<{ success: boolean; error?: string }> => {
     try {
-      if (!state.user) {
+      if (!state.supabaseUser) {
         return { success: false, error: 'No user logged in' };
       }
 
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
-      const { data, error } = await UserService.updateUserProfile(state.user.id, updates);
+      // Update user metadata in Supabase auth
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          name: updates.name || state.supabaseUser.user_metadata?.name,
+          role: updates.role || state.supabaseUser.user_metadata?.role,
+          profile: updates.profile || state.supabaseUser.user_metadata?.profile || {}
+        }
+      });
 
       if (error) {
         dispatch({ type: 'SET_ERROR', payload: 'Failed to update profile' });
         return { success: false, error: 'Failed to update profile' };
       }
 
-      if (data) {
-        const updatedUser = UserService.convertToAppUser(data);
-        dispatch({ type: 'SET_USER_PROFILE', payload: updatedUser });
-        return { success: true };
-      }
-
-      return { success: false, error: 'Update failed' };
+      // Update local state
+      const updatedUser: User = {
+        ...state.user!,
+        ...updates,
+        updatedAt: new Date()
+      };
+      
+      dispatch({ type: 'SET_USER_PROFILE', payload: updatedUser });
+      return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Update failed';
       dispatch({ type: 'SET_ERROR', payload: errorMessage });
