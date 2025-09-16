@@ -16,6 +16,8 @@ import {
   Eye,
   ArrowRight,
   ArrowLeft,
+  Plus,
+  X,
   CheckCircle,
   AlertCircle,
   Users,
