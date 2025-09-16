@@ -171,6 +171,7 @@ export interface WizardState {
   lastSaved?: Date;
   errors: Record<string, string[]>;
   isValid: boolean;
+  draftId?: string; // ID of the saved draft package
 }
 
 // Wizard Actions
@@ -182,6 +183,8 @@ export interface WizardActions {
   saveDraft: () => Promise<void>;
   publishPackage: () => Promise<PackageCreationResult>;
   resetWizard: () => void;
+  disableAutoSave: () => void;
+  enableAutoSave: () => void;
 }
 
 // Step Component Props

@@ -754,10 +754,10 @@ export function useSupabasePackageWizard() {
 
     autoSaveTimeoutRef.current = setTimeout(() => {
       saveDraft();
-    }, 2000); // Auto-save after 2 seconds of inactivity
+    }, 10000); // Auto-save after 10 seconds of inactivity (reduced from 2 seconds)
   }, [form]);
 
-  // Save draft to Supabase
+  // Save draft to Supabase (only creates if no existing draft)
   const saveDraft = useCallback(async (): Promise<boolean> => {
     if (!authState.user) {
       console.error('No authenticated user for saving draft');
@@ -765,9 +765,16 @@ export function useSupabasePackageWizard() {
     }
 
     try {
-      setWizardState(prev => ({ ...prev, isSaving: true }));
-
       const formData = form.getValues();
+      
+      // Check if data has actually changed since last save
+      if (lastSavedDataRef.current && 
+          JSON.stringify(formData) === JSON.stringify(lastSavedDataRef.current)) {
+        console.log('📝 No changes detected, skipping save');
+        return true;
+      }
+
+      setWizardState(prev => ({ ...prev, isSaving: true }));
       
       // Get or create tour operator profile for the current user
       const { data: tourOperator, error: tourOperatorError } = await TourOperatorService.ensureTourOperatorProfile(
@@ -792,8 +799,27 @@ export function useSupabasePackageWizard() {
         status: PackageStatus.DRAFT
       });
 
-      // Save to Supabase
-      const { data, error } = await packageService.createPackage(dbPackage);
+      // Save to Supabase - update existing draft or create new one
+      let data, error;
+      
+      if (wizardState.draftId) {
+        // Update existing draft
+        console.log('📝 Updating existing draft:', wizardState.draftId);
+        const response = await PackageService.updatePackage(wizardState.draftId, dbPackage);
+        data = response.data;
+        error = response.error;
+      } else {
+        // Create new draft only if we don't have one
+        console.log('📝 Creating new draft');
+        const response = await packageService.createPackage(dbPackage);
+        data = response.data;
+        error = response.error;
+        
+        // Store the draft ID for future updates
+        if (data?.id) {
+          setWizardState(prev => ({ ...prev, draftId: data.id }));
+        }
+      }
 
       if (error) {
         console.error('Error saving draft:', error);
@@ -982,6 +1008,23 @@ export function useSupabasePackageWizard() {
     }
   }, [wizardState.currentStep, goToStep]);
 
+  // Disable auto-save (useful for edit mode)
+  const disableAutoSave = useCallback(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Enable auto-save
+  const enableAutoSave = useCallback(() => {
+    if (wizardState.isDirty && !autoSaveTimeoutRef.current) {
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        saveDraft();
+      }, 10000);
+    }
+  }, [wizardState.isDirty, saveDraft]);
+
   // Reset wizard
   const resetWizard = useCallback(() => {
     form.reset();
@@ -1014,7 +1057,9 @@ export function useSupabasePackageWizard() {
     validateStep,
     saveDraft,
     publishPackage,
-    resetWizard
+    resetWizard,
+    disableAutoSave,
+    enableAutoSave
   };
 
   return {
