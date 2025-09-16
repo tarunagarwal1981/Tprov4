@@ -438,8 +438,8 @@ export default function PackageDetailPage() {
                             <div>
                               <p className="text-sm text-gray-500">Flight Class</p>
                               <p className="font-semibold">{packageData.flightClass}</p>
-                        </div>
-                      </div>
+                            </div>
+                          </div>
                         )}
                       </>
                     )}
