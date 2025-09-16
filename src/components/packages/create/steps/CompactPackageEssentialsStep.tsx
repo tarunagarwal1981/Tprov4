@@ -11,7 +11,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import MultiSelect from '@/components/ui/MultiSelect';
 import { 
   Sparkles,
   FileText,
@@ -33,7 +32,6 @@ import {
   X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getPackageTypeInfo } from '@/lib/packageTypeInfo';
 
 const packageTypes = [
   {
@@ -109,19 +107,6 @@ const packageCategories = [
   { value: 'city', label: 'City' },
   { value: 'wellness', label: 'Wellness' },
   { value: 'food', label: 'Food & Wine' }
-];
-
-const destinationOptions = [
-  { value: 'Bali, Indonesia', label: 'Bali, Indonesia' },
-  { value: 'Thailand', label: 'Thailand' },
-  { value: 'Japan', label: 'Japan' },
-  { value: 'Italy', label: 'Italy' },
-  { value: 'France', label: 'France' },
-  { value: 'Spain', label: 'Spain' },
-  { value: 'Greece', label: 'Greece' },
-  { value: 'Turkey', label: 'Turkey' },
-  { value: 'Morocco', label: 'Morocco' },
-  { value: 'India', label: 'India' }
 ];
 
 export default function CompactPackageEssentialsStep({ 
@@ -242,8 +227,6 @@ export default function CompactPackageEssentialsStep({
     };
     return colorMap[color as keyof typeof colorMap] || colorMap.blue;
   };
-
-  const packageTypeInfo = localData.type ? getPackageTypeInfo(localData.type) : null;
 
   return (
     <div className="space-y-8">
@@ -433,27 +416,6 @@ export default function CompactPackageEssentialsStep({
                       <p className="text-red-500 text-sm mt-1">{errors.description[0]}</p>
                     )}
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <MapPin className="w-5 h-5 mr-2 text-blue-600" />
-                    Destinations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <MultiSelect
-                    options={destinationOptions}
-                    value={localData.destinations}
-                    onChange={(value) => handleInputChange('destinations', value)}
-                    placeholder="Select destinations..."
-                    searchPlaceholder="Search destinations..."
-                    maxSelections={10}
-                    label="Destinations *"
-                    error={errors.destinations?.[0]}
-                  />
                 </CardContent>
               </Card>
             </div>
