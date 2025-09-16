@@ -460,7 +460,7 @@ export function RealTimeBookingDashboard({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open(`/operator/packages/${pkg.id}`, '_blank')}
+                      onClick={() => window.open(`/operator/packages/view?id=${pkg.id}`, '_blank')}
                     >
                       <Eye className="w-4 h-4" />
                     </Button>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PackageService } from '@/lib/services/packageService';
 import { PackageWithDetails } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -25,16 +25,22 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function PackageDetailPage() {
-  const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [packageData, setPackageData] = useState<PackageWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const packageId = params.id as string;
+  const packageId = searchParams.get('id');
 
   useEffect(() => {
     const fetchPackage = async () => {
+      if (!packageId) {
+        setError('No package ID provided');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await PackageService.getPackageById(packageId);
@@ -53,13 +59,11 @@ export default function PackageDetailPage() {
       }
     };
 
-    if (packageId) {
-      fetchPackage();
-    }
+    fetchPackage();
   }, [packageId]);
 
   const handleEdit = () => {
-    router.push(`/operator/packages/${packageId}/edit`);
+    router.push(`/operator/packages/edit?id=${packageId}`);
   };
 
   const handleBack = () => {

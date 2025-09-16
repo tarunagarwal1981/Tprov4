@@ -115,20 +115,20 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
   const handleAction = useCallback((action: string) => {
     switch (action) {
       case 'edit':
-        window.location.href = `/operator/packages/${pkg.id}/edit`;
+        window.location.href = `/operator/packages/edit?id=${pkg.id}`;
         break;
       case 'duplicate':
-        window.location.href = `/operator/packages/${pkg.id}/duplicate`;
+        window.location.href = `/operator/packages/create?duplicate=${pkg.id}`;
         break;
       case 'archive':
         // Handle archive action
         console.log('Archive package:', pkg.id);
         break;
       case 'analytics':
-        window.location.href = `/operator/packages/${pkg.id}/analytics`;
+        window.location.href = `/operator/packages/analytics?id=${pkg.id}`;
         break;
       case 'view':
-        window.location.href = `/operator/packages/${pkg.id}`;
+        window.location.href = `/operator/packages/view?id=${pkg.id}`;
         break;
     }
   }, [pkg.id]);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { PackageService } from '@/lib/services/packageService';
 import { PackageWithDetails } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -25,17 +25,23 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function PackageEditPage() {
-  const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [packageData, setPackageData] = useState<PackageWithDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const packageId = params.id as string;
+  const packageId = searchParams.get('id');
 
   useEffect(() => {
     const fetchPackage = async () => {
+      if (!packageId) {
+        setError('No package ID provided');
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await PackageService.getPackageById(packageId);
@@ -54,13 +60,11 @@ export default function PackageEditPage() {
       }
     };
 
-    if (packageId) {
-      fetchPackage();
-    }
+    fetchPackage();
   }, [packageId]);
 
   const handleSave = async () => {
-    if (!packageData) return;
+    if (!packageData || !packageId) return;
     
     try {
       setSaving(true);
@@ -82,7 +86,7 @@ export default function PackageEditPage() {
         console.error('Error updating package:', response.error);
       } else {
         // Redirect to package detail page
-        router.push(`/operator/packages/${packageId}`);
+        router.push(`/operator/packages/view?id=${packageId}`);
       }
     } catch (err) {
       setError('An unexpected error occurred while saving');
@@ -93,11 +97,11 @@ export default function PackageEditPage() {
   };
 
   const handleBack = () => {
-    router.push(`/operator/packages/${packageId}`);
+    router.push(`/operator/packages/view?id=${packageId}`);
   };
 
   const handleView = () => {
-    router.push(`/operator/packages/${packageId}`);
+    router.push(`/operator/packages/view?id=${packageId}`);
   };
 
   if (loading) {
