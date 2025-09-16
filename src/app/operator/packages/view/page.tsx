@@ -108,6 +108,32 @@ export default function PackageDetailPage() {
     return String(value);
   };
 
+  // Debug function to check packageData structure
+  const debugPackageData = () => {
+    console.log('PackageData structure:', {
+      title: typeof packageData?.title,
+      description: typeof packageData?.description,
+      status: typeof packageData?.status,
+      type: typeof packageData?.type,
+      price: typeof packageData?.price,
+      duration: typeof packageData?.duration,
+      minGroupSize: typeof packageData?.minGroupSize,
+      maxGroupSize: typeof packageData?.maxGroupSize,
+      destinations: Array.isArray(packageData?.destinations),
+      itinerary: Array.isArray(packageData?.itinerary),
+      reviews: Array.isArray(packageData?.reviews),
+      images: Array.isArray(packageData?.images),
+      tour_operator: typeof packageData?.tour_operator,
+    });
+  };
+
+  // Call debug function when packageData changes
+  useEffect(() => {
+    if (packageData) {
+      debugPackageData();
+    }
+  }, [packageData]);
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -195,8 +221,8 @@ export default function PackageDetailPage() {
                     {packageData.images.map((image, index) => (
                       <div key={index} className="aspect-square rounded-lg overflow-hidden">
                         <img
-                          src={image.url}
-                          alt={`${packageData.title} - Image ${index + 1}`}
+                          src={safeRender(image.url, '')}
+                          alt={`${safeRender(packageData.title, 'Package')} - Image ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -213,7 +239,7 @@ export default function PackageDetailPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 whitespace-pre-wrap">
-                  {packageData.description || 'No description provided.'}
+                  {safeRender(packageData.description, 'No description provided.')}
                 </p>
               </CardContent>
             </Card>
@@ -252,7 +278,7 @@ export default function PackageDetailPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <Star className="w-5 h-5 mr-2" />
-                    Reviews ({packageData.reviews.length})
+                    Reviews ({safeRender(packageData.reviews.length, '0')})
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -311,7 +337,7 @@ export default function PackageDetailPage() {
                   <Clock className="w-5 h-5 text-blue-600" />
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
-                    <p className="font-semibold">{packageData.duration} days</p>
+                    <p className="font-semibold">{safeRender(packageData.duration, '0')} days</p>
                   </div>
                 </div>
                 
@@ -322,7 +348,7 @@ export default function PackageDetailPage() {
                   <div>
                     <p className="text-sm text-gray-500">Group Size</p>
                     <p className="font-semibold">
-                      {packageData.minGroupSize} - {packageData.maxGroupSize} people
+                      {safeRender(packageData.minGroupSize, '0')} - {safeRender(packageData.maxGroupSize, '0')} people
                     </p>
                   </div>
                 </div>
@@ -333,7 +359,7 @@ export default function PackageDetailPage() {
                   <MapPin className="w-5 h-5 text-red-600" />
                   <div>
                     <p className="text-sm text-gray-500">Destinations</p>
-                    <p className="font-semibold">{packageData.destinations?.join(', ') || 'Not specified'}</p>
+                    <p className="font-semibold">{safeRender(packageData.destinations?.join(', '), 'Not specified')}</p>
                   </div>
                 </div>
                 
