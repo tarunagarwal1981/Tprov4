@@ -147,22 +147,24 @@ export function getPackageTypeSpecificFields(packageType: PackageType) {
       'vehicleType', 'acNonAc', 'driverDetails', 'fuelInclusion',
       'startTime', 'endTime', 'timingNotes'
     ],
-    [PackageType.LAND_PACKAGE]: [
+    [PackageType.MULTI_CITY_PACKAGE]: [
       ...baseFields,
       'fromLocation', 'toLocation', 'pickupPoints',
       'vehicleType', 'acNonAc', 'driverDetails', 'fuelInclusion',
       'activitiesPerDay', 'mealPlanPerDay', 'freeTimeLeisure',
       'ageRestrictions', 'physicalRequirements', 'specialEquipment',
-      'weatherDependency', 'languageOptions', 'dressCode'
+      'weatherDependency', 'languageOptions', 'dressCode',
+      'visaDocumentation'
     ],
-    [PackageType.LAND_PACKAGE_WITH_HOTEL]: [
+    [PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL]: [
       ...baseFields,
       'fromLocation', 'toLocation', 'pickupPoints',
       'hotelCategory', 'roomType', 'hotelNameOptions', 'checkInCheckOut',
       'vehicleType', 'acNonAc', 'driverDetails', 'fuelInclusion',
       'activitiesPerDay', 'mealPlanPerDay', 'freeTimeLeisure',
       'ageRestrictions', 'physicalRequirements', 'specialEquipment',
-      'weatherDependency', 'languageOptions', 'dressCode'
+      'weatherDependency', 'languageOptions', 'dressCode',
+      'visaDocumentation', 'advanceBookingDays', 'paymentTerms'
     ],
     [PackageType.FIXED_DEPARTURE_WITH_FLIGHT]: [
       ...baseFields,
@@ -170,25 +172,6 @@ export function getPackageTypeSpecificFields(packageType: PackageType) {
       'hotelCategory', 'roomType', 'hotelNameOptions', 'checkInCheckOut',
       'departureAirport', 'arrivalAirport', 'flightClass', 
       'airlinePreference', 'baggageAllowance',
-      'vehicleType', 'acNonAc', 'driverDetails', 'fuelInclusion',
-      'activitiesPerDay', 'mealPlanPerDay', 'freeTimeLeisure',
-      'ageRestrictions', 'physicalRequirements', 'specialEquipment',
-      'weatherDependency', 'languageOptions', 'dressCode',
-      'advanceBookingDays', 'paymentTerms'
-    ],
-    [PackageType.DAY_TOUR]: [
-      ...baseFields,
-      'fromLocation', 'toLocation', 'pickupPoints',
-      'startTime', 'endTime', 'timingNotes',
-      'vehicleType', 'acNonAc', 'driverDetails', 'fuelInclusion',
-      'activitiesPerDay', 'mealPlanPerDay', 'freeTimeLeisure',
-      'ageRestrictions', 'physicalRequirements', 'specialEquipment',
-      'weatherDependency', 'languageOptions', 'dressCode'
-    ],
-    [PackageType.MULTI_CITY_TOUR]: [
-      ...baseFields,
-      'fromLocation', 'toLocation', 'pickupPoints',
-      'hotelCategory', 'roomType', 'hotelNameOptions', 'checkInCheckOut',
       'vehicleType', 'acNonAc', 'driverDetails', 'fuelInclusion',
       'activitiesPerDay', 'mealPlanPerDay', 'freeTimeLeisure',
       'ageRestrictions', 'physicalRequirements', 'specialEquipment',

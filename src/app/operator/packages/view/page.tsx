@@ -390,7 +390,48 @@ export default function PackageDetailPage() {
                       </>
                     )}
                     
-                    {packageData.type === PackageType.LAND_PACKAGE_WITH_HOTEL && (
+                    {packageData.type === PackageType.MULTI_CITY_PACKAGE && (
+                      <>
+                        {packageData.fromLocation && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">From Location</p>
+                              <p className="font-semibold">{packageData.fromLocation}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.toLocation && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">To Location</p>
+                              <p className="font-semibold">{packageData.toLocation}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.vehicleType && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Vehicle Type</p>
+                              <p className="font-semibold">{packageData.vehicleType}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.acNonAc && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-purple-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">AC/Non-AC</p>
+                              <p className="font-semibold">{packageData.acNonAc}</p>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {packageData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL && (
                       <>
                         {packageData.hotelCategory && (
                           <div className="flex items-center space-x-3">
@@ -403,16 +444,32 @@ export default function PackageDetailPage() {
                         )}
                         {packageData.roomType && (
                           <div className="flex items-center space-x-3">
-                                <Globe className="w-5 h-5 text-orange-600" />
-                                <div>
-                                  <p className="text-sm text-gray-500">Room Type</p>
-                                  <p className="font-semibold">{packageData.roomType}</p>
-                                </div>
-                              </div>
+                            <Globe className="w-5 h-5 text-orange-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">Room Type</p>
+                              <p className="font-semibold">{packageData.roomType}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.fromLocation && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-orange-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">From Location</p>
+                              <p className="font-semibold">{packageData.fromLocation}</p>
+                            </div>
+                          </div>
+                        )}
+                        {packageData.toLocation && (
+                          <div className="flex items-center space-x-3">
+                            <Globe className="w-5 h-5 text-orange-600" />
+                            <div>
+                              <p className="text-sm text-gray-500">To Location</p>
+                              <p className="font-semibold">{packageData.toLocation}</p>
+                            </div>
+                          </div>
                         )}
                       </>
-                    )}
-                    
                     {packageData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT && (
                       <>
                         {packageData.departureAirport && (

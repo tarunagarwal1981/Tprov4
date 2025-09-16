@@ -581,8 +581,73 @@ export default function PackageEditPage() {
                     </div>
                   )}
                   
-                  {/* Land Package with Hotel specific fields */}
-                  {packageData.type === PackageType.LAND_PACKAGE_WITH_HOTEL && (
+                  {/* Multi City Package specific fields */}
+                  {packageData.type === PackageType.MULTI_CITY_PACKAGE && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          From Location
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.fromLocation || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            fromLocation: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          To Location
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.toLocation || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            toLocation: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Vehicle Type
+                        </label>
+                        <input
+                          type="text"
+                          value={packageData.vehicleType || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            vehicleType: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          AC/Non-AC
+                        </label>
+                        <select
+                          value={packageData.acNonAc || ''}
+                          onChange={(e) => setPackageData({
+                            ...packageData, 
+                            acNonAc: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select</option>
+                          <option value="AC">AC</option>
+                          <option value="Non-AC">Non-AC</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Multi City Package with Hotel specific fields */}
+                  {packageData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
