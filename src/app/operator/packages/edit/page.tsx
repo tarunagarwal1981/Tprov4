@@ -51,6 +51,24 @@ export default function PackageEditPage() {
           console.error('Error fetching package:', response.error);
         } else {
           setPackageData(response.data);
+          // Debug the loaded data
+          if (response.data) {
+            console.log('PackageData loaded in edit page:', {
+              title: typeof response.data?.title,
+              description: typeof response.data?.description,
+              status: typeof response.data?.status,
+              type: typeof response.data?.type,
+              price: typeof response.data?.price,
+              duration: typeof response.data?.duration,
+              minGroupSize: typeof response.data?.minGroupSize,
+              maxGroupSize: typeof response.data?.maxGroupSize,
+              destinations: Array.isArray(response.data?.destinations),
+              itinerary: Array.isArray(response.data?.itinerary),
+              reviews: Array.isArray(response.data?.reviews),
+              images: Array.isArray(response.data?.images),
+              tour_operator: typeof response.data?.tour_operator,
+            });
+          }
         }
       } catch (err) {
         setError('An unexpected error occurred');
@@ -133,6 +151,15 @@ export default function PackageEditPage() {
     );
   }
 
+  const safeRender = (value: any, fallback: string = 'Not specified'): string => {
+    if (value === null || value === undefined) return fallback;
+    if (typeof value === 'object') {
+      console.warn('Attempting to render object:', value);
+      return fallback;
+    }
+    return String(value);
+  };
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -180,7 +207,7 @@ export default function PackageEditPage() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Edit Package</h1>
-                <p className="text-gray-600">{packageData.title}</p>
+                <p className="text-gray-600">{safeRender(packageData.title, 'Untitled Package')}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
@@ -221,7 +248,7 @@ export default function PackageEditPage() {
                   </label>
                   <input
                     type="text"
-                    value={packageData.title}
+                    value={safeRender(packageData.title, '')}
                     onChange={(e) => setPackageData({...packageData, title: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -232,7 +259,7 @@ export default function PackageEditPage() {
                     Description
                   </label>
                   <textarea
-                    value={packageData.description || ''}
+                    value={safeRender(packageData.description, '')}
                     onChange={(e) => setPackageData({...packageData, description: e.target.value})}
                     rows={4}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -246,7 +273,7 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={packageData.price}
+                      value={safeRender(packageData.price, '0')}
                       onChange={(e) => setPackageData({...packageData, price: parseFloat(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -258,7 +285,7 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={packageData.duration}
+                      value={safeRender(packageData.duration, '0')}
                       onChange={(e) => setPackageData({...packageData, duration: parseInt(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -272,7 +299,7 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={packageData.minGroupSize}
+                      value={safeRender(packageData.minGroupSize, '0')}
                       onChange={(e) => setPackageData({...packageData, minGroupSize: parseInt(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -284,7 +311,7 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={packageData.maxGroupSize}
+                      value={safeRender(packageData.maxGroupSize, '0')}
                       onChange={(e) => setPackageData({...packageData, maxGroupSize: parseInt(e.target.value) || 0})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
@@ -297,7 +324,7 @@ export default function PackageEditPage() {
                   </label>
                   <input
                     type="text"
-                    value={packageData.destinations?.join(', ') || ''}
+                    value={safeRender(packageData.destinations?.join(', '), '')}
                     onChange={(e) => setPackageData({
                       ...packageData, 
                       destinations: e.target.value.split(',').map(d => d.trim()).filter(d => d)
@@ -313,7 +340,7 @@ export default function PackageEditPage() {
                       Status
                     </label>
                     <select
-                      value={packageData.status}
+                      value={safeRender(packageData.status, 'DRAFT')}
                       onChange={(e) => setPackageData({...packageData, status: e.target.value as any})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
@@ -329,7 +356,7 @@ export default function PackageEditPage() {
                       Package Type
                     </label>
                     <select
-                      value={packageData.type}
+                      value={safeRender(packageData.type, 'ADVENTURE')}
                       onChange={(e) => setPackageData({...packageData, type: e.target.value as any})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
@@ -369,7 +396,7 @@ export default function PackageEditPage() {
                           </Button>
                         </div>
                         <textarea
-                          value={String(day.description || '')}
+                          value={safeRender(day.description, '')}
                           onChange={(e) => {
                             const newItinerary = [...(packageData.itinerary || [])];
                             newItinerary[index] = {...day, description: e.target.value};
@@ -428,7 +455,7 @@ export default function PackageEditPage() {
                   <Clock className="w-5 h-5 text-blue-600" />
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
-                    <p className="font-semibold">{packageData.duration} days</p>
+                    <p className="font-semibold">{safeRender(packageData.duration, '0')} days</p>
                   </div>
                 </div>
                 
@@ -439,7 +466,7 @@ export default function PackageEditPage() {
                   <div>
                     <p className="text-sm text-gray-500">Group Size</p>
                     <p className="font-semibold">
-                      {packageData.minGroupSize} - {packageData.maxGroupSize} people
+                      {safeRender(packageData.minGroupSize, '0')} - {safeRender(packageData.maxGroupSize, '0')} people
                     </p>
                   </div>
                 </div>
@@ -450,7 +477,7 @@ export default function PackageEditPage() {
                   <MapPin className="w-5 h-5 text-red-600" />
                   <div>
                     <p className="text-sm text-gray-500">Destinations</p>
-                    <p className="font-semibold">{packageData.destinations?.join(', ') || 'Not specified'}</p>
+                    <p className="font-semibold">{safeRender(packageData.destinations?.join(', '), 'Not specified')}</p>
                   </div>
                 </div>
                 
