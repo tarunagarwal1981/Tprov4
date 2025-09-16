@@ -16,8 +16,6 @@ import {
   Eye,
   ArrowRight,
   ArrowLeft,
-  Plus,
-  X,
   CheckCircle,
   AlertCircle,
   Users,
@@ -32,7 +30,6 @@ import {
   Package as PackageIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getPackageTypeInfo } from '@/lib/packageTypeInfo';
 
 const currencies = [
   { value: 'USD', label: 'USD ($)' },
@@ -48,14 +45,16 @@ const cancellationPolicies = [
   { value: 'flexible', label: 'Flexible', description: 'Free cancellation up to 24 hours before' },
   { value: 'moderate', label: 'Moderate', description: 'Free cancellation up to 7 days before' },
   { value: 'strict', label: 'Strict', description: 'Free cancellation up to 30 days before' },
-  { value: 'non_refundable', label: 'Non-refundable', description: 'No refunds after booking' }
+  { value: 'super_strict', label: 'Super Strict', description: 'Free cancellation up to 60 days before' }
 ];
 
-const refundPolicies = [
-  { value: 'full_refund', label: 'Full Refund', description: '100% refund for cancellations' },
-  { value: 'partial_refund', label: 'Partial Refund', description: '50-90% refund based on timing' },
-  { value: 'credit_only', label: 'Credit Only', description: 'Travel credit instead of refund' },
-  { value: 'no_refund', label: 'No Refund', description: 'No refunds under any circumstances' }
+const paymentMethods = [
+  { value: 'credit_card', label: 'Credit Card' },
+  { value: 'debit_card', label: 'Debit Card' },
+  { value: 'bank_transfer', label: 'Bank Transfer' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'cash', label: 'Cash on Arrival' },
+  { value: 'crypto', label: 'Cryptocurrency' }
 ];
 
 export default function CompactPricingReviewStep({ 
@@ -69,30 +68,32 @@ export default function CompactPricingReviewStep({
 }: StepProps) {
   
   const [localData, setLocalData] = useState({
-    // Pricing
-    adultPrice: formData.adultPrice || 0,
-    childPrice: formData.childPrice || 0,
-    infantPrice: formData.infantPrice || 0,
-    seniorCitizenPrice: formData.seniorCitizenPrice || 0,
+    // Pricing Structure
+    basePrice: formData.basePrice || 0,
     currency: formData.currency || 'USD',
+    pricePerPerson: formData.pricePerPerson || true,
     groupDiscounts: formData.groupDiscounts || [],
     seasonalPricing: formData.seasonalPricing || [],
     
-    // Booking Policies
-    minGroupSize: formData.minGroupSize || 1,
-    maxGroupSize: formData.maxGroupSize || 10,
-    advanceBookingDays: formData.advanceBookingDays || 7,
+    // Policies
     cancellationPolicy: formData.cancellationPolicy || 'moderate',
-    refundPolicy: formData.refundPolicy || 'partial_refund',
+    refundPolicy: formData.refundPolicy || '',
+    termsAndConditions: formData.termsAndConditions || '',
     
-    // Additional Pricing
-    taxes: formData.taxes || { gst: 0, serviceTax: 0, tourismTax: 0, other: [] },
-    fees: formData.fees || { bookingFee: 0, processingFee: 0, cancellationFee: 0, other: [] }
+    // Payment
+    paymentMethods: formData.paymentMethods || ['credit_card'],
+    advanceBookingRequired: formData.advanceBookingRequired || 7,
+    minimumAdvanceBooking: formData.minimumAdvanceBooking || 1,
+    
+    // Additional Info
+    specialOffers: formData.specialOffers || [],
+    additionalNotes: formData.additionalNotes || ''
   });
 
   const [activeSection, setActiveSection] = useState<'pricing' | 'policies' | 'review'>('pricing');
   const [newGroupDiscount, setNewGroupDiscount] = useState({ minPeople: '', discount: '' });
-  const [newSeasonalPricing, setNewSeasonalPricing] = useState({ season: '', multiplier: '' });
+  const [newSeasonalPrice, setNewSeasonalPrice] = useState({ season: '', price: '' });
+  const [newSpecialOffer, setNewSpecialOffer] = useState('');
 
   useEffect(() => {
     updateFormData(localData);
@@ -122,27 +123,44 @@ export default function CompactPricingReviewStep({
     }));
   };
 
-  const addSeasonalPricing = () => {
-    if (newSeasonalPricing.season && newSeasonalPricing.multiplier) {
+  const addSeasonalPrice = () => {
+    if (newSeasonalPrice.season && newSeasonalPrice.price) {
       setLocalData(prev => ({
         ...prev,
         seasonalPricing: [...prev.seasonalPricing, {
-          season: newSeasonalPricing.season,
-          multiplier: parseFloat(newSeasonalPricing.multiplier)
+          season: newSeasonalPrice.season,
+          price: parseFloat(newSeasonalPrice.price)
         }]
       }));
-      setNewSeasonalPricing({ season: '', multiplier: '' });
+      setNewSeasonalPrice({ season: '', price: '' });
     }
   };
 
-  const removeSeasonalPricing = (index: number) => {
+  const removeSeasonalPrice = (index: number) => {
     setLocalData(prev => ({
       ...prev,
       seasonalPricing: prev.seasonalPricing.filter((_, i) => i !== index)
     }));
   };
 
-  const packageTypeInfo = formData.type ? getPackageTypeInfo(formData.type) : null;
+  const addSpecialOffer = () => {
+    if (newSpecialOffer.trim()) {
+      setLocalData(prev => ({
+        ...prev,
+        specialOffers: [...prev.specialOffers, newSpecialOffer.trim()]
+      }));
+      setNewSpecialOffer('');
+    }
+  };
+
+  const removeSpecialOffer = (index: number) => {
+    setLocalData(prev => ({
+      ...prev,
+      specialOffers: prev.specialOffers.filter((_, i) => i !== index)
+    }));
+  };
+
+  const packageType = formData.type as PackageType;
 
   return (
     <div className="space-y-8">
@@ -156,7 +174,7 @@ export default function CompactPricingReviewStep({
           Pricing & Review
         </h2>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Set your pricing structure, booking policies, and review your package before publishing.
+          Set your pricing structure, define policies, and review your package before publishing.
         </p>
       </motion.div>
 
@@ -164,9 +182,9 @@ export default function CompactPricingReviewStep({
       <div className="flex justify-center">
         <div className="flex space-x-2 bg-gray-100 rounded-lg p-1">
           {[
-            { id: 'pricing', label: 'Pricing', icon: DollarSign },
-            { id: 'policies', label: 'Policies', icon: Shield },
-            { id: 'review', label: 'Review', icon: Eye }
+            { id: 'pricing', label: 'Pricing Structure', icon: DollarSign },
+            { id: 'policies', label: 'Policies & Terms', icon: Shield },
+            { id: 'review', label: 'Review & Publish', icon: Eye }
           ].map((section) => {
             const IconComponent = section.icon;
             const isActive = activeSection === section.id;
@@ -189,7 +207,7 @@ export default function CompactPricingReviewStep({
         </div>
       </div>
 
-      {/* Pricing Section */}
+      {/* Pricing Structure */}
       {activeSection === 'pricing' && (
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -197,281 +215,231 @@ export default function CompactPricingReviewStep({
           className="space-y-6"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Base Pricing */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
-                  Base Pricing
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="adultPrice" className="text-sm font-medium">
-                    Adult Price *
-                  </Label>
-                  <div className="flex space-x-2 mt-1">
-                    <Select
-                      value={localData.currency}
-                      onValueChange={(value) => handleInputChange('currency', value)}
-                    >
-                      <SelectTrigger className="w-20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {currencies.map((currency) => (
-                          <SelectItem key={currency.value} value={currency.value}>
-                            {currency.value}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      id="adultPrice"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={localData.adultPrice}
-                      onChange={(e) => handleInputChange('adultPrice', parseFloat(e.target.value) || 0)}
-                      placeholder="0.00"
-                      className="flex-1"
-                    />
+            {/* Left Column */}
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
+                    Base Pricing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="basePrice" className="text-sm font-medium">
+                        Base Price *
+                      </Label>
+                      <Input
+                        id="basePrice"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={localData.basePrice}
+                        onChange={(e) => handleInputChange('basePrice', parseFloat(e.target.value) || 0)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Currency</Label>
+                      <Select
+                        value={localData.currency}
+                        onValueChange={(value) => handleInputChange('currency', value)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {currencies.map((currency) => (
+                            <SelectItem key={currency.value} value={currency.value}>
+                              {currency.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <Label htmlFor="childPrice" className="text-sm font-medium">
-                    Child Price (2-12 years)
-                  </Label>
-                  <Input
-                    id="childPrice"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={localData.childPrice}
-                    onChange={(e) => handleInputChange('childPrice', parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    className="mt-1"
-                  />
-                </div>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="pricePerPerson"
+                      checked={localData.pricePerPerson}
+                      onChange={(e) => handleInputChange('pricePerPerson', e.target.checked)}
+                      className="rounded border-gray-300 h-4 w-4"
+                    />
+                    <div>
+                      <Label htmlFor="pricePerPerson" className="text-sm font-medium">
+                        Price per Person
+                      </Label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Uncheck if this is a fixed price for the entire package
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                <div>
-                  <Label htmlFor="infantPrice" className="text-sm font-medium">
-                    Infant Price (0-2 years)
-                  </Label>
-                  <Input
-                    id="infantPrice"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={localData.infantPrice}
-                    onChange={(e) => handleInputChange('infantPrice', parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    className="mt-1"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="seniorCitizenPrice" className="text-sm font-medium">
-                    Senior Citizen Price (65+ years)
-                  </Label>
-                  <Input
-                    id="seniorCitizenPrice"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={localData.seniorCitizenPrice}
-                    onChange={(e) => handleInputChange('seniorCitizenPrice', parseFloat(e.target.value) || 0)}
-                    placeholder="0.00"
-                    className="mt-1"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Group Discounts */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Users className="w-5 h-5 mr-2 text-blue-600" />
-                  Group Discounts
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex space-x-2">
-                  <Input
-                    value={newGroupDiscount.minPeople}
-                    onChange={(e) => setNewGroupDiscount(prev => ({ ...prev, minPeople: e.target.value }))}
-                    placeholder="Min people"
-                    type="number"
-                  />
-                  <Input
-                    value={newGroupDiscount.discount}
-                    onChange={(e) => setNewGroupDiscount(prev => ({ ...prev, discount: e.target.value }))}
-                    placeholder="Discount %"
-                    type="number"
-                    step="0.1"
-                  />
-                  <Button onClick={addGroupDiscount} size="sm">
-                    <Plus className="w-4 h-4" />
+              {/* Group Discounts */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+                    Group Discounts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-sm font-medium">Min People</Label>
+                      <Input
+                        type="number"
+                        min="2"
+                        value={newGroupDiscount.minPeople}
+                        onChange={(e) => setNewGroupDiscount(prev => ({ ...prev, minPeople: e.target.value }))}
+                        placeholder="e.g., 5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Discount %</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={newGroupDiscount.discount}
+                        onChange={(e) => setNewGroupDiscount(prev => ({ ...prev, discount: e.target.value }))}
+                        placeholder="e.g., 10"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={addGroupDiscount} size="sm" className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Group Discount
                   </Button>
-                </div>
-                {localData.groupDiscounts.length > 0 && (
-                  <div className="space-y-2">
-                    {localData.groupDiscounts.map((discount, index) => (
-                      <div key={index} className="flex items-center justify-between bg-blue-50 p-2 rounded">
-                        <span className="text-sm">
-                          {discount.minPeople}+ people: {discount.discount}% off
-                        </span>
-                        <button
-                          onClick={() => removeGroupDiscount(index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  
+                  {localData.groupDiscounts.length > 0 && (
+                    <div className="space-y-2">
+                      {localData.groupDiscounts.map((discount, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                          <span className="text-sm">
+                            {discount.minPeople}+ people: {discount.discount}% off
+                          </span>
+                          <button
+                            onClick={() => removeGroupDiscount(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* Seasonal Pricing */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="w-5 h-5 mr-2 text-blue-600" />
-                  Seasonal Pricing
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex space-x-2">
-                  <Input
-                    value={newSeasonalPricing.season}
-                    onChange={(e) => setNewSeasonalPricing(prev => ({ ...prev, season: e.target.value }))}
-                    placeholder="Season name"
-                  />
-                  <Input
-                    value={newSeasonalPricing.multiplier}
-                    onChange={(e) => setNewSeasonalPricing(prev => ({ ...prev, multiplier: e.target.value }))}
-                    placeholder="Price multiplier"
-                    type="number"
-                    step="0.1"
-                  />
-                  <Button onClick={addSeasonalPricing} size="sm">
-                    <Plus className="w-4 h-4" />
+            {/* Right Column */}
+            <div className="space-y-4">
+              {/* Seasonal Pricing */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Calendar className="w-5 h-5 mr-2 text-blue-600" />
+                    Seasonal Pricing
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-sm font-medium">Season</Label>
+                      <Input
+                        value={newSeasonalPrice.season}
+                        onChange={(e) => setNewSeasonalPrice(prev => ({ ...prev, season: e.target.value }))}
+                        placeholder="e.g., Summer, Winter"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Price</Label>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={newSeasonalPrice.price}
+                        onChange={(e) => setNewSeasonalPrice(prev => ({ ...prev, price: e.target.value }))}
+                        placeholder="e.g., 1500"
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={addSeasonalPrice} size="sm" className="w-full">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Seasonal Price
                   </Button>
-                </div>
-                {localData.seasonalPricing.length > 0 && (
-                  <div className="space-y-2">
-                    {localData.seasonalPricing.map((pricing, index) => (
-                      <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                        <span className="text-sm">
-                          {pricing.season}: {pricing.multiplier}x base price
-                        </span>
-                        <button
-                          onClick={() => removeSeasonalPricing(index)}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  
+                  {localData.seasonalPricing.length > 0 && (
+                    <div className="space-y-2">
+                      {localData.seasonalPricing.map((price, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                          <span className="text-sm">
+                            {price.season}: {localData.currency} {price.price}
+                          </span>
+                          <button
+                            onClick={() => removeSeasonalPrice(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
-            {/* Taxes & Fees */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
-                  Taxes & Fees
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="gst" className="text-sm font-medium">
-                      GST (%)
-                    </Label>
+              {/* Special Offers */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Star className="w-5 h-5 mr-2 text-blue-600" />
+                    Special Offers
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex space-x-2">
                     <Input
-                      id="gst"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={localData.taxes.gst}
-                      onChange={(e) => handleInputChange('taxes', { 
-                        ...localData.taxes, 
-                        gst: parseFloat(e.target.value) || 0 
-                      })}
-                      className="mt-1"
+                      value={newSpecialOffer}
+                      onChange={(e) => setNewSpecialOffer(e.target.value)}
+                      placeholder="Add special offer..."
+                      onKeyPress={(e) => e.key === 'Enter' && addSpecialOffer()}
                     />
+                    <Button onClick={addSpecialOffer} size="sm">
+                      <Plus className="w-4 h-4" />
+                    </Button>
                   </div>
-                  <div>
-                    <Label htmlFor="serviceTax" className="text-sm font-medium">
-                      Service Tax (%)
-                    </Label>
-                    <Input
-                      id="serviceTax"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={localData.taxes.serviceTax}
-                      onChange={(e) => handleInputChange('taxes', { 
-                        ...localData.taxes, 
-                        serviceTax: parseFloat(e.target.value) || 0 
-                      })}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="bookingFee" className="text-sm font-medium">
-                      Booking Fee
-                    </Label>
-                    <Input
-                      id="bookingFee"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={localData.fees.bookingFee}
-                      onChange={(e) => handleInputChange('fees', { 
-                        ...localData.fees, 
-                        bookingFee: parseFloat(e.target.value) || 0 
-                      })}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="processingFee" className="text-sm font-medium">
-                      Processing Fee
-                    </Label>
-                    <Input
-                      id="processingFee"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={localData.fees.processingFee}
-                      onChange={(e) => handleInputChange('fees', { 
-                        ...localData.fees, 
-                        processingFee: parseFloat(e.target.value) || 0 
-                      })}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  
+                  {localData.specialOffers.length > 0 && (
+                    <div className="space-y-2">
+                      {localData.specialOffers.map((offer, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-yellow-50 rounded-lg">
+                          <span className="text-sm text-yellow-800">{offer}</span>
+                          <button
+                            onClick={() => removeSpecialOffer(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </motion.div>
       )}
 
-      {/* Policies Section */}
+      {/* Policies & Terms */}
       {activeSection === 'policies' && (
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -479,122 +447,153 @@ export default function CompactPricingReviewStep({
           className="space-y-6"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Booking Policies */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="w-5 h-5 mr-2 text-blue-600" />
-                  Booking Policies
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+            {/* Left Column */}
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Shield className="w-5 h-5 mr-2 text-blue-600" />
+                    Cancellation Policy
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="minGroupSize" className="text-sm font-medium">
-                      Min Group Size *
+                    <Label className="text-sm font-medium">Policy Type</Label>
+                    <Select
+                      value={localData.cancellationPolicy}
+                      onValueChange={(value) => handleInputChange('cancellationPolicy', value)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cancellationPolicies.map((policy) => (
+                          <SelectItem key={policy.value} value={policy.value}>
+                            <div>
+                              <div className="font-medium">{policy.label}</div>
+                              <div className="text-xs text-gray-500">{policy.description}</div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="refundPolicy" className="text-sm font-medium">
+                      Refund Policy Details
                     </Label>
-                    <Input
-                      id="minGroupSize"
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={localData.minGroupSize}
-                      onChange={(e) => handleInputChange('minGroupSize', parseInt(e.target.value) || 0)}
+                    <Textarea
+                      id="refundPolicy"
+                      value={localData.refundPolicy}
+                      onChange={(e) => handleInputChange('refundPolicy', e.target.value)}
+                      placeholder="Detailed refund policy..."
                       className="mt-1"
+                      rows={4}
                     />
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <CreditCard className="w-5 h-5 mr-2 text-blue-600" />
+                    Payment Terms
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="maxGroupSize" className="text-sm font-medium">
-                      Max Group Size *
+                    <Label className="text-sm font-medium">Accepted Payment Methods</Label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      {paymentMethods.map((method) => (
+                        <div key={method.value} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={method.value}
+                            checked={localData.paymentMethods.includes(method.value)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                handleInputChange('paymentMethods', [...localData.paymentMethods, method.value]);
+                              } else {
+                                handleInputChange('paymentMethods', localData.paymentMethods.filter(m => m !== method.value));
+                              }
+                            }}
+                            className="rounded border-gray-300 h-4 w-4"
+                          />
+                          <Label htmlFor={method.value} className="text-sm">
+                            {method.label}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="advanceBookingRequired" className="text-sm font-medium">
+                        Advance Booking Required (Days)
+                      </Label>
+                      <Input
+                        id="advanceBookingRequired"
+                        type="number"
+                        min="1"
+                        max="365"
+                        value={localData.advanceBookingRequired}
+                        onChange={(e) => handleInputChange('advanceBookingRequired', parseInt(e.target.value) || 0)}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="minimumAdvanceBooking" className="text-sm font-medium">
+                        Minimum Advance Booking (Days)
+                      </Label>
+                      <Input
+                        id="minimumAdvanceBooking"
+                        type="number"
+                        min="1"
+                        max="30"
+                        value={localData.minimumAdvanceBooking}
+                        onChange={(e) => handleInputChange('minimumAdvanceBooking', parseInt(e.target.value) || 0)}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="w-5 h-5 mr-2 text-blue-600" />
+                    Terms & Conditions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div>
+                    <Label htmlFor="termsAndConditions" className="text-sm font-medium">
+                      Terms and Conditions
                     </Label>
-                    <Input
-                      id="maxGroupSize"
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={localData.maxGroupSize}
-                      onChange={(e) => handleInputChange('maxGroupSize', parseInt(e.target.value) || 0)}
+                    <Textarea
+                      id="termsAndConditions"
+                      value={localData.termsAndConditions}
+                      onChange={(e) => handleInputChange('termsAndConditions', e.target.value)}
+                      placeholder="Enter terms and conditions..."
                       className="mt-1"
+                      rows={6}
                     />
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="advanceBookingDays" className="text-sm font-medium">
-                    Advance Booking Required (Days)
-                  </Label>
-                  <Input
-                    id="advanceBookingDays"
-                    type="number"
-                    min="0"
-                    max="365"
-                    value={localData.advanceBookingDays}
-                    onChange={(e) => handleInputChange('advanceBookingDays', parseInt(e.target.value) || 0)}
-                    className="mt-1"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cancellation & Refund Policies */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Shield className="w-5 h-5 mr-2 text-blue-600" />
-                  Cancellation & Refund
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label className="text-sm font-medium">Cancellation Policy</Label>
-                  <Select
-                    value={localData.cancellationPolicy}
-                    onValueChange={(value) => handleInputChange('cancellationPolicy', value)}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select cancellation policy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {cancellationPolicies.map((policy) => (
-                        <SelectItem key={policy.value} value={policy.value}>
-                          <div>
-                            <div className="font-medium">{policy.label}</div>
-                            <div className="text-sm text-gray-500">{policy.description}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium">Refund Policy</Label>
-                  <Select
-                    value={localData.refundPolicy}
-                    onValueChange={(value) => handleInputChange('refundPolicy', value)}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select refund policy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {refundPolicies.map((policy) => (
-                        <SelectItem key={policy.value} value={policy.value}>
-                          <div>
-                            <div className="font-medium">{policy.label}</div>
-                            <div className="text-sm text-gray-500">{policy.description}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </motion.div>
       )}
 
-      {/* Review Section */}
+      {/* Review & Publish */}
       {activeSection === 'review' && (
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -611,152 +610,87 @@ export default function CompactPricingReviewStep({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
                     <span className="text-sm font-medium">Package Type:</span>
-                    <Badge variant="outline">{packageTypeInfo?.title}</Badge>
+                    <Badge variant="secondary">{packageType}</Badge>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between">
                     <span className="text-sm font-medium">Title:</span>
                     <span className="text-sm">{formData.title || 'Not set'}</span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between">
                     <span className="text-sm font-medium">Duration:</span>
-                    <span className="text-sm">{formData.duration?.days} days, {formData.duration?.nights} nights</span>
+                    <span className="text-sm">{formData.duration?.days || 0} days, {formData.duration?.nights || 0} nights</span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between">
                     <span className="text-sm font-medium">Group Size:</span>
-                    <span className="text-sm">{formData.groupSize?.min}-{formData.groupSize?.max} people</span>
+                    <span className="text-sm">{formData.groupSize?.min || 0} - {formData.groupSize?.max || 0} people</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Difficulty:</span>
-                    <Badge variant="outline">{formData.difficulty}</Badge>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Base Price:</span>
+                    <span className="text-sm font-bold">{localData.currency} {localData.basePrice}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Category:</span>
-                    <Badge variant="outline">{formData.category}</Badge>
+                  <div className="flex justify-between">
+                    <span className="text-sm font-medium">Cancellation:</span>
+                    <span className="text-sm">{localData.cancellationPolicy}</span>
                   </div>
-                  {formData.isFeatured && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Featured:</span>
-                      <Badge className="bg-yellow-500 text-white">
-                        <Star className="w-3 h-3 mr-1" />
-                        Yes
-                      </Badge>
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Pricing Summary */}
+            {/* Additional Notes */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <DollarSign className="w-5 h-5 mr-2 text-blue-600" />
-                  Pricing Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Adult Price:</span>
-                    <span className="text-sm font-semibold">{localData.currency} {localData.adultPrice}</span>
-                  </div>
-                  {localData.childPrice > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Child Price:</span>
-                      <span className="text-sm">{localData.currency} {localData.childPrice}</span>
-                    </div>
-                  )}
-                  {localData.infantPrice > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Infant Price:</span>
-                      <span className="text-sm">{localData.currency} {localData.infantPrice}</span>
-                    </div>
-                  )}
-                  {localData.seniorCitizenPrice > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Senior Price:</span>
-                      <span className="text-sm">{localData.currency} {localData.seniorCitizenPrice}</span>
-                    </div>
-                  )}
-                  {localData.groupDiscounts.length > 0 && (
-                    <div className="pt-2 border-t">
-                      <span className="text-sm font-medium">Group Discounts:</span>
-                      <div className="mt-1 space-y-1">
-                        {localData.groupDiscounts.map((discount, index) => (
-                          <div key={index} className="text-xs text-gray-600">
-                            {discount.minPeople}+ people: {discount.discount}% off
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Validation Status */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2 text-blue-600" />
-                  Validation Status
+                  <Settings className="w-5 h-5 mr-2 text-blue-600" />
+                  Additional Information
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-green-600">✓ Completed Sections</h4>
-                    <ul className="text-sm space-y-1">
-                      <li className="flex items-center">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                        Package Type & Basic Info
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                        Location & Timing
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                        Package Details
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                        Inclusions & Exclusions
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                        Pricing Structure
-                      </li>
-                      <li className="flex items-center">
-                        <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                        Booking Policies
-                      </li>
-                    </ul>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="font-medium text-blue-600">📋 Package Ready</h4>
-                    <p className="text-sm text-gray-600">
-                      Your package has been configured with all necessary information. 
-                      Review the details above and click "Publish Package" to make it live.
-                    </p>
-                    <div className="mt-4">
-                      <Button
-                        onClick={onPublish}
-                        size="lg"
-                        className="w-full bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                        Publish Package
-                      </Button>
-                    </div>
-                  </div>
+                <div>
+                  <Label htmlFor="additionalNotes" className="text-sm font-medium">
+                    Additional Notes
+                  </Label>
+                  <Textarea
+                    id="additionalNotes"
+                    value={localData.additionalNotes}
+                    onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
+                    placeholder="Any additional notes or special instructions..."
+                    className="mt-1"
+                    rows={6}
+                  />
                 </div>
               </CardContent>
             </Card>
           </div>
+
+          {/* Validation Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                {isValid ? (
+                  <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 mr-2 text-red-600" />
+                )}
+                Validation Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isValid ? (
+                <div className="text-green-700 bg-green-50 p-4 rounded-lg">
+                  <p className="font-medium">✅ Package is ready to publish!</p>
+                  <p className="text-sm mt-1">All required fields have been completed and validated.</p>
+                </div>
+              ) : (
+                <div className="text-red-700 bg-red-50 p-4 rounded-lg">
+                  <p className="font-medium">❌ Please complete all required fields</p>
+                  <p className="text-sm mt-1">Check the form for any missing or invalid information.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       )}
 
@@ -773,20 +707,15 @@ export default function CompactPricingReviewStep({
         </Button>
         
         <div className="flex space-x-3">
-          {activeSection === 'pricing' && (
+          {activeSection !== 'review' && (
             <Button
-              onClick={() => setActiveSection('policies')}
-              size="lg"
-              className="flex items-center"
-            >
-              Next Section
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          )}
-          
-          {activeSection === 'policies' && (
-            <Button
-              onClick={() => setActiveSection('review')}
+              onClick={() => {
+                const sections = ['pricing', 'policies', 'review'];
+                const currentIndex = sections.indexOf(activeSection);
+                if (currentIndex < sections.length - 1) {
+                  setActiveSection(sections[currentIndex + 1] as any);
+                }
+              }}
               size="lg"
               className="flex items-center"
             >
@@ -796,15 +725,25 @@ export default function CompactPricingReviewStep({
           )}
           
           {activeSection === 'review' && (
-            <Button
-              onClick={onPublish}
-              disabled={!isValid}
-              size="lg"
-              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 flex items-center"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Publish Package
-            </Button>
+            <div className="flex space-x-3">
+              <Button
+                onClick={onNext}
+                size="lg"
+                variant="outline"
+                className="flex items-center"
+              >
+                Save as Draft
+              </Button>
+              <Button
+                onClick={onPublish}
+                disabled={!isValid}
+                size="lg"
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 flex items-center"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Publish Package
+              </Button>
+            </div>
           )}
         </div>
       </div>
