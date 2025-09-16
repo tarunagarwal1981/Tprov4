@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PackageService } from '@/lib/services/packageService';
-import { PackageWithDetails } from '@/lib/types';
+import { PackageWithDetails } from '@/lib/supabase-types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -58,10 +58,9 @@ export default function PackageEditPage() {
               description: typeof response.data?.description,
               status: typeof response.data?.status,
               type: typeof response.data?.type,
-              price: typeof response.data?.price,
+              pricing: typeof response.data?.pricing,
               duration: typeof response.data?.duration,
-              minGroupSize: typeof response.data?.minGroupSize,
-              maxGroupSize: typeof response.data?.maxGroupSize,
+              group_size: typeof response.data?.group_size,
               destinations: Array.isArray(response.data?.destinations),
               itinerary: Array.isArray(response.data?.itinerary),
               reviews: Array.isArray(response.data?.reviews),
@@ -89,14 +88,23 @@ export default function PackageEditPage() {
       const response = await PackageService.updatePackage(packageId, {
         title: packageData.title,
         description: packageData.description,
-        price: packageData.price,
+        pricing: packageData.pricing,
         duration: packageData.duration,
-        minGroupSize: packageData.minGroupSize,
-        maxGroupSize: packageData.maxGroupSize,
+        group_size: packageData.group_size,
         destinations: packageData.destinations,
         status: packageData.status,
         type: packageData.type,
         itinerary: packageData.itinerary,
+        inclusions: packageData.inclusions,
+        exclusions: packageData.exclusions,
+        terms_and_conditions: packageData.terms_and_conditions,
+        cancellation_policy: packageData.cancellation_policy,
+        images: packageData.images,
+        difficulty: packageData.difficulty,
+        tags: packageData.tags,
+        is_featured: packageData.is_featured,
+        rating: packageData.rating,
+        review_count: packageData.review_count,
       });
       
       if (response.error) {
@@ -273,8 +281,16 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={safeRender(packageData.price, '0')}
-                      onChange={(e) => setPackageData({...packageData, price: parseFloat(e.target.value) || 0})}
+                      value={packageData.pricing && typeof packageData.pricing === 'object' && 'basePrice' in packageData.pricing 
+                        ? (packageData.pricing as any).basePrice 
+                        : 0}
+                      onChange={(e) => setPackageData({
+                        ...packageData, 
+                        pricing: {
+                          ...(packageData.pricing as any || {}),
+                          basePrice: parseFloat(e.target.value) || 0
+                        }
+                      })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -285,8 +301,16 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={safeRender(packageData.duration, '0')}
-                      onChange={(e) => setPackageData({...packageData, duration: parseInt(e.target.value) || 0})}
+                      value={packageData.duration && typeof packageData.duration === 'object' && 'days' in packageData.duration 
+                        ? (packageData.duration as any).days 
+                        : 0}
+                      onChange={(e) => setPackageData({
+                        ...packageData, 
+                        duration: {
+                          ...(packageData.duration as any || {}),
+                          days: parseInt(e.target.value) || 0
+                        }
+                      })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -299,8 +323,16 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={safeRender(packageData.minGroupSize, '0')}
-                      onChange={(e) => setPackageData({...packageData, minGroupSize: parseInt(e.target.value) || 0})}
+                      value={packageData.group_size && typeof packageData.group_size === 'object' && 'min' in packageData.group_size 
+                        ? (packageData.group_size as any).min 
+                        : 0}
+                      onChange={(e) => setPackageData({
+                        ...packageData, 
+                        group_size: {
+                          ...(packageData.group_size as any || {}),
+                          min: parseInt(e.target.value) || 0
+                        }
+                      })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -311,8 +343,16 @@ export default function PackageEditPage() {
                     </label>
                     <input
                       type="number"
-                      value={safeRender(packageData.maxGroupSize, '0')}
-                      onChange={(e) => setPackageData({...packageData, maxGroupSize: parseInt(e.target.value) || 0})}
+                      value={packageData.group_size && typeof packageData.group_size === 'object' && 'max' in packageData.group_size 
+                        ? (packageData.group_size as any).max 
+                        : 0}
+                      onChange={(e) => setPackageData({
+                        ...packageData, 
+                        group_size: {
+                          ...(packageData.group_size as any || {}),
+                          max: parseInt(e.target.value) || 0
+                        }
+                      })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>

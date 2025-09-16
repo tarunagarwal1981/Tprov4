@@ -117,7 +117,7 @@ export class PackageService {
   }
 
   // Get package by ID
-  async getPackageById(id: string): Promise<ServiceResponse<Package>> {
+  async getPackageById(id: string): Promise<ServiceResponse<PackageWithDetails>> {
     try {
       const { data, error } = await PackageService.getPackageById(id);
       
@@ -129,8 +129,7 @@ export class PackageService {
         return { data: null as any, success: false, error: 'Package not found' };
       }
 
-      const packageData = PackageService.convertToAppPackage(data);
-      return { data: packageData, success: true };
+      return { data, success: true };
     } catch (error) {
       return { 
         data: null as any, 
@@ -438,19 +437,19 @@ export class PackageService {
       status: dbPackage.status as PackageStatus,
       pricing: dbPackage.pricing as any,
       itinerary: dbPackage.itinerary as any,
-      inclusions: dbPackage.inclusions,
-      exclusions: dbPackage.exclusions,
-      termsAndConditions: dbPackage.terms_and_conditions,
+      inclusions: dbPackage.inclusions || [],
+      exclusions: dbPackage.exclusions || [],
+      termsAndConditions: dbPackage.terms_and_conditions || [],
       cancellationPolicy: dbPackage.cancellation_policy as any,
-      images: dbPackage.images,
-      destinations: dbPackage.destinations,
+      images: dbPackage.images || [],
+      destinations: dbPackage.destinations || [],
       duration: dbPackage.duration as any,
       groupSize: dbPackage.group_size as any,
       difficulty: dbPackage.difficulty as any,
-      tags: dbPackage.tags,
-      isFeatured: dbPackage.is_featured,
-      rating: dbPackage.rating,
-      reviewCount: dbPackage.review_count,
+      tags: dbPackage.tags || [],
+      isFeatured: dbPackage.is_featured || false,
+      rating: dbPackage.rating || 0,
+      reviewCount: dbPackage.review_count || 0,
       createdAt: new Date(dbPackage.created_at),
       updatedAt: new Date(dbPackage.updated_at)
     }

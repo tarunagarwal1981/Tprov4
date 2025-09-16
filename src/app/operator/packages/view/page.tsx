@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PackageService } from '@/lib/services/packageService';
-import { PackageWithDetails } from '@/lib/types';
+import { PackageWithDetails } from '@/lib/supabase-types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -57,10 +57,9 @@ export default function PackageDetailPage() {
               description: typeof response.data?.description,
               status: typeof response.data?.status,
               type: typeof response.data?.type,
-              price: typeof response.data?.price,
+              pricing: typeof response.data?.pricing,
               duration: typeof response.data?.duration,
-              minGroupSize: typeof response.data?.minGroupSize,
-              maxGroupSize: typeof response.data?.maxGroupSize,
+              group_size: typeof response.data?.group_size,
               destinations: Array.isArray(response.data?.destinations),
               itinerary: Array.isArray(response.data?.itinerary),
               reviews: Array.isArray(response.data?.reviews),
@@ -135,10 +134,9 @@ export default function PackageDetailPage() {
       description: typeof packageData?.description,
       status: typeof packageData?.status,
       type: typeof packageData?.type,
-      price: typeof packageData?.price,
+      pricing: typeof packageData?.pricing,
       duration: typeof packageData?.duration,
-      minGroupSize: typeof packageData?.minGroupSize,
-      maxGroupSize: typeof packageData?.maxGroupSize,
+      group_size: typeof packageData?.group_size,
       destinations: Array.isArray(packageData?.destinations),
       itinerary: Array.isArray(packageData?.itinerary),
       reviews: Array.isArray(packageData?.reviews),
@@ -234,7 +232,7 @@ export default function PackageDetailPage() {
                     {packageData.images.map((image, index) => (
                       <div key={index} className="aspect-square rounded-lg overflow-hidden">
                         <img
-                          src={safeRender(image.url, '')}
+                          src={typeof image === 'string' ? image : (image as any)?.url || ''}
                           alt={`${safeRender(packageData.title, 'Package')} - Image ${index + 1}`}
                           className="w-full h-full object-cover"
                         />
@@ -300,7 +298,7 @@ export default function PackageDetailPage() {
                       <div key={index} className="border-b pb-4 last:border-b-0">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center space-x-2">
-                            <span className="font-semibold">{String(review.customerName || 'Anonymous')}</span>
+                            <span className="font-semibold">{String(review.user?.name || 'Anonymous')}</span>
                             <div className="flex items-center">
                               {[...Array(5)].map((_, i) => (
                                 <Star
@@ -316,7 +314,7 @@ export default function PackageDetailPage() {
                             </div>
                           </div>
                           <span className="text-sm text-gray-500">
-                            {formatDate(review.createdAt)}
+                            {formatDate(review.created_at)}
                           </span>
                         </div>
                         <p className="text-gray-700">{String(review.comment || 'No comment')}</p>
@@ -340,7 +338,11 @@ export default function PackageDetailPage() {
                   <DollarSign className="w-5 h-5 text-green-600" />
                   <div>
                     <p className="text-sm text-gray-500">Price per person</p>
-                    <p className="text-lg font-semibold">{formatPrice(packageData.price)}</p>
+                    <p className="text-lg font-semibold">
+                      {packageData.pricing && typeof packageData.pricing === 'object' && 'basePrice' in packageData.pricing 
+                        ? formatPrice((packageData.pricing as any).basePrice) 
+                        : 'Price not set'}
+                    </p>
                   </div>
                 </div>
                 
@@ -350,7 +352,11 @@ export default function PackageDetailPage() {
                   <Clock className="w-5 h-5 text-blue-600" />
                   <div>
                     <p className="text-sm text-gray-500">Duration</p>
-                    <p className="font-semibold">{safeRender(packageData.duration, '0')} days</p>
+                    <p className="font-semibold">
+                      {packageData.duration && typeof packageData.duration === 'object' && 'days' in packageData.duration 
+                        ? `${(packageData.duration as any).days} days` 
+                        : 'Duration not set'}
+                    </p>
                   </div>
                 </div>
                 
@@ -361,7 +367,9 @@ export default function PackageDetailPage() {
                   <div>
                     <p className="text-sm text-gray-500">Group Size</p>
                     <p className="font-semibold">
-                      {safeRender(packageData.minGroupSize, '0')} - {safeRender(packageData.maxGroupSize, '0')} people
+                      {packageData.group_size && typeof packageData.group_size === 'object' 
+                        ? `${(packageData.group_size as any).min || 0} - ${(packageData.group_size as any).max || 0} people`
+                        : 'Group size not set'}
                     </p>
                   </div>
                 </div>
@@ -382,7 +390,7 @@ export default function PackageDetailPage() {
                   <Calendar className="w-5 h-5 text-orange-600" />
                   <div>
                     <p className="text-sm text-gray-500">Created</p>
-                    <p className="font-semibold">{formatDate(packageData.createdAt)}</p>
+                    <p className="font-semibold">{formatDate(packageData.created_at)}</p>
                   </div>
                 </div>
               </CardContent>
@@ -397,7 +405,7 @@ export default function PackageDetailPage() {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <p className="font-semibold">{String(packageData.tour_operator.companyName || 'Unknown Company')}</p>
+                      <p className="font-semibold">{String(packageData.tour_operator.company_name || 'Unknown Company')}</p>
                       <p className="text-sm text-gray-600">{String(packageData.tour_operator.description || 'No description')}</p>
                     </div>
                     <div className="flex items-center space-x-2">
