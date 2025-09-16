@@ -112,20 +112,49 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
       
-      // Create user profile directly from Supabase auth user
+      // Debug: Log the user metadata
+      console.log('🔍 Supabase user metadata:', supabaseUser.user_metadata);
+      console.log('🔍 Supabase user raw metadata:', supabaseUser.raw_user_meta_data);
+      console.log('🔍 User email:', supabaseUser.email);
+      
+      // Get user role from the users table in Supabase
+      const { data: userProfile, error } = await supabase
+        .from('users')
+        .select('role, name, profile')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      if (error) {
+        console.error('❌ Error loading user profile from database:', error);
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
+        return;
+      }
+
+      if (!userProfile) {
+        console.error('❌ User profile not found in database');
+        dispatch({ type: 'SET_ERROR', payload: 'User profile not found' });
+        return;
+      }
+
+      console.log('✅ User profile loaded from database:', userProfile);
+      console.log('🔍 User role from database:', userProfile.role);
+      
+      // Create user profile from database data
       const user: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
-        name: supabaseUser.user_metadata?.name || supabaseUser.email?.split('@')[0] || 'User',
-        role: (supabaseUser.user_metadata?.role as UserRole) || 'TRAVEL_AGENT',
-        profile: supabaseUser.user_metadata?.profile || {},
+        name: userProfile.name || supabaseUser.email?.split('@')[0] || 'User',
+        role: userProfile.role as UserRole,
+        profile: userProfile.profile || {},
         createdAt: new Date(supabaseUser.created_at),
         updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
         isActive: true,
         lastLoginAt: new Date()
       };
 
-      console.log('👤 User profile created from auth:', user);
+      console.log('👤 User profile created:', user);
+      console.log('🔍 User role detected:', user.role);
+      console.log('🔍 User role type:', typeof user.role);
       dispatch({ type: 'SET_USER_PROFILE', payload: user });
       
     } catch (error) {
