@@ -323,6 +323,8 @@ export default function PackageDetailPage() {
                   </ul>
                 </CardContent>
               </Card>
+            )}
+
             {/* Package Type Specific Fields */}
             {packageData && (
               <Card>
