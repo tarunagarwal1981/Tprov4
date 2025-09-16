@@ -39,28 +39,28 @@ interface CompactPackageWizardProps {
 
 // Compact 3-step configuration
 const COMPACT_STEPS: WizardStep[] = [
-  'package-essentials',
-  'package-details', 
-  'pricing-review'
+  'package-type',
+  'detailed-planning', 
+  'pricing-policies'
 ];
 
 // Step configuration with icons and descriptions
 const STEP_CONFIG = {
-  'package-essentials': {
+  'package-type': {
     icon: Sparkles,
     title: 'Package Essentials',
     description: 'Type, basic info & location',
     color: 'blue',
     order: 1
   },
-  'package-details': {
+  'detailed-planning': {
     icon: FileText,
     title: 'Package Details',
     description: 'Planning & inclusions',
     color: 'purple',
     order: 2
   },
-  'pricing-review': {
+  'pricing-policies': {
     icon: DollarSign,
     title: 'Pricing & Review',
     description: 'Pricing & final review',
@@ -71,16 +71,13 @@ const STEP_CONFIG = {
 
 // Step component mapping
 const STEP_COMPONENTS: Record<WizardStep, React.ComponentType<StepProps>> = {
-  'package-essentials': CompactPackageEssentialsStep,
-  'package-details': CompactPackageDetailsStep,
-  'pricing-review': CompactPricingReviewStep,
-  // Legacy steps (not used in compact mode)
   'package-type': CompactPackageEssentialsStep,
+  'detailed-planning': CompactPackageDetailsStep,
+  'pricing-policies': CompactPricingReviewStep,
+  // Legacy steps (not used in compact mode)
   'basic-info': CompactPackageEssentialsStep,
   'location-timing': CompactPackageEssentialsStep,
-  'detailed-planning': CompactPackageDetailsStep,
   'inclusions-exclusions': CompactPackageDetailsStep,
-  'pricing-policies': CompactPricingReviewStep,
   'review': CompactPricingReviewStep
 };
 
@@ -88,15 +85,19 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
   const router = useRouter();
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   
   const {
+    currentStep,
+    steps,
     formData,
     isDirty,
     isSaving,
     lastSaved,
     errors,
     isValid,
+    goToStep,
+    nextStep,
+    previousStep,
     updateFormData,
     saveDraft,
     publishPackage,
@@ -104,7 +105,14 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
     form
   } = useSupabasePackageWizard();
 
-  const currentStep = COMPACT_STEPS[currentStepIndex];
+  // Map compact steps to actual wizard steps
+  const compactStepMapping = {
+    0: 'package-type',
+    1: 'detailed-planning', 
+    2: 'pricing-policies'
+  };
+
+  const currentStepIndex = Object.values(compactStepMapping).indexOf(currentStep);
   const CurrentStepComponent = STEP_COMPONENTS[currentStep];
 
   // Handle exit confirmation
@@ -145,21 +153,26 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
   };
 
   // Navigation functions
-  const nextStep = () => {
-    if (currentStepIndex < COMPACT_STEPS.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
+  const handleNextStep = () => {
+    const nextStepIndex = currentStepIndex + 1;
+    if (nextStepIndex < Object.keys(compactStepMapping).length) {
+      const nextStepId = compactStepMapping[nextStepIndex as keyof typeof compactStepMapping];
+      goToStep(nextStepId as WizardStep);
     }
   };
 
-  const previousStep = () => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
+  const handlePreviousStep = () => {
+    const prevStepIndex = currentStepIndex - 1;
+    if (prevStepIndex >= 0) {
+      const prevStepId = compactStepMapping[prevStepIndex as keyof typeof compactStepMapping];
+      goToStep(prevStepId as WizardStep);
     }
   };
 
-  const goToStep = (stepIndex: number) => {
-    if (stepIndex >= 0 && stepIndex < COMPACT_STEPS.length) {
-      setCurrentStepIndex(stepIndex);
+  const handleGoToStep = (stepIndex: number) => {
+    if (stepIndex >= 0 && stepIndex < Object.keys(compactStepMapping).length) {
+      const stepId = compactStepMapping[stepIndex as keyof typeof compactStepMapping];
+      goToStep(stepId as WizardStep);
     }
   };
 
@@ -192,16 +205,17 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
 
             {/* Step Indicator */}
             <div className="flex items-center space-x-4">
-              {COMPACT_STEPS.map((step, index) => {
-                const config = STEP_CONFIG[step];
+              {Object.entries(compactStepMapping).map(([index, stepId]) => {
+                const config = STEP_CONFIG[stepId as keyof typeof STEP_CONFIG];
                 const IconComponent = config.icon;
-                const isActive = index === currentStepIndex;
-                const isCompleted = index < currentStepIndex;
+                const stepIndex = parseInt(index);
+                const isActive = stepIndex === currentStepIndex;
+                const isCompleted = stepIndex < currentStepIndex;
                 
                 return (
-                  <div key={step} className="flex items-center">
+                  <div key={stepId} className="flex items-center">
                     <button
-                      onClick={() => goToStep(index)}
+                      onClick={() => handleGoToStep(stepIndex)}
                       className={cn(
                         "flex items-center space-x-2 px-3 py-2 rounded-lg transition-all duration-200",
                         isActive && "bg-blue-100 text-blue-700",
@@ -226,7 +240,7 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
                         <div className="text-xs opacity-75">{config.description}</div>
                       </div>
                     </button>
-                    {index < COMPACT_STEPS.length - 1 && (
+                    {stepIndex < Object.keys(compactStepMapping).length - 1 && (
                       <div className="w-8 h-px bg-gray-300 mx-2" />
                     )}
                   </div>
@@ -283,8 +297,8 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
               updateFormData={updateFormData}
               errors={errors}
               isValid={isValid}
-              onNext={nextStep}
-              onPrevious={previousStep}
+              onNext={handleNextStep}
+              onPrevious={handlePreviousStep}
               onPublish={handlePublish}
             />
           </motion.div>
