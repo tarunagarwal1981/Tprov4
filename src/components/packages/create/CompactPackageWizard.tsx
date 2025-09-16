@@ -1,152 +1,392 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSupabasePackageWizard } from '@/hooks/useSupabasePackageWizard';
 import { WizardStep, StepProps } from '@/lib/types/wizard';
+import { PackageType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft, 
   ArrowRight, 
   Save, 
-  Eye, 
   X,
   AlertTriangle,
   CheckCircle,
   Sparkles,
   FileText,
   DollarSign,
-  Settings,
-  Zap,
   Clock,
   Users,
   MapPin,
-  Star,
-  RefreshCw
+  Star
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import dynamic from 'next/dynamic';
-
-// Dynamic imports with error handling
-const CompactPackageEssentialsStep = dynamic(
-  () => import('./steps/CompactPackageEssentialsStep').catch(() => ({
-    default: () => (
-      <div className="text-center p-8">
-        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Loading Error</h3>
-        <p className="text-gray-600 mb-4">There was an issue loading this step.</p>
-        <Button onClick={() => window.location.reload()}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Reload Page
-        </Button>
-      </div>
-    )
-  })),
-  { 
-    loading: () => (
-      <div className="flex justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    ),
-    ssr: false 
-  }
-);
-
-const CompactPackageDetailsStep = dynamic(
-  () => import('./steps/CompactPackageDetailsStep').catch(() => ({
-    default: () => (
-      <div className="text-center p-8">
-        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Loading Error</h3>
-        <p className="text-gray-600 mb-4">There was an issue loading this step.</p>
-        <Button onClick={() => window.location.reload()}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Reload Page
-        </Button>
-      </div>
-    )
-  })),
-  { 
-    loading: () => (
-      <div className="flex justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    ),
-    ssr: false 
-  }
-);
-
-const CompactPricingReviewStep = dynamic(
-  () => import('./steps/CompactPricingReviewStep').catch(() => ({
-    default: () => (
-      <div className="text-center p-8">
-        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Loading Error</h3>
-        <p className="text-gray-600 mb-4">There was an issue loading this step.</p>
-        <Button onClick={() => window.location.reload()}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Reload Page
-        </Button>
-      </div>
-    )
-  })),
-  { 
-    loading: () => (
-      <div className="flex justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    ),
-    ssr: false 
-  }
-);
 
 interface CompactPackageWizardProps {
   className?: string;
 }
 
-// Compact 3-step configuration
-const COMPACT_STEPS: WizardStep[] = [
-  'package-type',
-  'detailed-planning', 
-  'pricing-policies'
+// Package types for selection
+const packageTypes = [
+  { value: PackageType.ACTIVITY, label: 'Activity', description: 'Single or multiple activities' },
+  { value: PackageType.TRANSFERS, label: 'Transfers', description: 'Transportation services' },
+  { value: PackageType.MULTI_CITY_PACKAGE, label: 'Multi City Package', description: 'Multi-day tours without accommodation' },
+  { value: PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL, label: 'Multi City Package with Hotel', description: 'Complete packages with accommodation' },
+  { value: PackageType.FIXED_DEPARTURE_WITH_FLIGHT, label: 'Fixed Departure with Flight', description: 'Pre-scheduled group tours with flights' }
 ];
 
-// Step configuration with icons and descriptions
-const STEP_CONFIG = {
-  'package-type': {
-    icon: Sparkles,
-    title: 'Package Essentials',
-    description: 'Choose package type and basic information',
-    color: 'blue'
-  },
-  'detailed-planning': {
-    icon: FileText,
-    title: 'Package Details',
-    description: 'Add detailed planning and inclusions',
-    color: 'green'
-  },
-  'pricing-policies': {
-    icon: DollarSign,
-    title: 'Pricing & Review',
-    description: 'Set pricing and review your package',
-    color: 'purple'
-  }
-};
+// Simple step components embedded directly
+function PackageTypeStep({ formData, updateFormData, onNext }: StepProps) {
+  const [selectedType, setSelectedType] = useState<PackageType>(formData.type || PackageType.ACTIVITY);
 
-// Simple error fallback component
-function StepErrorFallback() {
+  const handleTypeChange = (type: PackageType) => {
+    setSelectedType(type);
+    updateFormData({ ...formData, type });
+  };
+
+  const handleNext = () => {
+    updateFormData({ ...formData, type: selectedType });
+    onNext();
+  };
+
   return (
-    <div className="text-center p-8">
-      <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Error</h3>
-      <p className="text-gray-600 mb-4">Something went wrong with this step.</p>
-      <Button onClick={() => window.location.reload()}>
-        <RefreshCw className="w-4 h-4 mr-2" />
-        Reload Page
-      </Button>
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose Package Type</h2>
+        <p className="text-lg text-gray-600">Select the type of package you want to create</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {packageTypes.map((pkgType) => (
+          <Card
+            key={pkgType.value}
+            className={cn(
+              'cursor-pointer transition-all duration-300 hover:shadow-lg',
+              selectedType === pkgType.value
+                ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                : 'border-gray-200 hover:border-gray-300'
+            )}
+            onClick={() => handleTypeChange(pkgType.value)}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-lg">{pkgType.label}</h3>
+                {selectedType === pkgType.value && (
+                  <CheckCircle className="w-5 h-5 text-blue-600" />
+                )}
+              </div>
+              <p className="text-sm text-gray-600">{pkgType.description}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700">
+          Continue
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function BasicInfoStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
+  const [localData, setLocalData] = useState({
+    title: formData.title || '',
+    description: formData.description || '',
+    shortDescription: formData.shortDescription || '',
+    place: formData.place || '',
+    duration: formData.duration || { days: 1, nights: 0 },
+    groupSize: formData.groupSize || { min: 1, max: 10, ideal: 4 }
+  });
+
+  useEffect(() => {
+    updateFormData({ ...formData, ...localData });
+  }, [localData, updateFormData]);
+
+  const handleNext = () => {
+    updateFormData({ ...formData, ...localData });
+    onNext();
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">Package Information</h2>
+        <p className="text-lg text-gray-600">Provide basic details about your package</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Package Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="title">Package Title *</Label>
+              <Input
+                id="title"
+                value={localData.title}
+                onChange={(e) => setLocalData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter package title..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="shortDescription">Short Description *</Label>
+              <Textarea
+                id="shortDescription"
+                value={localData.shortDescription}
+                onChange={(e) => setLocalData(prev => ({ ...prev, shortDescription: e.target.value }))}
+                placeholder="Brief description..."
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Full Description *</Label>
+              <Textarea
+                id="description"
+                value={localData.description}
+                onChange={(e) => setLocalData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Detailed description..."
+                rows={4}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Location & Duration</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="place">Primary Location *</Label>
+              <Input
+                id="place"
+                value={localData.place}
+                onChange={(e) => setLocalData(prev => ({ ...prev, place: e.target.value }))}
+                placeholder="e.g., Bali, Indonesia"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="days">Days *</Label>
+                <Input
+                  id="days"
+                  type="number"
+                  min="1"
+                  value={localData.duration.days}
+                  onChange={(e) => setLocalData(prev => ({ 
+                    ...prev, 
+                    duration: { ...prev.duration, days: parseInt(e.target.value) || 0 }
+                  }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="nights">Nights *</Label>
+                <Input
+                  id="nights"
+                  type="number"
+                  min="0"
+                  value={localData.duration.nights}
+                  onChange={(e) => setLocalData(prev => ({ 
+                    ...prev, 
+                    duration: { ...prev.duration, nights: parseInt(e.target.value) || 0 }
+                  }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <div>
+                <Label htmlFor="minGroup">Min Group</Label>
+                <Input
+                  id="minGroup"
+                  type="number"
+                  min="1"
+                  value={localData.groupSize.min}
+                  onChange={(e) => setLocalData(prev => ({ 
+                    ...prev, 
+                    groupSize: { ...prev.groupSize, min: parseInt(e.target.value) || 0 }
+                  }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="maxGroup">Max Group</Label>
+                <Input
+                  id="maxGroup"
+                  type="number"
+                  min="1"
+                  value={localData.groupSize.max}
+                  onChange={(e) => setLocalData(prev => ({ 
+                    ...prev, 
+                    groupSize: { ...prev.groupSize, max: parseInt(e.target.value) || 0 }
+                  }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="idealGroup">Ideal Group</Label>
+                <Input
+                  id="idealGroup"
+                  type="number"
+                  min="1"
+                  value={localData.groupSize.ideal}
+                  onChange={(e) => setLocalData(prev => ({ 
+                    ...prev, 
+                    groupSize: { ...prev.groupSize, ideal: parseInt(e.target.value) || 0 }
+                  }))}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onPrevious}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Previous
+        </Button>
+        <Button onClick={handleNext}>
+          Continue
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PricingStep({ formData, updateFormData, onNext, onPrevious, onPublish }: StepProps) {
+  const [localData, setLocalData] = useState({
+    basePrice: formData.basePrice || 0,
+    currency: formData.currency || 'USD',
+    cancellationPolicy: formData.cancellationPolicy || 'moderate'
+  });
+
+  useEffect(() => {
+    updateFormData({ ...formData, ...localData });
+  }, [localData, updateFormData]);
+
+  const handlePublish = async () => {
+    updateFormData({ ...formData, ...localData });
+    await onPublish();
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">Pricing & Review</h2>
+        <p className="text-lg text-gray-600">Set your pricing and review your package</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Pricing</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="basePrice">Base Price *</Label>
+                <Input
+                  id="basePrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={localData.basePrice}
+                  onChange={(e) => setLocalData(prev => ({ ...prev, basePrice: parseFloat(e.target.value) || 0 }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="currency">Currency</Label>
+                <Select
+                  value={localData.currency}
+                  onValueChange={(value) => setLocalData(prev => ({ ...prev, currency: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="INR">INR (₹)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="cancellationPolicy">Cancellation Policy</Label>
+              <Select
+                value={localData.cancellationPolicy}
+                onValueChange={(value) => setLocalData(prev => ({ ...prev, cancellationPolicy: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="flexible">Flexible</SelectItem>
+                  <SelectItem value="moderate">Moderate</SelectItem>
+                  <SelectItem value="strict">Strict</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Package Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="font-medium">Type:</span>
+                <span>{formData.type}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Title:</span>
+                <span>{formData.title || 'Not set'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Location:</span>
+                <span>{formData.place || 'Not set'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Duration:</span>
+                <span>{formData.duration?.days || 0} days, {formData.duration?.nights || 0} nights</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Group Size:</span>
+                <span>{formData.groupSize?.min || 0} - {formData.groupSize?.max || 0} people</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium">Price:</span>
+                <span className="font-bold">{localData.currency} {localData.basePrice}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onPrevious}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Previous
+        </Button>
+        <Button onClick={handlePublish} className="bg-green-600 hover:bg-green-700">
+          <CheckCircle className="w-4 h-4 mr-2" />
+          Publish Package
+        </Button>
+      </div>
     </div>
   );
 }
@@ -174,26 +414,18 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
     form
   } = useSupabasePackageWizard();
 
-  // Step mapping for compact workflow
-  const stepComponents: Record<WizardStep, React.ComponentType<StepProps>> = {
-    'package-type': CompactPackageEssentialsStep,
-    'basic-info': CompactPackageEssentialsStep,
-    'location-timing': CompactPackageEssentialsStep,
-    'detailed-planning': CompactPackageDetailsStep,
-    'inclusions-exclusions': CompactPackageDetailsStep,
-    'pricing-policies': CompactPricingReviewStep,
-    'review': CompactPricingReviewStep
+  // Simple step mapping
+  const stepComponents = {
+    'package-type': PackageTypeStep,
+    'basic-info': BasicInfoStep,
+    'location-timing': BasicInfoStep,
+    'detailed-planning': BasicInfoStep,
+    'inclusions-exclusions': BasicInfoStep,
+    'pricing-policies': PricingStep,
+    'review': PricingStep
   };
 
-  // Map compact steps to wizard steps
-  const compactStepMapping = {
-    0: 'package-type',
-    1: 'detailed-planning',
-    2: 'pricing-policies'
-  };
-
-  const currentStepIndex = Object.values(compactStepMapping).indexOf(currentStep);
-  const CurrentStepComponent = stepComponents[currentStep];
+  const CurrentStepComponent = stepComponents[currentStep as keyof typeof stepComponents];
 
   const handleNextStep = () => {
     if (nextStep) {
@@ -204,13 +436,6 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
   const handlePreviousStep = () => {
     if (previousStep) {
       goToStep(previousStep);
-    }
-  };
-
-  const handleGoToStep = (stepIndex: number) => {
-    const stepId = compactStepMapping[stepIndex as keyof typeof compactStepMapping];
-    if (stepId) {
-      goToStep(stepId);
     }
   };
 
@@ -248,61 +473,46 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
             Create Package
           </h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Create amazing travel packages with our streamlined 3-step process. 
-            All the power of the original wizard, now more efficient than ever.
+            Create amazing travel packages with our streamlined process.
           </p>
         </motion.div>
 
-        {/* Compact Progress Indicator */}
+        {/* Simple Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-center space-x-8">
-            {COMPACT_STEPS.map((step, index) => {
-              const config = STEP_CONFIG[step];
-              const IconComponent = config.icon;
-              const isActive = step === currentStep;
-              const isCompleted = currentStepIndex > index;
-              const isAccessible = currentStepIndex >= index;
+            {[
+              { step: 'package-type', icon: Sparkles, title: 'Package Type', color: 'blue' },
+              { step: 'basic-info', icon: FileText, title: 'Basic Info', color: 'green' },
+              { step: 'pricing-policies', icon: DollarSign, title: 'Pricing', color: 'purple' }
+            ].map((stepInfo, index) => {
+              const IconComponent = stepInfo.icon;
+              const isActive = currentStep === stepInfo.step;
+              const isCompleted = ['package-type', 'basic-info', 'location-timing', 'detailed-planning', 'inclusions-exclusions'].includes(currentStep) && 
+                                 ['package-type', 'basic-info', 'location-timing', 'detailed-planning', 'inclusions-exclusions'].indexOf(currentStep) > 
+                                 ['package-type', 'basic-info', 'location-timing', 'detailed-planning', 'inclusions-exclusions'].indexOf(stepInfo.step);
               
               return (
-                <div key={step} className="flex flex-col items-center">
-                  <button
-                    onClick={() => isAccessible && handleGoToStep(index)}
-                    disabled={!isAccessible}
+                <div key={stepInfo.step} className="flex flex-col items-center">
+                  <div
                     className={cn(
-                      "relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
+                      "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
                       isActive
-                        ? `bg-${config.color}-600 text-white shadow-lg scale-110`
+                        ? `bg-${stepInfo.color}-600 text-white shadow-lg scale-110`
                         : isCompleted
                         ? "bg-green-600 text-white shadow-md"
-                        : isAccessible
-                        ? `bg-${config.color}-100 text-${config.color}-600 hover:bg-${config.color}-200 cursor-pointer`
-                        : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                        : "bg-gray-200 text-gray-400"
                     )}
                   >
                     <IconComponent className="w-6 h-6" />
-                    {isCompleted && (
-                      <CheckCircle className="absolute -top-1 -right-1 w-5 h-5 text-green-600 bg-white rounded-full" />
-                    )}
-                  </button>
-                  
+                  </div>
                   <div className="mt-3 text-center">
                     <h3 className={cn(
                       "text-sm font-medium",
-                      isActive ? `text-${config.color}-600` : "text-gray-600"
+                      isActive ? `text-${stepInfo.color}-600` : "text-gray-600"
                     )}>
-                      {config.title}
+                      {stepInfo.title}
                     </h3>
-                    <p className="text-xs text-gray-500 mt-1 max-w-24">
-                      {config.description}
-                    </p>
                   </div>
-                  
-                  {index < COMPACT_STEPS.length - 1 && (
-                    <div className={cn(
-                      "absolute top-8 left-16 w-32 h-1 transition-all duration-300",
-                      isCompleted ? "bg-green-600" : "bg-gray-300"
-                    )} />
-                  )}
                 </div>
               );
             })}
@@ -366,66 +576,28 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
             transition={{ duration: 0.3 }}
             className="bg-white rounded-lg shadow-sm p-8"
           >
-            <Suspense fallback={
-              <div className="flex justify-center p-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              </div>
-            }>
-              {CurrentStepComponent && (
-                <CurrentStepComponent
-                  formData={formData}
-                  updateFormData={updateFormData}
-                  errors={errors}
-                  isValid={isValid}
-                  onNext={handleNextStep}
-                  onPrevious={handlePreviousStep}
-                  onPublish={handlePublishPackage}
-                />
-              )}
-            </Suspense>
+            {CurrentStepComponent && (
+              <CurrentStepComponent
+                formData={formData}
+                updateFormData={updateFormData}
+                errors={errors}
+                isValid={isValid}
+                onNext={handleNextStep}
+                onPrevious={handlePreviousStep}
+                onPublish={handlePublishPackage}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
 
         {/* Footer Actions */}
         <div className="mt-8 flex justify-between items-center">
           <div className="text-sm text-gray-500">
-            Step {currentStepIndex + 1} of {COMPACT_STEPS.length} • 
+            Current Step: {currentStep} • 
             {isValid ? (
               <span className="text-green-600 ml-1">Ready to continue</span>
             ) : (
               <span className="text-red-600 ml-1">Please complete required fields</span>
-            )}
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <Button
-              variant="outline"
-              onClick={handlePreviousStep}
-              disabled={!previousStep}
-              className="flex items-center"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-            
-            {currentStep === 'pricing-policies' ? (
-              <Button
-                onClick={handlePublishPackage}
-                disabled={!isValid || isSaving}
-                className="bg-green-600 hover:bg-green-700 text-white px-6 flex items-center"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Publish Package
-              </Button>
-            ) : (
-              <Button
-                onClick={handleNextStep}
-                disabled={!isValid || !nextStep}
-                className="flex items-center"
-              >
-                Next
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
             )}
           </div>
         </div>
