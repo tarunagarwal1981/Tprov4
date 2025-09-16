@@ -429,13 +429,13 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
 
   const handleNextStep = () => {
     if (nextStep) {
-      goToStep(nextStep);
+      nextStep();
     }
   };
 
   const handlePreviousStep = () => {
     if (previousStep) {
-      goToStep(previousStep);
+      previousStep();
     }
   };
 

@@ -99,7 +99,7 @@ export default function PackageTypeStep({
   onNext 
 }: StepProps) {
   const [selectedType, setSelectedType] = useState<PackageType>(
-    formData.type || PackageType.LAND_PACKAGE
+    formData.type || PackageType.ACTIVITY
   );
 
   const handleTypeSelect = (type: PackageType) => {
