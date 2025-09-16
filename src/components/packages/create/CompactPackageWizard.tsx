@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSupabasePackageWizard } from '@/hooks/useSupabasePackageWizard';
@@ -24,14 +24,84 @@ import {
   Clock,
   Users,
   MapPin,
-  Star
+  Star,
+  RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import dynamic from 'next/dynamic';
 
-// Import step components
-import CompactPackageEssentialsStep from './steps/CompactPackageEssentialsStep';
-import CompactPackageDetailsStep from './steps/CompactPackageDetailsStep';
-import CompactPricingReviewStep from './steps/CompactPricingReviewStep';
+// Dynamic imports with error handling
+const CompactPackageEssentialsStep = dynamic(
+  () => import('./steps/CompactPackageEssentialsStep').catch(() => ({
+    default: () => (
+      <div className="text-center p-8">
+        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Loading Error</h3>
+        <p className="text-gray-600 mb-4">There was an issue loading this step.</p>
+        <Button onClick={() => window.location.reload()}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Reload Page
+        </Button>
+      </div>
+    )
+  })),
+  { 
+    loading: () => (
+      <div className="flex justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    ),
+    ssr: false 
+  }
+);
+
+const CompactPackageDetailsStep = dynamic(
+  () => import('./steps/CompactPackageDetailsStep').catch(() => ({
+    default: () => (
+      <div className="text-center p-8">
+        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Loading Error</h3>
+        <p className="text-gray-600 mb-4">There was an issue loading this step.</p>
+        <Button onClick={() => window.location.reload()}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Reload Page
+        </Button>
+      </div>
+    )
+  })),
+  { 
+    loading: () => (
+      <div className="flex justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    ),
+    ssr: false 
+  }
+);
+
+const CompactPricingReviewStep = dynamic(
+  () => import('./steps/CompactPricingReviewStep').catch(() => ({
+    default: () => (
+      <div className="text-center p-8">
+        <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Loading Error</h3>
+        <p className="text-gray-600 mb-4">There was an issue loading this step.</p>
+        <Button onClick={() => window.location.reload()}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Reload Page
+        </Button>
+      </div>
+    )
+  })),
+  { 
+    loading: () => (
+      <div className="flex justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    ),
+    ssr: false 
+  }
+);
 
 interface CompactPackageWizardProps {
   className?: string;
@@ -65,6 +135,21 @@ const STEP_CONFIG = {
     color: 'purple'
   }
 };
+
+// Simple error fallback component
+function StepErrorFallback() {
+  return (
+    <div className="text-center p-8">
+      <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">Step Error</h3>
+      <p className="text-gray-600 mb-4">Something went wrong with this step.</p>
+      <Button onClick={() => window.location.reload()}>
+        <RefreshCw className="w-4 h-4 mr-2" />
+        Reload Page
+      </Button>
+    </div>
+  );
+}
 
 export default function CompactPackageWizard({ className }: CompactPackageWizardProps) {
   const router = useRouter();
@@ -281,17 +366,23 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
             transition={{ duration: 0.3 }}
             className="bg-white rounded-lg shadow-sm p-8"
           >
-            {CurrentStepComponent && (
-              <CurrentStepComponent
-                formData={formData}
-                updateFormData={updateFormData}
-                errors={errors}
-                isValid={isValid}
-                onNext={handleNextStep}
-                onPrevious={handlePreviousStep}
-                onPublish={handlePublishPackage}
-              />
-            )}
+            <Suspense fallback={
+              <div className="flex justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            }>
+              {CurrentStepComponent && (
+                <CurrentStepComponent
+                  formData={formData}
+                  updateFormData={updateFormData}
+                  errors={errors}
+                  isValid={isValid}
+                  onNext={handleNextStep}
+                  onPrevious={handlePreviousStep}
+                  onPublish={handlePublishPackage}
+                />
+              )}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
 
