@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import ModernPackageWizard from '@/components/packages/create/ModernPackageWizard';
+import CompactPackageWizard from '@/components/packages/create/CompactPackageWizard';
 import { useSimpleAuth } from '@/context/SimpleAuthContext';
 import { UserRole } from '@/lib/types';
 
@@ -63,5 +63,5 @@ export default function CreatePackagePage() {
     );
   }
 
-  return <ModernPackageWizard />;
+  return <CompactPackageWizard />;
 }
