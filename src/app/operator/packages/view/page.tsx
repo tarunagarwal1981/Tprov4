@@ -50,6 +50,24 @@ export default function PackageDetailPage() {
           console.error('Error fetching package:', response.error);
         } else {
           setPackageData(response.data);
+          // Debug the loaded data
+          if (response.data) {
+            console.log('PackageData loaded:', {
+              title: typeof response.data?.title,
+              description: typeof response.data?.description,
+              status: typeof response.data?.status,
+              type: typeof response.data?.type,
+              price: typeof response.data?.price,
+              duration: typeof response.data?.duration,
+              minGroupSize: typeof response.data?.minGroupSize,
+              maxGroupSize: typeof response.data?.maxGroupSize,
+              destinations: Array.isArray(response.data?.destinations),
+              itinerary: Array.isArray(response.data?.itinerary),
+              reviews: Array.isArray(response.data?.reviews),
+              images: Array.isArray(response.data?.images),
+              tour_operator: typeof response.data?.tour_operator,
+            });
+          }
         }
       } catch (err) {
         setError('An unexpected error occurred');
@@ -108,8 +126,10 @@ export default function PackageDetailPage() {
     return String(value);
   };
 
-  // Debug function to check packageData structure
+  // Debug function to check packageData structure (call manually if needed)
   const debugPackageData = () => {
+    if (!packageData) return;
+    
     console.log('PackageData structure:', {
       title: typeof packageData?.title,
       description: typeof packageData?.description,
@@ -126,13 +146,6 @@ export default function PackageDetailPage() {
       tour_operator: typeof packageData?.tour_operator,
     });
   };
-
-  // Call debug function when packageData changes
-  useEffect(() => {
-    if (packageData) {
-      debugPackageData();
-    }
-  }, [packageData]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
