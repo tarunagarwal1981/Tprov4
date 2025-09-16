@@ -470,6 +470,8 @@ export default function PackageDetailPage() {
                           </div>
                         )}
                       </>
+                    )}
+                    
                     {packageData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT && (
                       <>
                         {packageData.departureAirport && (
