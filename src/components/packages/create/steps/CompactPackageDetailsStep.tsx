@@ -12,25 +12,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
+  Calendar,
+  MapPin,
   Clock,
-  CheckCircle,
-  XCircle,
+  Users,
   ArrowRight,
   ArrowLeft,
   Plus,
   X,
-  Info,
+  CheckCircle,
+  AlertCircle,
+  Settings,
+  FileText,
   Utensils,
   Ticket,
-  User,
+  UserCheck,
   Shield,
-  CreditCard,
-  Plane,
   Car,
   Building,
-  Settings,
-  Calendar,
-  MapPin
+  Plane
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -319,7 +319,7 @@ export default function CompactPackageDetailsStep({
           Package Details
         </h2>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Add detailed planning, transportation, accommodation, and define what's included and excluded in your package.
+          Add detailed planning information, accommodations, transportation, and define what's included and excluded in your package.
         </p>
       </motion.div>
 
@@ -327,7 +327,7 @@ export default function CompactPackageDetailsStep({
       <div className="flex justify-center">
         <div className="flex space-x-2 bg-gray-100 rounded-lg p-1">
           {[
-            { id: 'planning', label: 'Detailed Planning', icon: Clock },
+            { id: 'planning', label: 'Planning & Logistics', icon: Calendar },
             { id: 'inclusions', label: 'Inclusions & Exclusions', icon: CheckCircle }
           ].map((section) => {
             const IconComponent = section.icon;
@@ -351,7 +351,7 @@ export default function CompactPackageDetailsStep({
         </div>
       </div>
 
-      {/* Detailed Planning Section */}
+      {/* Planning & Logistics */}
       {activeSection === 'planning' && (
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -359,104 +359,138 @@ export default function CompactPackageDetailsStep({
           className="space-y-6"
         >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Transportation */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Car className="w-5 h-5 mr-2 text-blue-600" />
-                  Transportation
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {visibleFields.vehicleType && (
-                  <div>
-                    <Label className="text-sm font-medium">Vehicle Type</Label>
-                    <Select
-                      value={localData.vehicleType}
-                      onValueChange={(value) => handleInputChange('vehicleType', value)}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select vehicle type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {vehicleTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
+            {/* Left Column */}
+            <div className="space-y-4">
+              {/* Detailed Planning */}
+              {visibleFields.itinerary && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Calendar className="w-5 h-5 mr-2 text-blue-600" />
+                      Detailed Itinerary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex space-x-2">
+                      <Input
+                        value={newItem}
+                        onChange={(e) => setNewItem(e.target.value)}
+                        placeholder="Add itinerary item..."
+                        onKeyPress={(e) => e.key === 'Enter' && addArrayItem('itinerary', newItem)}
+                      />
+                      <Button onClick={() => addArrayItem('itinerary', newItem)} size="sm">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {localData.itinerary.length > 0 && (
+                      <div className="space-y-2">
+                        {localData.itinerary.map((item, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <span className="text-sm">{item}</span>
+                            <button
+                              onClick={() => removeArrayItem('itinerary', index)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
-                {visibleFields.acNonAc && (
-                  <div>
-                    <Label className="text-sm font-medium">AC/Non-AC</Label>
-                    <Select
-                      value={localData.acNonAc}
-                      onValueChange={(value) => handleInputChange('acNonAc', value)}
-                    >
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select AC option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ac">Air Conditioned</SelectItem>
-                        <SelectItem value="non-ac">Non-AC</SelectItem>
-                        <SelectItem value="both">Both Available</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {visibleFields.driverDetails && (
-                  <div>
-                    <Label htmlFor="driverDetails" className="text-sm font-medium">
-                      Driver Details
-                    </Label>
-                    <Textarea
-                      id="driverDetails"
-                      value={localData.driverDetails}
-                      onChange={(e) => handleInputChange('driverDetails', e.target.value)}
-                      placeholder="Driver experience, languages spoken, etc."
-                      className="mt-1"
-                      rows={3}
-                    />
-                  </div>
-                )}
-
-                {visibleFields.fuelInclusion && (
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="fuelInclusion"
-                      checked={localData.fuelInclusion}
-                      onChange={(e) => handleInputChange('fuelInclusion', e.target.checked)}
-                      className="rounded border-gray-300 h-4 w-4"
-                    />
+              {/* Transportation */}
+              {visibleFields.vehicleType && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Car className="w-5 h-5 mr-2 text-blue-600" />
+                      Transportation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div>
+                      <Label className="text-sm font-medium">Vehicle Type</Label>
+                      <Select
+                        value={localData.vehicleType}
+                        onValueChange={(value) => handleInputChange('vehicleType', value)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select vehicle type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vehicleTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium">AC/Non-AC</Label>
+                      <Select
+                        value={localData.acNonAc}
+                        onValueChange={(value) => handleInputChange('acNonAc', value)}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ac">AC</SelectItem>
+                          <SelectItem value="non-ac">Non-AC</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {visibleFields.driverDetails && (
+                      <div>
+                        <Label htmlFor="driverDetails" className="text-sm font-medium">
+                          Driver Details
+                        </Label>
+                        <Textarea
+                          id="driverDetails"
+                          value={localData.driverDetails}
+                          onChange={(e) => handleInputChange('driverDetails', e.target.value)}
+                          placeholder="Driver information, experience, etc."
+                          className="mt-1"
+                          rows={3}
+                        />
+                      </div>
+                    )}
+
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id="fuelInclusion"
+                        checked={localData.fuelInclusion}
+                        onChange={(e) => handleInputChange('fuelInclusion', e.target.checked)}
+                        className="rounded border-gray-300 h-4 w-4"
+                      />
                       <Label htmlFor="fuelInclusion" className="text-sm font-medium">
                         Fuel Included
                       </Label>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Check if fuel costs are included in the package
-                      </p>
                     </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
 
-            {/* Accommodation */}
-            {(visibleFields.hotelCategory || visibleFields.roomType || visibleFields.hotelNameOptions) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Building className="w-5 h-5 mr-2 text-blue-600" />
-                    Accommodation
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {visibleFields.hotelCategory && (
+            {/* Right Column */}
+            <div className="space-y-4">
+              {/* Accommodation */}
+              {visibleFields.hotelCategory && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Building className="w-5 h-5 mr-2 text-blue-600" />
+                      Accommodation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div>
                       <Label className="text-sm font-medium">Hotel Category</Label>
                       <Select
@@ -475,9 +509,7 @@ export default function CompactPackageDetailsStep({
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
 
-                  {visibleFields.roomType && (
                     <div>
                       <Label className="text-sm font-medium">Room Type</Label>
                       <Select
@@ -496,9 +528,7 @@ export default function CompactPackageDetailsStep({
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
 
-                  {visibleFields.hotelNameOptions && (
                     <div>
                       <Label className="text-sm font-medium">Hotel Options</Label>
                       <div className="flex space-x-2 mt-1">
@@ -528,12 +558,10 @@ export default function CompactPackageDetailsStep({
                         </div>
                       )}
                     </div>
-                  )}
 
-                  {visibleFields.checkInCheckOut && (
                     <div>
                       <Label htmlFor="checkInCheckOut" className="text-sm font-medium">
-                        Check-in/Check-out Policy
+                        Check-in/Check-out Details
                       </Label>
                       <Textarea
                         id="checkInCheckOut"
@@ -544,49 +572,47 @@ export default function CompactPackageDetailsStep({
                         rows={3}
                       />
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              )}
 
-            {/* Flights (for Fixed Departure with Flight) */}
-            {visibleFields.departureAirport && (
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Plane className="w-5 h-5 mr-2 text-blue-600" />
-                    Flight Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="departureAirport" className="text-sm font-medium">
-                        Departure Airport
-                      </Label>
-                      <Input
-                        id="departureAirport"
-                        value={localData.departureAirport}
-                        onChange={(e) => handleInputChange('departureAirport', e.target.value)}
-                        placeholder="e.g., JFK Airport, New York"
-                        className="mt-1"
-                      />
+              {/* Flights */}
+              {visibleFields.departureAirport && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Plane className="w-5 h-5 mr-2 text-blue-600" />
+                      Flight Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="departureAirport" className="text-sm font-medium">
+                          Departure Airport
+                        </Label>
+                        <Input
+                          id="departureAirport"
+                          value={localData.departureAirport}
+                          onChange={(e) => handleInputChange('departureAirport', e.target.value)}
+                          placeholder="e.g., JFK"
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="arrivalAirport" className="text-sm font-medium">
+                          Arrival Airport
+                        </Label>
+                        <Input
+                          id="arrivalAirport"
+                          value={localData.arrivalAirport}
+                          onChange={(e) => handleInputChange('arrivalAirport', e.target.value)}
+                          placeholder="e.g., LAX"
+                          className="mt-1"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="arrivalAirport" className="text-sm font-medium">
-                        Arrival Airport
-                      </Label>
-                      <Input
-                        id="arrivalAirport"
-                        value={localData.arrivalAirport}
-                        onChange={(e) => handleInputChange('arrivalAirport', e.target.value)}
-                        placeholder="e.g., CDG Airport, Paris"
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label className="text-sm font-medium">Flight Class</Label>
                       <Select
@@ -605,6 +631,7 @@ export default function CompactPackageDetailsStep({
                         </SelectContent>
                       </Select>
                     </div>
+
                     <div>
                       <Label htmlFor="airlinePreference" className="text-sm font-medium">
                         Airline Preference
@@ -613,10 +640,11 @@ export default function CompactPackageDetailsStep({
                         id="airlinePreference"
                         value={localData.airlinePreference}
                         onChange={(e) => handleInputChange('airlinePreference', e.target.value)}
-                        placeholder="e.g., Emirates, Lufthansa"
+                        placeholder="e.g., Emirates, Singapore Airlines"
                         className="mt-1"
                       />
                     </div>
+
                     <div>
                       <Label htmlFor="baggageAllowance" className="text-sm font-medium">
                         Baggage Allowance
@@ -625,19 +653,19 @@ export default function CompactPackageDetailsStep({
                         id="baggageAllowance"
                         value={localData.baggageAllowance}
                         onChange={(e) => handleInputChange('baggageAllowance', e.target.value)}
-                        placeholder="e.g., 23kg checked + 7kg carry-on"
+                        placeholder="e.g., 23kg checked, 7kg carry-on"
                         className="mt-1"
                       />
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </motion.div>
       )}
 
-      {/* Inclusions & Exclusions Section */}
+      {/* Inclusions & Exclusions */}
       {activeSection === 'inclusions' && (
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -648,18 +676,15 @@ export default function CompactPackageDetailsStep({
             {/* Inclusions */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                <CardTitle className="flex items-center text-green-700">
+                  <CheckCircle className="w-5 h-5 mr-2" />
                   What's Included
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {visibleFields.tourInclusions && (
                   <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Tour Inclusions
-                    </Label>
+                    <Label className="text-sm font-medium">Tour Inclusions</Label>
                     <div className="flex space-x-2 mt-1">
                       <Input
                         value={newItem}
@@ -674,13 +699,13 @@ export default function CompactPackageDetailsStep({
                     {localData.tourInclusions.length > 0 && (
                       <div className="space-y-1 mt-2">
                         {localData.tourInclusions.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
+                          <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                            <span className="text-sm text-green-800">{item}</span>
                             <button
                               onClick={() => removeArrayItem('tourInclusions', index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-500 hover:text-red-700"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -691,10 +716,7 @@ export default function CompactPackageDetailsStep({
 
                 {visibleFields.mealInclusions && (
                   <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <Utensils className="w-4 h-4 mr-1" />
-                      Meal Inclusions
-                    </Label>
+                    <Label className="text-sm font-medium">Meal Inclusions</Label>
                     <div className="flex space-x-2 mt-1">
                       <Input
                         value={newItem}
@@ -709,13 +731,13 @@ export default function CompactPackageDetailsStep({
                     {localData.mealInclusions.length > 0 && (
                       <div className="space-y-1 mt-2">
                         {localData.mealInclusions.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
+                          <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                            <span className="text-sm text-green-800">{item}</span>
                             <button
                               onClick={() => removeArrayItem('mealInclusions', index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-500 hover:text-red-700"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -726,10 +748,7 @@ export default function CompactPackageDetailsStep({
 
                 {visibleFields.entryTickets && (
                   <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <Ticket className="w-4 h-4 mr-1" />
-                      Entry Tickets
-                    </Label>
+                    <Label className="text-sm font-medium">Entry Tickets</Label>
                     <div className="flex space-x-2 mt-1">
                       <Input
                         value={newItem}
@@ -744,13 +763,13 @@ export default function CompactPackageDetailsStep({
                     {localData.entryTickets.length > 0 && (
                       <div className="space-y-1 mt-2">
                         {localData.entryTickets.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
+                          <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                            <span className="text-sm text-green-800">{item}</span>
                             <button
                               onClick={() => removeArrayItem('entryTickets', index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-500 hover:text-red-700"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -761,10 +780,7 @@ export default function CompactPackageDetailsStep({
 
                 {visibleFields.guideServices && (
                   <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      Guide Services
-                    </Label>
+                    <Label className="text-sm font-medium">Guide Services</Label>
                     <div className="flex space-x-2 mt-1">
                       <Input
                         value={newItem}
@@ -779,13 +795,13 @@ export default function CompactPackageDetailsStep({
                     {localData.guideServices.length > 0 && (
                       <div className="space-y-1 mt-2">
                         {localData.guideServices.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
+                          <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                            <span className="text-sm text-green-800">{item}</span>
                             <button
                               onClick={() => removeArrayItem('guideServices', index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-500 hover:text-red-700"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -796,10 +812,7 @@ export default function CompactPackageDetailsStep({
 
                 {visibleFields.insurance && (
                   <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <Shield className="w-4 h-4 mr-1" />
-                      Insurance
-                    </Label>
+                    <Label className="text-sm font-medium">Insurance</Label>
                     <div className="flex space-x-2 mt-1">
                       <Input
                         value={newItem}
@@ -814,13 +827,13 @@ export default function CompactPackageDetailsStep({
                     {localData.insurance.length > 0 && (
                       <div className="space-y-1 mt-2">
                         {localData.insurance.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-green-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
+                          <div key={index} className="flex items-center justify-between p-2 bg-green-50 rounded-lg">
+                            <span className="text-sm text-green-800">{item}</span>
                             <button
                               onClick={() => removeArrayItem('insurance', index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-500 hover:text-red-700"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -834,88 +847,75 @@ export default function CompactPackageDetailsStep({
             {/* Exclusions */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <XCircle className="w-5 h-5 mr-2 text-red-600" />
+                <CardTitle className="flex items-center text-red-700">
+                  <AlertCircle className="w-5 h-5 mr-2" />
                   What's Not Included
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {visibleFields.tourExclusions && (
-                  <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Tour Exclusions
-                    </Label>
-                    <div className="flex space-x-2 mt-1">
-                      <Input
-                        value={newItem}
-                        onChange={(e) => setNewItem(e.target.value)}
-                        placeholder="Add exclusion..."
-                        onKeyPress={(e) => e.key === 'Enter' && addArrayItem('tourExclusions', newItem)}
-                      />
-                      <Button onClick={() => addArrayItem('tourExclusions', newItem)} size="sm">
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    {localData.tourExclusions.length > 0 && (
-                      <div className="space-y-1 mt-2">
-                        {localData.tourExclusions.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-red-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
-                            <button
-                              onClick={() => removeArrayItem('tourExclusions', index)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                <div>
+                  <Label className="text-sm font-medium">Tour Exclusions</Label>
+                  <div className="flex space-x-2 mt-1">
+                    <Input
+                      value={newItem}
+                      onChange={(e) => setNewItem(e.target.value)}
+                      placeholder="Add exclusion..."
+                      onKeyPress={(e) => e.key === 'Enter' && addArrayItem('tourExclusions', newItem)}
+                    />
+                    <Button onClick={() => addArrayItem('tourExclusions', newItem)} size="sm">
+                      <Plus className="w-4 h-4" />
+                    </Button>
                   </div>
-                )}
+                  {localData.tourExclusions.length > 0 && (
+                    <div className="space-y-1 mt-2">
+                      {localData.tourExclusions.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                          <span className="text-sm text-red-800">{item}</span>
+                          <button
+                            onClick={() => removeArrayItem('tourExclusions', index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-                {visibleFields.personalExpenses && (
-                  <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <CreditCard className="w-4 h-4 mr-1" />
-                      Personal Expenses
-                    </Label>
-                    <div className="flex space-x-2 mt-1">
-                      <Input
-                        value={newItem}
-                        onChange={(e) => setNewItem(e.target.value)}
-                        placeholder="Add personal expense..."
-                        onKeyPress={(e) => e.key === 'Enter' && addArrayItem('personalExpenses', newItem)}
-                      />
-                      <Button onClick={() => addArrayItem('personalExpenses', newItem)} size="sm">
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    {localData.personalExpenses.length > 0 && (
-                      <div className="space-y-1 mt-2">
-                        {localData.personalExpenses.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-red-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
-                            <button
-                              onClick={() => removeArrayItem('personalExpenses', index)}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                <div>
+                  <Label className="text-sm font-medium">Personal Expenses</Label>
+                  <div className="flex space-x-2 mt-1">
+                    <Input
+                      value={newItem}
+                      onChange={(e) => setNewItem(e.target.value)}
+                      placeholder="Add personal expense..."
+                      onKeyPress={(e) => e.key === 'Enter' && addArrayItem('personalExpenses', newItem)}
+                    />
+                    <Button onClick={() => addArrayItem('personalExpenses', newItem)} size="sm">
+                      <Plus className="w-4 h-4" />
+                    </Button>
                   </div>
-                )}
+                  {localData.personalExpenses.length > 0 && (
+                    <div className="space-y-1 mt-2">
+                      {localData.personalExpenses.map((item, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                          <span className="text-sm text-red-800">{item}</span>
+                          <button
+                            onClick={() => removeArrayItem('personalExpenses', index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {visibleFields.optionalActivities && (
                   <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <Settings className="w-4 h-4 mr-1" />
-                      Optional Activities
-                    </Label>
+                    <Label className="text-sm font-medium">Optional Activities</Label>
                     <div className="flex space-x-2 mt-1">
                       <Input
                         value={newItem}
@@ -930,13 +930,13 @@ export default function CompactPackageDetailsStep({
                     {localData.optionalActivities.length > 0 && (
                       <div className="space-y-1 mt-2">
                         {localData.optionalActivities.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-red-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
+                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                            <span className="text-sm text-red-800">{item}</span>
                             <button
                               onClick={() => removeArrayItem('optionalActivities', index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-500 hover:text-red-700"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -947,15 +947,12 @@ export default function CompactPackageDetailsStep({
 
                 {visibleFields.visaDocumentation && (
                   <div>
-                    <Label className="text-sm font-medium flex items-center">
-                      <Info className="w-4 h-4 mr-1" />
-                      Visa & Documentation
-                    </Label>
+                    <Label className="text-sm font-medium">Visa & Documentation</Label>
                     <div className="flex space-x-2 mt-1">
                       <Input
                         value={newItem}
                         onChange={(e) => setNewItem(e.target.value)}
-                        placeholder="Add visa/documentation note..."
+                        placeholder="Add visa/documentation requirement..."
                         onKeyPress={(e) => e.key === 'Enter' && addArrayItem('visaDocumentation', newItem)}
                       />
                       <Button onClick={() => addArrayItem('visaDocumentation', newItem)} size="sm">
@@ -965,13 +962,13 @@ export default function CompactPackageDetailsStep({
                     {localData.visaDocumentation.length > 0 && (
                       <div className="space-y-1 mt-2">
                         {localData.visaDocumentation.map((item, index) => (
-                          <div key={index} className="flex items-center justify-between bg-red-50 p-2 rounded">
-                            <span className="text-sm">{item}</span>
+                          <div key={index} className="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                            <span className="text-sm text-red-800">{item}</span>
                             <button
                               onClick={() => removeArrayItem('visaDocumentation', index)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-500 hover:text-red-700"
                             >
-                              <X className="w-3 h-3" />
+                              <X className="w-4 h-4" />
                             </button>
                           </div>
                         ))}
@@ -1000,7 +997,13 @@ export default function CompactPackageDetailsStep({
         <div className="flex space-x-3">
           {activeSection !== 'inclusions' && (
             <Button
-              onClick={() => setActiveSection('inclusions')}
+              onClick={() => {
+                const sections = ['planning', 'inclusions'];
+                const currentIndex = sections.indexOf(activeSection);
+                if (currentIndex < sections.length - 1) {
+                  setActiveSection(sections[currentIndex + 1] as any);
+                }
+              }}
               size="lg"
               className="flex items-center"
             >
