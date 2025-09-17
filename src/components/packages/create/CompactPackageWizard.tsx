@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -1326,21 +1327,207 @@ export default function ModernPackageWizard() {
 
   const handleSave = async () => {
     if (!validateForm()) return;
-    
+
     setIsSaving(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Saving package:', formData);
-      
-      // Show success message
+      // 1) Get current user and tour_operator_id
+      const { data: authData } = await supabase.auth.getUser();
+      const authUserId = authData.user?.id;
+      if (!authUserId) throw new Error('Not authenticated');
+
+      const { data: tourOperator, error: tourOpErr } = await supabase
+        .from('tour_operators')
+        .select('id')
+        .eq('user_id', authUserId)
+        .maybeSingle();
+      if (tourOpErr) throw tourOpErr;
+      if (!tourOperator?.id) throw new Error('No tour operator profile found');
+
+      // 2) Insert main package
+      const mainInsert = {
+        tour_operator_id: tourOperator.id,
+        title: formData.title || formData.name || 'Untitled Package',
+        description: formData.description || '',
+        type: formData.type,
+        adult_price: formData.pricing?.[0]?.adultPrice ?? 0,
+        child_price: formData.pricing?.[0]?.childPrice ?? 0,
+        duration_days: formData.days ?? 1,
+        duration_hours: formData.durationHours ?? 0,
+        status: 'DRAFT'
+      } as const;
+
+      const { data: pkgInsert, error: pkgErr } = await supabase
+        .from('packages')
+        .insert(mainInsert)
+        .select('id')
+        .single();
+      if (pkgErr) throw pkgErr;
+      const packageId = pkgInsert.id as string;
+
+      // 3) Insert inclusions
+      if (formData.inclusions && formData.inclusions.length > 0) {
+        const inclusionsRows = formData.inclusions.map((inc, i) => ({
+          package_id: packageId,
+          inclusion: inc,
+          order_index: i
+        }));
+        const { error } = await supabase.from('package_inclusions').insert(inclusionsRows);
+        if (error) throw error;
+      }
+
+      // 4) Insert exclusions
+      if (formData.exclusions && formData.exclusions.length > 0) {
+        const exclusionsRows = formData.exclusions.map((exc, i) => ({
+          package_id: packageId,
+          exclusion: exc,
+          order_index: i
+        }));
+        const { error } = await supabase.from('package_exclusions').insert(exclusionsRows);
+        if (error) throw error;
+      }
+
+      // 5) Insert destinations (as free-text destination names into package_type_details OR link to destinations if you have IDs)
+      if (formData.destinations && formData.destinations.length > 0) {
+        // If you maintain a destinations master table, you should resolve names -> destination_id first
+        // For now, store them as ordered type details
+        const destRows = formData.destinations.map((dest, i) => ({
+          package_id: packageId,
+          field_name: `destination_${i + 1}`,
+          field_value: dest,
+          field_type: 'text'
+        }));
+        const { error } = await supabase.from('package_type_details').insert(destRows);
+        if (error) throw error;
+      }
+
+      // 6) Insert itinerary
+      if (formData.itinerary && formData.itinerary.length > 0) {
+        const itineraryRows = formData.itinerary.map((day, i) => ({
+          package_id: packageId,
+          day_number: day.day ?? i + 1,
+          title: day.title || `Day ${i + 1}`,
+          description: day.description || '',
+          activities: day.activities || [],
+          meals_included: [],
+          accommodation: null,
+          transportation: null,
+          order_index: i
+        }));
+        const { error } = await supabase.from('package_itinerary').insert(itineraryRows);
+        if (error) throw error;
+      }
+
+      // 7) Type-specific fields -> package_type_details
+      const typeDetails: Array<{ package_id: string; field_name: string; field_value: string; field_type: string }> = [];
+      if (formData.type === PackageType.TRANSFERS) {
+        if (formData.place) typeDetails.push({ package_id: packageId, field_name: 'place', field_value: String(formData.place), field_type: 'text' });
+        if (formData.from) typeDetails.push({ package_id: packageId, field_name: 'from', field_value: String(formData.from), field_type: 'text' });
+        if (formData.to) typeDetails.push({ package_id: packageId, field_name: 'to', field_value: String(formData.to), field_type: 'text' });
+      }
+      if (formData.type === PackageType.ACTIVITY) {
+        if (formData.place) typeDetails.push({ package_id: packageId, field_name: 'place', field_value: String(formData.place), field_type: 'text' });
+        if (formData.timing) typeDetails.push({ package_id: packageId, field_name: 'timing', field_value: String(formData.timing), field_type: 'text' });
+        if (typeof formData.durationHours === 'number') typeDetails.push({ package_id: packageId, field_name: 'durationHours', field_value: String(formData.durationHours), field_type: 'number' });
+      }
+      if (formData.type === PackageType.MULTI_CITY_PACKAGE || formData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL || formData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT) {
+        if (formData.additionalNotes) typeDetails.push({ package_id: packageId, field_name: 'additionalNotes', field_value: String(formData.additionalNotes), field_type: 'text' });
+        if (typeof formData.days === 'number') typeDetails.push({ package_id: packageId, field_name: 'days', field_value: String(formData.days), field_type: 'number' });
+      }
+      if (formData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL && formData.hotels && formData.hotels.length > 0) {
+        formData.hotels.forEach((hotel, i) => {
+          typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_name`, field_value: hotel.name, field_type: 'text' });
+          typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_location`, field_value: hotel.location, field_type: 'text' });
+          if (hotel.checkIn) typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_checkIn`, field_value: hotel.checkIn, field_type: 'date' });
+          if (hotel.checkOut) typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_checkOut`, field_value: hotel.checkOut, field_type: 'date' });
+          if (hotel.roomType) typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_roomType`, field_value: hotel.roomType, field_type: 'text' });
+        });
+      }
+      if (typeDetails.length > 0) {
+        const { error } = await supabase.from('package_type_details').insert(typeDetails);
+        if (error) throw error;
+      }
+
+      // 8) Pricing slabs beyond the first (if provided)
+      if (formData.pricing && formData.pricing.length > 1) {
+        const extraPricingRows = formData.pricing.slice(1).map((p, i) => ({
+          package_id: packageId,
+          field_name: `pricing_slab_${i + 2}`,
+          field_value: JSON.stringify({ adultPrice: p.adultPrice, childPrice: p.childPrice, validFrom: p.validFrom, validTo: p.validTo }),
+          field_type: 'text'
+        }));
+        const { error } = await supabase.from('package_type_details').insert(extraPricingRows);
+        if (error) throw error;
+      }
+
+      // 9) Upload images to storage and create package_images records
+      const imageFiles: File[] = [];
+      if (formData.image instanceof File) imageFiles.push(formData.image);
+      if (formData.banner instanceof File) imageFiles.push(formData.banner);
+
+      if (imageFiles.length > 0) {
+        const imageRecords: Array<{
+          package_id: string;
+          url: string;
+          alt_text: string;
+          caption?: string;
+          is_primary: boolean;
+          order_index: number;
+          file_size?: number;
+          mime_type?: string;
+        }> = [];
+
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${packageId}/${Date.now()}-${i}.${fileExt}`;
+          
+          // Upload to storage
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('package-images')
+            .upload(fileName, file, {
+              cacheControl: '3600',
+              upsert: false
+            });
+
+          if (uploadError) {
+            console.warn('Image upload failed:', uploadError);
+            continue; // Skip this image but continue with others
+          }
+
+          // Get public URL
+          const { data: urlData } = supabase.storage
+            .from('package-images')
+            .getPublicUrl(fileName);
+
+          imageRecords.push({
+            package_id: packageId,
+            url: urlData.publicUrl,
+            alt_text: `${formData.title || formData.name || 'Package'} image ${i + 1}`,
+            caption: i === 0 ? 'Main package image' : undefined,
+            is_primary: i === 0,
+            order_index: i,
+            file_size: file.size,
+            mime_type: file.type
+          });
+        }
+
+        // Insert image records
+        if (imageRecords.length > 0) {
+          const { error: imageError } = await supabase
+            .from('package_images')
+            .insert(imageRecords);
+          if (imageError) {
+            console.warn('Failed to create image records:', imageError);
+            // Don't throw - images are optional
+          }
+        }
+      }
+
       alert('Package created successfully!');
-      
-      // Redirect to packages list
       router.push('/operator/packages');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving package:', error);
-      alert('Error saving package. Please try again.');
+      alert(error?.message || 'Error saving package. Please try again.');
     } finally {
       setIsSaving(false);
     }
