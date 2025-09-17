@@ -30,7 +30,7 @@ const initialState: AuthState = {
   supabaseUser: null,
   session: null,
   isAuthenticated: false,
-  isLoading: typeof window !== 'undefined',
+  isLoading: true, // Always start with loading true to prevent hydration mismatch
   error: null,
 };
 

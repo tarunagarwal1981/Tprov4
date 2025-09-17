@@ -33,11 +33,20 @@ export function ProtectedRoute({
   const [isClient, setIsClient] = useState(false);
   const routerRef = useRef(router);
 
-  // Handle hydration
+  // Handle hydration - use a more robust approach
   useEffect(() => {
     setIsClient(true);
     routerRef.current = router;
   }, [router]);
+
+  // Prevent hydration mismatch by not rendering until client-side
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   console.log('🛡️ ProtectedRoute - Current state:', {
     pathname,
@@ -93,13 +102,8 @@ export function ProtectedRoute({
   }, [state.user, state.isLoading, requiredRoles, redirectTo, pathname, isClient]);
 
   // ===== LOADING STATE =====
-  if (state.isLoading || !isClient) {
-    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname, 'isClient:', isClient);
-    
-    // If we're on a dashboard page and user is null, we might be redirecting
-    if (pathname.includes('/dashboard') && !state.user) {
-      console.log('🔄 On dashboard page with no user, might be redirecting...');
-    }
+  if (state.isLoading) {
+    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname);
     
     return (
       <div className="min-h-screen flex items-center justify-center">
