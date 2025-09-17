@@ -1,384 +1,647 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
-  ArrowRight, 
-  Check, 
-  Plus, 
-  X, 
+  Save, 
+  X,
   Upload,
+  Plus,
   MapPin,
   Clock,
-  Users,
   DollarSign,
   Calendar,
-  FileText,
-  Image as ImageIcon,
   Star,
-  Info,
-  ChevronDown,
-  Save,
-  Eye,
-  AlertCircle
+  FileText,
+  Package,
+  Plane,
+  Car,
+  Building,
+  CheckCircle,
+  AlertCircle,
+  Trash2,
+  Bed
 } from 'lucide-react';
 
-// Package Types
-const PACKAGE_TYPES = [
-  {
-    id: 'TRANSFERS',
-    title: 'Transfers',
-    description: 'Airport pickups, city transfers, transportation services',
-    icon: '🚗',
-    color: 'bg-blue-50 border-blue-200 text-blue-700'
-  },
-  {
-    id: 'ACTIVITY',
-    title: 'Activities',
-    description: 'Day trips, tours, experiences, adventure activities',
-    icon: '🎯',
-    color: 'bg-green-50 border-green-200 text-green-700'
-  },
-  {
-    id: 'MULTI_CITY_PACKAGE',
-    title: 'Combo Itinerary',
-    description: 'Multi-day tours with activities and experiences',
-    icon: '🗺️',
-    color: 'bg-purple-50 border-purple-200 text-purple-700'
-  },
-  {
-    id: 'FIXED_DEPARTURE_WITH_FLIGHT',
-    title: 'Fixed Itinerary',
-    description: 'Pre-planned tours with fixed schedules',
-    icon: '✈️',
-    color: 'bg-orange-50 border-orange-200 text-orange-700'
-  }
-];
+// Enums - matching your original code structure
+export enum PackageType {
+  ACTIVITY = 'ACTIVITY',
+  TRANSFERS = 'TRANSFERS',
+  MULTI_CITY_PACKAGE = 'MULTI_CITY_PACKAGE',
+  MULTI_CITY_PACKAGE_WITH_HOTEL = 'MULTI_CITY_PACKAGE_WITH_HOTEL',
+  FIXED_DEPARTURE_WITH_FLIGHT = 'FIXED_DEPARTURE_WITH_FLIGHT'
+}
 
-// Common Components
-const FormField = ({ label, required, children, error, hint }) => (
-  <div className="space-y-2">
-    <label className="block text-sm font-medium text-gray-700">
-      {label} {required && <span className="text-red-500">*</span>}
+// Interfaces - matching your original code structure  
+interface PackageFormData {
+  type: PackageType;
+  
+  // Common fields
+  name?: string;
+  title?: string;
+  place?: string;
+  description?: string;
+  image?: File | string;
+  
+  // Transfer specific
+  from?: string;
+  to?: string;
+  
+  // Activity specific
+  timing?: string;
+  durationHours?: number;
+  inclusions?: string[];
+  exclusions?: string[];
+  
+  // Package specific
+  banner?: File | string;
+  additionalNotes?: string;
+  tourInclusions?: string[];
+  tourExclusions?: string[];
+  destinations?: string[];
+  days?: number;
+  itinerary?: DayItinerary[];
+  
+  // Hotel specific
+  hotels?: HotelInfo[];
+  
+  // Pricing
+  pricing?: PricingInfo[];
+}
+
+interface DayItinerary {
+  day: number;
+  title: string;
+  description: string;
+  activities: string[];
+  highlights: string[];
+}
+
+interface HotelInfo {
+  name: string;
+  location: string;
+  checkIn: string;
+  checkOut: string;
+  roomType: string;
+}
+
+interface PricingInfo {
+  adultPrice: number;
+  childPrice: number;
+  validFrom: string;
+  validTo: string;
+  notes?: string;
+}
+
+// Package type selection component
+const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => void }) => {
+  const packageTypes = [
+    {
+      type: PackageType.TRANSFERS,
+      title: 'Transfers',
+      description: 'Airport pickups, city transfers, transportation services',
+      icon: Car,
+      color: 'blue',
+      features: ['Point to point', 'Quick setup', 'Simple pricing']
+    },
+    {
+      type: PackageType.ACTIVITY,
+      title: 'Activities',
+      description: 'Day trips, tours, experiences, adventure activities',
+      icon: Star,
+      color: 'green',
+      features: ['Duration based', 'Inclusions/exclusions', 'Flexible timing']
+    },
+    {
+      type: PackageType.MULTI_CITY_PACKAGE,
+      title: 'Multi City Package',
+      description: 'Multi-day tours covering multiple destinations',
+      icon: Package,
+      color: 'purple',
+      features: ['Multiple destinations', 'Day-wise itinerary', 'Tour inclusions']
+    },
+    {
+      type: PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL,
+      title: 'Multi City + Hotels',
+      description: 'Complete packages with accommodation included',
+      icon: Building,
+      color: 'orange',
+      features: ['Hotels included', 'Full packages', 'End-to-end service']
+    },
+    {
+      type: PackageType.FIXED_DEPARTURE_WITH_FLIGHT,
+      title: 'Fixed Departure',
+      description: 'Pre-scheduled group tours with fixed dates',
+      icon: Plane,
+      color: 'red',
+      features: ['Fixed dates', 'Group tours', 'International flights']
+    }
+  ];
+
+  const getColorClasses = (color: string, type: 'bg' | 'text') => {
+    const colorMap = {
+      blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
+      green: { bg: 'bg-green-100', text: 'text-green-600' },
+      purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
+      orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
+      red: { bg: 'bg-red-100', text: 'text-red-600' }
+    };
+    return colorMap[color as keyof typeof colorMap]?.[type] || 'bg-gray-100';
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto p-6">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">Create New Package</h1>
+        <p className="text-gray-600 text-lg">Choose the type of package you want to create</p>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {packageTypes.map((pkg) => {
+          const IconComponent = pkg.icon;
+          return (
+            <motion.div
+              key={pkg.type}
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-lg transition-all duration-200"
+              onClick={() => onSelect(pkg.type)}
+            >
+              <div className={`inline-flex p-3 rounded-xl ${getColorClasses(pkg.color, 'bg')} mb-4`}>
+                <IconComponent className={`w-6 h-6 ${getColorClasses(pkg.color, 'text')}`} />
+              </div>
+              
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{pkg.title}</h3>
+              <p className="text-gray-600 mb-4 text-sm leading-relaxed">{pkg.description}</p>
+              
+              <div className="space-y-2">
+                {pkg.features.map((feature, index) => (
+                  <div key={index} className="flex items-center text-sm text-gray-500">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                    {feature}
+                  </div>
+                ))}
+              </div>
+              
+              <div className={`mt-6 text-center py-2 px-4 rounded-lg ${getColorClasses(pkg.color, 'bg')} ${getColorClasses(pkg.color, 'text')} font-medium text-sm`}>
+                Select {pkg.title}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// Form components
+const FormField = ({ label, required = false, children, error }: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+  error?: string;
+}) => (
+  <div className="space-y-1">
+    <label className="text-sm font-medium text-gray-700 flex items-center">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
     </label>
     {children}
-    {hint && <p className="text-xs text-gray-500">{hint}</p>}
     {error && (
-      <div className="flex items-center gap-1 text-red-600 text-xs">
-        <AlertCircle className="w-3 h-3" />
+      <div className="flex items-center text-red-600 text-xs mt-1">
+        <AlertCircle className="w-3 h-3 mr-1" />
         {error}
       </div>
     )}
   </div>
 );
 
-const Input = ({ className = '', ...props }) => (
+const Input = ({ placeholder, value, onChange, type = "text", ...props }: {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  [key: string]: any;
+}) => (
   <input
-    className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${className}`}
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
     {...props}
   />
 );
 
-const Textarea = ({ className = '', ...props }) => (
+const Textarea = ({ placeholder, value, onChange, rows = 3 }: {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  rows?: number;
+}) => (
   <textarea
-    className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${className}`}
-    {...props}
+    placeholder={placeholder}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    rows={rows}
+    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm resize-none"
   />
 );
 
-const Select = ({ children, className = '', ...props }) => (
-  <div className="relative">
-    <select
-      className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white ${className}`}
-      {...props}
-    >
-      {children}
-    </select>
-    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-  </div>
+const Select = ({ value, onChange, options, placeholder }: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+}) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm bg-white"
+  >
+    {placeholder && <option value="">{placeholder}</option>}
+    {options.map((option) => (
+      <option key={option.value} value={option.value}>
+        {option.label}
+      </option>
+    ))}
+  </select>
 );
 
-const ImageUpload = ({ onUpload, preview, label = "Upload Image" }) => (
-  <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 transition-colors">
+const ImageUpload = ({ onUpload, preview }: {
+  onUpload: (file: File) => void;
+  preview?: string;
+}) => (
+  <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
     {preview ? (
       <div className="relative">
-        <img src={preview} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
-        <button
-          onClick={() => onUpload(null)}
-          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-        >
-          <X className="w-3 h-3" />
-        </button>
-      </div>
-    ) : (
-      <div className="space-y-2">
-        <Upload className="w-8 h-8 text-gray-400 mx-auto" />
-        <p className="text-sm text-gray-600">{label}</p>
-        <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
-      </div>
-    )}
-  </div>
-);
-
-const PricingField = ({ pricing, onChange, showChild = true }) => (
-  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-    <h4 className="font-medium text-gray-900">Pricing Details</h4>
-    <div className="grid grid-cols-2 gap-4">
-      <FormField label="Adult Price" required>
-        <div className="relative">
-          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            type="number"
-            className="pl-10"
-            placeholder="0.00"
-            value={pricing.adult || ''}
-            onChange={(e) => onChange({ ...pricing, adult: e.target.value })}
-          />
-        </div>
-      </FormField>
-      {showChild && (
-        <FormField label="Child Price" required>
-          <div className="relative">
-            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              type="number"
-              className="pl-10"
-              placeholder="0.00"
-              value={pricing.child || ''}
-              onChange={(e) => onChange({ ...pricing, child: e.target.value })}
-            />
-          </div>
-        </FormField>
-      )}
-    </div>
-    <FormField label="Valid Until" required>
-      <div className="relative">
-        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          type="date"
-          className="pl-10"
-          value={pricing.validUntil || ''}
-          onChange={(e) => onChange({ ...pricing, validUntil: e.target.value })}
-        />
-      </div>
-    </FormField>
-  </div>
-);
-
-const ListInput = ({ items, onChange, placeholder, addLabel }) => (
-  <div className="space-y-2">
-    {items.map((item, index) => (
-      <div key={index} className="flex gap-2">
-        <Input
-          value={item}
-          onChange={(e) => {
-            const newItems = [...items];
-            newItems[index] = e.target.value;
-            onChange(newItems);
-          }}
-          placeholder={placeholder}
-        />
-        <button
-          type="button"
-          onClick={() => onChange(items.filter((_, i) => i !== index))}
-          className="px-3 py-2 text-gray-400 hover:text-red-500 transition-colors"
-        >
+        <img src={preview} alt="Preview" className="max-h-32 mx-auto rounded-lg" />
+        <button className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600">
           <X className="w-4 h-4" />
         </button>
       </div>
-    ))}
-    <button
-      type="button"
-      onClick={() => onChange([...items, ''])}
-      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
-    >
-      <Plus className="w-4 h-4" />
-      {addLabel}
-    </button>
+    ) : (
+      <div>
+        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+        <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
+        <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+      </div>
+    )}
+    <input
+      type="file"
+      accept="image/*"
+      onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])}
+      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+    />
   </div>
 );
 
-// Package Type Specific Forms
-const TransferForm = ({ data, onChange, errors }) => (
-  <div className="space-y-6">
-    <div className="text-center mb-8">
-      <div className="text-4xl mb-2">🚗</div>
-      <h2 className="text-2xl font-bold text-gray-900">Transfer Service</h2>
-      <p className="text-gray-600">Create your transportation service</p>
-    </div>
+const ListManager = ({ items, onChange, placeholder }: {
+  items: string[];
+  onChange: (items: string[]) => void;
+  placeholder: string;
+}) => {
+  const [newItem, setNewItem] = useState('');
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-6">
-        <FormField label="Service Name" required error={errors.name}>
+  const addItem = () => {
+    if (newItem.trim()) {
+      onChange([...items, newItem.trim()]);
+      setNewItem('');
+    }
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && addItem()}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+        />
+        <button
+          onClick={addItem}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+      
+      {items.length > 0 && (
+        <div className="space-y-2">
+          {items.map((item, index) => (
+            <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
+              <span className="text-sm text-gray-700">{item}</span>
+              <button
+                onClick={() => removeItem(index)}
+                className="text-red-500 hover:text-red-700 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PricingSection = ({ pricing, onChange }: {
+  pricing: PricingInfo[];
+  onChange: (pricing: PricingInfo[]) => void;
+}) => {
+  const addPricing = () => {
+    onChange([
+      ...pricing,
+      { adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }
+    ]);
+  };
+
+  const updatePricing = (index: number, field: keyof PricingInfo, value: any) => {
+    const updated = [...pricing];
+    updated[index] = { ...updated[index], [field]: value };
+    onChange(updated);
+  };
+
+  const removePricing = (index: number) => {
+    onChange(pricing.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-4">
+      {pricing.map((price, index) => (
+        <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+          <div className="flex justify-between items-center">
+            <h4 className="font-medium text-gray-900">Price Slab {index + 1}</h4>
+            {pricing.length > 1 && (
+              <button
+                onClick={() => removePricing(index)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Adult Price" required>
+              <Input
+                type="number"
+                placeholder="0"
+                value={price.adultPrice.toString()}
+                onChange={(value) => updatePricing(index, 'adultPrice', parseFloat(value) || 0)}
+              />
+            </FormField>
+            <FormField label="Child Price">
+              <Input
+                type="number"
+                placeholder="0"
+                value={price.childPrice.toString()}
+                onChange={(value) => updatePricing(index, 'childPrice', parseFloat(value) || 0)}
+              />
+            </FormField>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Valid From" required>
+              <Input
+                type="date"
+                value={price.validFrom}
+                onChange={(value) => updatePricing(index, 'validFrom', value)}
+              />
+            </FormField>
+            <FormField label="Valid To" required>
+              <Input
+                type="date"
+                value={price.validTo}
+                onChange={(value) => updatePricing(index, 'validTo', value)}
+              />
+            </FormField>
+          </div>
+        </div>
+      ))}
+      
+      <button
+        onClick={addPricing}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors flex items-center justify-center gap-2"
+      >
+        <Plus className="w-4 h-4" />
+        Add Another Price Slab
+      </button>
+    </div>
+  );
+};
+
+// Package type specific forms
+const TransferForm = ({ data, onChange }: {
+  data: PackageFormData;
+  onChange: (data: Partial<PackageFormData>) => void;
+}) => {
+  const places = [
+    { value: 'mumbai', label: 'Mumbai' },
+    { value: 'delhi', label: 'Delhi' },
+    { value: 'bangalore', label: 'Bangalore' },
+    { value: 'goa', label: 'Goa' },
+    { value: 'kerala', label: 'Kerala' }
+  ];
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Transfer Details</h2>
+        <p className="text-gray-600">Create your transfer service</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+        <FormField label="Transfer Name" required>
           <Input
             placeholder="e.g., Airport to Hotel Transfer"
             value={data.name || ''}
-            onChange={(e) => onChange({ ...data, name: e.target.value })}
+            onChange={(value) => onChange({ name: value })}
           />
         </FormField>
 
-        <FormField label="Location/City" required error={errors.place}>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Select
-              className="pl-10"
-              value={data.place || ''}
-              onChange={(e) => onChange({ ...data, place: e.target.value })}
-            >
-              <option value="">Select city...</option>
-              <option value="mumbai">Mumbai</option>
-              <option value="delhi">Delhi</option>
-              <option value="bangalore">Bangalore</option>
-              <option value="goa">Goa</option>
-            </Select>
-          </div>
+        <FormField label="Place/City" required>
+          <Select
+            value={data.place || ''}
+            onChange={(value) => onChange({ place: value })}
+            options={places}
+            placeholder="Select city"
+          />
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Pick-up Location" required error={errors.from}>
+          <FormField label="From" required>
             <Input
-              placeholder="e.g., Airport"
+              placeholder="Starting location"
               value={data.from || ''}
-              onChange={(e) => onChange({ ...data, from: e.target.value })}
+              onChange={(value) => onChange({ from: value })}
             />
           </FormField>
-          <FormField label="Drop-off Location" required error={errors.to}>
+          <FormField label="To" required>
             <Input
-              placeholder="e.g., Hotel"
+              placeholder="Destination"
               value={data.to || ''}
-              onChange={(e) => onChange({ ...data, to: e.target.value })}
+              onChange={(value) => onChange({ to: value })}
             />
           </FormField>
         </div>
 
-        <FormField label="Description" required error={errors.description}>
+        <FormField label="Description">
           <Textarea
-            rows={3}
             placeholder="Describe your transfer service..."
             value={data.description || ''}
-            onChange={(e) => onChange({ ...data, description: e.target.value })}
+            onChange={(value) => onChange({ description: value })}
           />
         </FormField>
-      </div>
 
-      <div className="space-y-6">
-        <FormField label="Service Image">
+        <FormField label="Transfer Image">
           <ImageUpload
-            preview={data.image}
-            onUpload={(image) => onChange({ ...data, image })}
+            onUpload={(file) => onChange({ image: file })}
+            preview={data.image as string}
           />
         </FormField>
 
-        <PricingField
-          pricing={data.pricing || {}}
-          onChange={(pricing) => onChange({ ...data, pricing })}
-        />
+        <FormField label="Pricing" required>
+          <PricingSection
+            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+            onChange={(pricing) => onChange({ pricing })}
+          />
+        </FormField>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-const ActivityForm = ({ data, onChange, errors }) => (
-  <div className="space-y-6">
-    <div className="text-center mb-8">
-      <div className="text-4xl mb-2">🎯</div>
-      <h2 className="text-2xl font-bold text-gray-900">Activity Experience</h2>
-      <p className="text-gray-600">Create an exciting activity for travelers</p>
-    </div>
+const ActivityForm = ({ data, onChange }: {
+  data: PackageFormData;
+  onChange: (data: Partial<PackageFormData>) => void;
+}) => {
+  const places = [
+    { value: 'mumbai', label: 'Mumbai' },
+    { value: 'delhi', label: 'Delhi' },
+    { value: 'bangalore', label: 'Bangalore' },
+    { value: 'goa', label: 'Goa' },
+    { value: 'kerala', label: 'Kerala' }
+  ];
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-6">
-        <FormField label="Activity Name" required error={errors.name}>
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Activity Details</h2>
+        <p className="text-gray-600">Create your activity or experience</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+        <FormField label="Activity Name" required>
           <Input
-            placeholder="e.g., City Walking Tour"
+            placeholder="e.g., Mumbai City Walking Tour"
             value={data.name || ''}
-            onChange={(e) => onChange({ ...data, name: e.target.value })}
+            onChange={(value) => onChange({ name: value })}
           />
         </FormField>
 
-        <FormField label="Destination" required error={errors.place}>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Select
-              className="pl-10"
-              value={data.place || ''}
-              onChange={(e) => onChange({ ...data, place: e.target.value })}
-            >
-              <option value="">Select destination...</option>
-              <option value="mumbai">Mumbai</option>
-              <option value="delhi">Delhi</option>
-              <option value="bangalore">Bangalore</option>
-              <option value="goa">Goa</option>
-            </Select>
-          </div>
+        <FormField label="Destination" required>
+          <Select
+            value={data.place || ''}
+            onChange={(value) => onChange({ place: value })}
+            options={places}
+            placeholder="Select destination"
+          />
         </FormField>
 
         <div className="grid grid-cols-2 gap-4">
-          <FormField label="Duration" required error={errors.duration}>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                type="number"
-                className="pl-10"
-                placeholder="Hours"
-                value={data.duration || ''}
-                onChange={(e) => onChange({ ...data, duration: e.target.value })}
-              />
-            </div>
-          </FormField>
-          <FormField label="Start Time" required error={errors.timing}>
+          <FormField label="Timing" required>
             <Input
-              type="time"
+              placeholder="e.g., 9:00 AM - 5:00 PM"
               value={data.timing || ''}
-              onChange={(e) => onChange({ ...data, timing: e.target.value })}
+              onChange={(value) => onChange({ timing: value })}
+            />
+          </FormField>
+          <FormField label="Duration (Hours)" required>
+            <Input
+              type="number"
+              placeholder="8"
+              value={data.durationHours?.toString() || ''}
+              onChange={(value) => onChange({ durationHours: parseInt(value) || 0 })}
             />
           </FormField>
         </div>
 
-        <FormField label="Description" required error={errors.description}>
+        <FormField label="Description">
           <Textarea
-            rows={3}
-            placeholder="Describe what makes this activity special..."
+            placeholder="Describe your activity..."
             value={data.description || ''}
-            onChange={(e) => onChange({ ...data, description: e.target.value })}
+            onChange={(value) => onChange({ description: value })}
+            rows={4}
           />
         </FormField>
-      </div>
 
-      <div className="space-y-6">
+        <FormField label="Inclusions">
+          <ListManager
+            items={data.inclusions || []}
+            onChange={(inclusions) => onChange({ inclusions })}
+            placeholder="Add inclusion..."
+          />
+        </FormField>
+
+        <FormField label="Exclusions">
+          <ListManager
+            items={data.exclusions || []}
+            onChange={(exclusions) => onChange({ exclusions })}
+            placeholder="Add exclusion..."
+          />
+        </FormField>
+
         <FormField label="Activity Image">
           <ImageUpload
-            preview={data.image}
-            onUpload={(image) => onChange({ ...data, image })}
+            onUpload={(file) => onChange({ image: file })}
+            preview={data.image as string}
           />
         </FormField>
 
-        <FormField label="What's Included">
-          <ListInput
-            items={data.inclusions || ['']}
-            onChange={(inclusions) => onChange({ ...data, inclusions })}
-            placeholder="e.g., Professional guide"
-            addLabel="Add inclusion"
+        <FormField label="Pricing" required>
+          <PricingSection
+            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+            onChange={(pricing) => onChange({ pricing })}
           />
         </FormField>
-
-        <FormField label="What's Not Included">
-          <ListInput
-            items={data.exclusions || ['']}
-            onChange={(exclusions) => onChange({ ...data, exclusions })}
-            placeholder="e.g., Personal expenses"
-            addLabel="Add exclusion"
-          />
-        </FormField>
-
-        <PricingField
-          pricing={data.pricing || {}}
-          onChange={(pricing) => onChange({ ...data, pricing })}
-        />
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-const ComboItineraryForm = ({ data, onChange, errors, currentTab, setCurrentTab }) => {
+const MultiCityPackageForm = ({ data, onChange }: {
+  data: PackageFormData;
+  onChange: (data: Partial<PackageFormData>) => void;
+}) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'destinations' | 'itinerary' | 'pricing'>('overview');
+
+  const addItineraryDay = () => {
+    const newDay: DayItinerary = {
+      day: (data.itinerary?.length || 0) + 1,
+      title: '',
+      description: '',
+      activities: [],
+      highlights: []
+    };
+    onChange({ itinerary: [...(data.itinerary || []), newDay] });
+  };
+
+  const updateItineraryDay = (index: number, updates: Partial<DayItinerary>) => {
+    const updated = [...(data.itinerary || [])];
+    updated[index] = { ...updated[index], ...updates };
+    onChange({ itinerary: updated });
+  };
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: FileText },
     { id: 'destinations', label: 'Destinations', icon: MapPin },
@@ -386,689 +649,786 @@ const ComboItineraryForm = ({ data, onChange, errors, currentTab, setCurrentTab 
     { id: 'pricing', label: 'Pricing', icon: DollarSign }
   ];
 
-  const TabContent = () => {
-    switch (currentTab) {
-      case 'overview':
-        return (
-          <div className="space-y-6">
-            <FormField label="Package Title" required error={errors.title}>
-              <Input
-                placeholder="e.g., Golden Triangle Tour"
-                value={data.title || ''}
-                onChange={(e) => onChange({ ...data, title: e.target.value })}
-              />
-            </FormField>
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Multi City Package</h2>
+        <p className="text-gray-600">Create your comprehensive tour package</p>
+      </div>
 
-            <FormField label="Banner Image">
-              <ImageUpload
-                preview={data.banner}
-                onUpload={(banner) => onChange({ ...data, banner })}
-                label="Upload package banner"
-              />
-            </FormField>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
-            <FormField label="Package Description" required error={errors.description}>
-              <Textarea
-                rows={4}
-                placeholder="Describe your complete package experience..."
-                value={data.description || ''}
-                onChange={(e) => onChange({ ...data, description: e.target.value })}
-              />
-            </FormField>
+        <div className="p-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <FormField label="Package Title" required>
+                <Input
+                  placeholder="e.g., Golden Triangle Tour"
+                  value={data.title || ''}
+                  onChange={(value) => onChange({ title: value })}
+                />
+              </FormField>
 
-            <FormField label="Additional Notes">
-              <Textarea
-                rows={3}
-                placeholder="Any special notes or instructions..."
-                value={data.notes || ''}
-                onChange={(e) => onChange({ ...data, notes: e.target.value })}
-              />
-            </FormField>
+              <FormField label="Description">
+                <Textarea
+                  placeholder="Describe your package..."
+                  value={data.description || ''}
+                  onChange={(value) => onChange({ description: value })}
+                  rows={4}
+                />
+              </FormField>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <FormField label="Additional Notes">
+                <Textarea
+                  placeholder="Any additional information..."
+                  value={data.additionalNotes || ''}
+                  onChange={(value) => onChange({ additionalNotes: value })}
+                />
+              </FormField>
+
+              <FormField label="Banner Image">
+                <ImageUpload
+                  onUpload={(file) => onChange({ banner: file })}
+                  preview={data.banner as string}
+                />
+              </FormField>
+
               <FormField label="Tour Inclusions">
-                <ListInput
-                  items={data.inclusions || ['']}
-                  onChange={(inclusions) => onChange({ ...data, inclusions })}
-                  placeholder="e.g., All meals included"
-                  addLabel="Add inclusion"
+                <ListManager
+                  items={data.tourInclusions || []}
+                  onChange={(tourInclusions) => onChange({ tourInclusions })}
+                  placeholder="Add inclusion..."
                 />
               </FormField>
 
               <FormField label="Tour Exclusions">
-                <ListInput
-                  items={data.exclusions || ['']}
-                  onChange={(exclusions) => onChange({ ...data, exclusions })}
-                  placeholder="e.g., International flights"
-                  addLabel="Add exclusion"
+                <ListManager
+                  items={data.tourExclusions || []}
+                  onChange={(tourExclusions) => onChange({ tourExclusions })}
+                  placeholder="Add exclusion..."
                 />
               </FormField>
             </div>
-          </div>
-        );
+          )}
 
-      case 'destinations':
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Package Destinations</h3>
-              <p className="text-gray-600">Add all cities and places covered in this tour</p>
-            </div>
-
-            <FormField label="Destinations">
-              <ListInput
-                items={data.destinations || ['']}
-                onChange={(destinations) => onChange({ ...data, destinations })}
-                placeholder="e.g., Delhi, Agra, Jaipur"
-                addLabel="Add destination"
-              />
-            </FormField>
-          </div>
-        );
-
-      case 'itinerary':
-        return (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Day-wise Itinerary</h3>
-              <FormField label="Total Days">
-                <Input
-                  type="number"
-                  min="1"
-                  className="w-20"
-                  value={data.totalDays || ''}
-                  onChange={(e) => {
-                    const days = parseInt(e.target.value) || 0;
-                    const itinerary = Array.from({ length: days }, (_, i) => 
-                      data.itinerary?.[i] || { day: i + 1, title: '', activities: '' }
-                    );
-                    onChange({ ...data, totalDays: days, itinerary });
-                  }}
+          {activeTab === 'destinations' && (
+            <div className="space-y-6">
+              <FormField label="Destinations">
+                <ListManager
+                  items={data.destinations || []}
+                  onChange={(destinations) => onChange({ destinations })}
+                  placeholder="Add destination..."
                 />
               </FormField>
             </div>
+          )}
 
-            {(data.itinerary || []).map((day, index) => (
-              <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
-                <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm">
-                    {day.day}
-                  </div>
-                  Day {day.day}
-                </h4>
-                
-                <FormField label="Day Title">
-                  <Input
-                    placeholder="e.g., Arrival in Delhi"
-                    value={day.title || ''}
-                    onChange={(e) => {
-                      const newItinerary = [...(data.itinerary || [])];
-                      newItinerary[index] = { ...day, title: e.target.value };
-                      onChange({ ...data, itinerary: newItinerary });
-                    }}
-                  />
-                </FormField>
-
-                <FormField label="Activities & Highlights">
-                  <Textarea
-                    rows={3}
-                    placeholder="Describe the day's activities..."
-                    value={day.activities || ''}
-                    onChange={(e) => {
-                      const newItinerary = [...(data.itinerary || [])];
-                      newItinerary[index] = { ...day, activities: e.target.value };
-                      onChange({ ...data, itinerary: newItinerary });
-                    }}
-                  />
-                </FormField>
+          {activeTab === 'itinerary' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-900">Day-wise Itinerary</h3>
+                <button
+                  onClick={addItineraryDay}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Day
+                </button>
               </div>
-            ))}
-          </div>
-        );
 
-      case 'pricing':
-        return (
-          <div className="space-y-6">
-            <PricingField
-              pricing={data.pricing || {}}
-              onChange={(pricing) => onChange({ ...data, pricing })}
-            />
-          </div>
-        );
+              {(data.itinerary || []).map((day, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-gray-900">Day {day.day}</h4>
+                    <button
+                      onClick={() => {
+                        const updated = (data.itinerary || []).filter((_, i) => i !== index);
+                        onChange({ itinerary: updated });
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
 
-      default:
-        return null;
-    }
-  };
+                  <FormField label="Day Title">
+                    <Input
+                      placeholder="e.g., Arrival in Delhi"
+                      value={day.title}
+                      onChange={(value) => updateItineraryDay(index, { title: value })}
+                    />
+                  </FormField>
 
-  return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <div className="text-4xl mb-2">🗺️</div>
-        <h2 className="text-2xl font-bold text-gray-900">Combo Itinerary Package</h2>
-        <p className="text-gray-600">Create a comprehensive multi-day tour experience</p>
+                  <FormField label="Description">
+                    <Textarea
+                      placeholder="Describe the day's activities..."
+                      value={day.description}
+                      onChange={(value) => updateItineraryDay(index, { description: value })}
+                    />
+                  </FormField>
+
+                  <FormField label="Activities">
+                    <ListManager
+                      items={day.activities}
+                      onChange={(activities) => updateItineraryDay(index, { activities })}
+                      placeholder="Add activity..."
+                    />
+                  </FormField>
+
+                  <FormField label="Highlights">
+                    <ListManager
+                      items={day.highlights}
+                      onChange={(highlights) => updateItineraryDay(index, { highlights })}
+                      placeholder="Add highlight..."
+                    />
+                  </FormField>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'pricing' && (
+            <div className="space-y-6">
+              <FormField label="Package Pricing" required>
+                <PricingSection
+                  pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+                  onChange={(pricing) => onChange({ pricing })}
+                />
+              </FormField>
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="flex space-x-8">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setCurrentTab(tab.id)}
-                className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  currentTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {tab.label}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
-
-      <TabContent />
     </div>
   );
 };
 
-const FixedItineraryForm = ({ data, onChange, errors }) => (
-  <div className="space-y-6">
-    <div className="text-center mb-8">
-      <div className="text-4xl mb-2">✈️</div>
-      <h2 className="text-2xl font-bold text-gray-900">Fixed Itinerary Package</h2>
-      <p className="text-gray-600">Create a pre-planned tour with fixed schedule</p>
-    </div>
+const MultiCityPackageWithHotelForm = ({ data, onChange }: {
+  data: PackageFormData;
+  onChange: (data: Partial<PackageFormData>) => void;
+}) => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'destinations' | 'itinerary' | 'hotels' | 'pricing'>('overview');
 
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-6">
-        <FormField label="Package Title" required error={errors.title}>
-          <Input
-            placeholder="e.g., 10-Day India Discovery Tour"
-            value={data.title || ''}
-            onChange={(e) => onChange({ ...data, title: e.target.value })}
-          />
-        </FormField>
+  const addHotel = () => {
+    const newHotel: HotelInfo = {
+      name: '',
+      location: '',
+      checkIn: '',
+      checkOut: '',
+      roomType: ''
+    };
+    onChange({ hotels: [...(data.hotels || []), newHotel] });
+  };
 
-        <FormField label="Duration (Days)" required error={errors.days}>
-          <div className="relative">
-            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              type="number"
-              min="1"
-              className="pl-10"
-              placeholder="Number of days"
-              value={data.days || ''}
-              onChange={(e) => onChange({ ...data, days: e.target.value })}
-            />
-          </div>
-        </FormField>
+  const updateHotel = (index: number, updates: Partial<HotelInfo>) => {
+    const updated = [...(data.hotels || [])];
+    updated[index] = { ...updated[index], ...updates };
+    onChange({ hotels: updated });
+  };
 
-        <FormField label="Destinations Covered">
-          <ListInput
-            items={data.destinations || ['']}
-            onChange={(destinations) => onChange({ ...data, destinations })}
-            placeholder="e.g., Mumbai, Goa, Kerala"
-            addLabel="Add destination"
-          />
-        </FormField>
+  const addItineraryDay = () => {
+    const newDay: DayItinerary = {
+      day: (data.itinerary?.length || 0) + 1,
+      title: '',
+      description: '',
+      activities: [],
+      highlights: []
+    };
+    onChange({ itinerary: [...(data.itinerary || []), newDay] });
+  };
 
-        <FormField label="Package Description" required error={errors.description}>
-          <Textarea
-            rows={4}
-            placeholder="Describe this fixed itinerary package..."
-            value={data.description || ''}
-            onChange={(e) => onChange({ ...data, description: e.target.value })}
-          />
-        </FormField>
+  const updateItineraryDay = (index: number, updates: Partial<DayItinerary>) => {
+    const updated = [...(data.itinerary || [])];
+    updated[index] = { ...updated[index], ...updates };
+    onChange({ itinerary: updated });
+  };
+
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: FileText },
+    { id: 'destinations', label: 'Destinations', icon: MapPin },
+    { id: 'itinerary', label: 'Itinerary', icon: Calendar },
+    { id: 'hotels', label: 'Hotels', icon: Bed },
+    { id: 'pricing', label: 'Pricing', icon: DollarSign }
+  ];
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Multi City Package + Hotels</h2>
+        <p className="text-gray-600">Create your complete package with accommodation</p>
       </div>
 
-      <div className="space-y-6">
-        <FormField label="Package Image">
-          <ImageUpload
-            preview={data.image}
-            onUpload={(image) => onChange({ ...data, image })}
-            label="Upload package image"
-          />
-        </FormField>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+        <div className="border-b border-gray-200">
+          <nav className="flex space-x-8 px-6">
+            {tabs.map((tab) => {
+              const IconComponent = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
-        <PricingField
-          pricing={data.pricing || {}}
-          onChange={(pricing) => onChange({ ...data, pricing })}
-        />
-      </div>
-    </div>
-
-    {/* Day-wise Plan */}
-    {data.days && (
-      <div className="space-y-6 mt-8">
-        <h3 className="text-lg font-semibold text-gray-900">Day-wise Plan</h3>
-        {Array.from({ length: parseInt(data.days) || 0 }, (_, index) => {
-          const dayData = data.dayPlans?.[index] || {};
-          return (
-            <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
-              <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                <div className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">
-                  {index + 1}
-                </div>
-                Day {index + 1}
-              </h4>
-              
-              <FormField label="Day Summary">
+        <div className="p-6">
+          {activeTab === 'overview' && (
+            <div className="space-y-6">
+              <FormField label="Package Title" required>
                 <Input
-                  placeholder="e.g., Arrival & City Tour"
-                  value={dayData.summary || ''}
-                  onChange={(e) => {
-                    const newDayPlans = [...(data.dayPlans || [])];
-                    newDayPlans[index] = { ...dayData, summary: e.target.value };
-                    onChange({ ...data, dayPlans: newDayPlans });
-                  }}
+                  placeholder="e.g., Golden Triangle Tour with Luxury Hotels"
+                  value={data.title || ''}
+                  onChange={(value) => onChange({ title: value })}
                 />
               </FormField>
 
-              <FormField label="Day Details">
+              <FormField label="Description">
                 <Textarea
-                  rows={2}
-                  placeholder="Detailed plan for this day..."
-                  value={dayData.details || ''}
-                  onChange={(e) => {
-                    const newDayPlans = [...(data.dayPlans || [])];
-                    newDayPlans[index] = { ...dayData, details: e.target.value };
-                    onChange({ ...data, dayPlans: newDayPlans });
-                  }}
+                  placeholder="Describe your package..."
+                  value={data.description || ''}
+                  onChange={(value) => onChange({ description: value })}
+                  rows={4}
+                />
+              </FormField>
+
+              <FormField label="Banner Image">
+                <ImageUpload
+                  onUpload={(file) => onChange({ banner: file })}
+                  preview={data.banner as string}
+                />
+              </FormField>
+
+              <FormField label="Tour Inclusions">
+                <ListManager
+                  items={data.tourInclusions || []}
+                  onChange={(tourInclusions) => onChange({ tourInclusions })}
+                  placeholder="Add inclusion..."
+                />
+              </FormField>
+
+              <FormField label="Tour Exclusions">
+                <ListManager
+                  items={data.tourExclusions || []}
+                  onChange={(tourExclusions) => onChange({ tourExclusions })}
+                  placeholder="Add exclusion..."
                 />
               </FormField>
             </div>
-          );
-        })}
+          )}
+
+          {activeTab === 'destinations' && (
+            <div className="space-y-6">
+              <FormField label="Destinations">
+                <ListManager
+                  items={data.destinations || []}
+                  onChange={(destinations) => onChange({ destinations })}
+                  placeholder="Add destination..."
+                />
+              </FormField>
+            </div>
+          )}
+
+          {activeTab === 'itinerary' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-900">Day-wise Itinerary</h3>
+                <button
+                  onClick={addItineraryDay}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Day
+                </button>
+              </div>
+
+              {(data.itinerary || []).map((day, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-gray-900">Day {day.day}</h4>
+                    <button
+                      onClick={() => {
+                        const updated = (data.itinerary || []).filter((_, i) => i !== index);
+                        onChange({ itinerary: updated });
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <FormField label="Day Title">
+                    <Input
+                      placeholder="e.g., Arrival in Delhi"
+                      value={day.title}
+                      onChange={(value) => updateItineraryDay(index, { title: value })}
+                    />
+                  </FormField>
+
+                  <FormField label="Description">
+                    <Textarea
+                      placeholder="Describe the day's activities..."
+                      value={day.description}
+                      onChange={(value) => updateItineraryDay(index, { description: value })}
+                    />
+                  </FormField>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'hotels' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-900">Hotel Details</h3>
+                <button
+                  onClick={addHotel}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Hotel
+                </button>
+              </div>
+
+              {(data.hotels || []).map((hotel, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-gray-900">Hotel {index + 1}</h4>
+                    <button
+                      onClick={() => {
+                        const updated = (data.hotels || []).filter((_, i) => i !== index);
+                        onChange({ hotels: updated });
+                      }}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField label="Hotel Name" required>
+                      <Input
+                        placeholder="e.g., Taj Palace Hotel"
+                        value={hotel.name}
+                        onChange={(value) => updateHotel(index, { name: value })}
+                      />
+                    </FormField>
+                    <FormField label="Location" required>
+                      <Input
+                        placeholder="e.g., New Delhi"
+                        value={hotel.location}
+                        onChange={(value) => updateHotel(index, { location: value })}
+                      />
+                    </FormField>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField label="Check-in" required>
+                      <Input
+                        type="date"
+                        value={hotel.checkIn}
+                        onChange={(value) => updateHotel(index, { checkIn: value })}
+                      />
+                    </FormField>
+                    <FormField label="Check-out" required>
+                      <Input
+                        type="date"
+                        value={hotel.checkOut}
+                        onChange={(value) => updateHotel(index, { checkOut: value })}
+                      />
+                    </FormField>
+                    <FormField label="Room Type" required>
+                      <Input
+                        placeholder="e.g., Deluxe Room"
+                        value={hotel.roomType}
+                        onChange={(value) => updateHotel(index, { roomType: value })}
+                      />
+                    </FormField>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === 'pricing' && (
+            <div className="space-y-6">
+              <FormField label="Package Pricing (Including Hotels)" required>
+                <PricingSection
+                  pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+                  onChange={(pricing) => onChange({ pricing })}
+                />
+              </FormField>
+            </div>
+          )}
+        </div>
       </div>
-    )}
-  </div>
-);
+    </div>
+  );
+};
 
-// Main Wizard Component
+const FixedDepartureForm = ({ data, onChange }: {
+  data: PackageFormData;
+  onChange: (data: Partial<PackageFormData>) => void;
+}) => {
+  const addDestination = () => {
+    onChange({ destinations: [...(data.destinations || []), ''] });
+  };
+
+  const updateDestination = (index: number, value: string) => {
+    const updated = [...(data.destinations || [])];
+    updated[index] = value;
+    onChange({ destinations: updated });
+  };
+
+  const removeDestination = (index: number) => {
+    const updated = (data.destinations || []).filter((_, i) => i !== index);
+    onChange({ destinations: updated });
+  };
+
+  const addItineraryDay = () => {
+    const newDay: DayItinerary = {
+      day: (data.itinerary?.length || 0) + 1,
+      title: '',
+      description: '',
+      activities: [],
+      highlights: []
+    };
+    onChange({ itinerary: [...(data.itinerary || []), newDay] });
+  };
+
+  const updateItineraryDay = (index: number, updates: Partial<DayItinerary>) => {
+    const updated = [...(data.itinerary || [])];
+    updated[index] = { ...updated[index], ...updates };
+    onChange({ itinerary: updated });
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Fixed Departure Package</h2>
+        <p className="text-gray-600">Create your pre-scheduled group tour</p>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
+        <FormField label="Package Title" required>
+          <Input
+            placeholder="e.g., 15-Day Incredible India Tour"
+            value={data.title || ''}
+            onChange={(value) => onChange({ title: value })}
+          />
+        </FormField>
+
+        <FormField label="Package Image">
+          <ImageUpload
+            onUpload={(file) => onChange({ image: file })}
+            preview={data.image as string}
+          />
+        </FormField>
+
+        <FormField label="Number of Days" required>
+          <Input
+            type="number"
+            placeholder="15"
+            value={data.days?.toString() || ''}
+            onChange={(value) => onChange({ days: parseInt(value) || 0 })}
+          />
+        </FormField>
+
+        <FormField label="Destinations">
+          <div className="space-y-3">
+            {(data.destinations || []).map((destination, index) => (
+              <div key={index} className="flex gap-2">
+                <Input
+                  placeholder="Add destination"
+                  value={destination}
+                  onChange={(value) => updateDestination(index, value)}
+                />
+                <button
+                  onClick={() => removeDestination(index)}
+                  className="px-3 py-2 text-red-500 hover:text-red-700 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={addDestination}
+              className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors w-full justify-center"
+            >
+              <Plus className="w-4 h-4" />
+              Add Destination
+            </button>
+          </div>
+        </FormField>
+
+        <FormField label="Day-wise Itinerary">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h4 className="font-medium text-gray-900">Itinerary Planning</h4>
+              <button
+                onClick={addItineraryDay}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Add Day
+              </button>
+            </div>
+
+            {(data.itinerary || []).map((day, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                <div className="flex justify-between items-center">
+                  <h5 className="font-medium text-gray-900">Day {day.day}</h5>
+                  <button
+                    onClick={() => {
+                      const updated = (data.itinerary || []).filter((_, i) => i !== index);
+                      onChange({ itinerary: updated });
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <Input
+                  placeholder="Day summary/title"
+                  value={day.title}
+                  onChange={(value) => updateItineraryDay(index, { title: value })}
+                />
+
+                <Textarea
+                  placeholder="Day details and activities"
+                  value={day.description}
+                  onChange={(value) => updateItineraryDay(index, { description: value })}
+                  rows={3}
+                />
+              </div>
+            ))}
+          </div>
+        </FormField>
+
+        <FormField label="Package Pricing" required>
+          <PricingSection
+            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+            onChange={(pricing) => onChange({ pricing })}
+          />
+        </FormField>
+      </div>
+    </div>
+  );
+};
+
+// Main wizard component
 export default function ModernPackageWizard() {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [selectedType, setSelectedType] = useState(null);
-  const [formData, setFormData] = useState({});
-  const [errors, setErrors] = useState({});
-  const [currentTab, setCurrentTab] = useState('overview');
+  const router = useRouter();
+  const [step, setStep] = useState<'type' | 'form'>('type');
+  const [selectedType, setSelectedType] = useState<PackageType | null>(null);
+  const [formData, setFormData] = useState<PackageFormData>({} as PackageFormData);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
 
-  const steps = selectedType ? ['type', 'details', 'preview'] : ['type'];
+  const handleTypeSelect = (type: PackageType) => {
+    setSelectedType(type);
+    setFormData({ 
+      type, 
+      pricing: [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }],
+      inclusions: [],
+      exclusions: [],
+      tourInclusions: [],
+      tourExclusions: [],
+      destinations: [],
+      itinerary: [],
+      hotels: []
+    });
+    setStep('form');
+  };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const updateFormData = (updates: Partial<PackageFormData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
     
-    if (!selectedType) return false;
+    if (!formData.name && !formData.title) {
+      newErrors.name = 'Name/Title is required';
+    }
 
-    switch (selectedType) {
-      case 'TRANSFERS':
-        if (!formData.name) newErrors.name = 'Service name is required';
-        if (!formData.place) newErrors.place = 'Location is required';
-        if (!formData.from) newErrors.from = 'Pick-up location is required';
-        if (!formData.to) newErrors.to = 'Drop-off location is required';
-        if (!formData.description) newErrors.description = 'Description is required';
-        break;
-      
-      case 'ACTIVITY':
-        if (!formData.name) newErrors.name = 'Activity name is required';
-        if (!formData.place) newErrors.place = 'Destination is required';
-        if (!formData.duration) newErrors.duration = 'Duration is required';
-        if (!formData.timing) newErrors.timing = 'Start time is required';
-        if (!formData.description) newErrors.description = 'Description is required';
-        break;
-      
-      case 'MULTI_CITY_PACKAGE':
-        if (!formData.title) newErrors.title = 'Package title is required';
-        if (!formData.description) newErrors.description = 'Description is required';
-        break;
-      
-      case 'FIXED_DEPARTURE_WITH_FLIGHT':
-        if (!formData.title) newErrors.title = 'Package title is required';
-        if (!formData.days) newErrors.days = 'Duration is required';
-        if (!formData.description) newErrors.description = 'Description is required';
-        break;
+    // Type-specific validation
+    if (formData.type === PackageType.TRANSFERS) {
+      if (!formData.place) newErrors.place = 'Place is required';
+      if (!formData.from) newErrors.from = 'Starting location is required';
+      if (!formData.to) newErrors.to = 'Destination is required';
+    }
+
+    if (formData.type === PackageType.ACTIVITY) {
+      if (!formData.place) newErrors.place = 'Destination is required';
+      if (!formData.timing) newErrors.timing = 'Timing is required';
+      if (!formData.durationHours) newErrors.duration = 'Duration is required';
+    }
+
+    if (formData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT) {
+      if (!formData.days) newErrors.days = 'Number of days is required';
+      if (!formData.destinations || formData.destinations.length === 0) {
+        newErrors.destinations = 'At least one destination is required';
+      }
+    }
+
+    // Pricing validation
+    if (!formData.pricing || formData.pricing.length === 0) {
+      newErrors.pricing = 'At least one pricing slab is required';
+    } else {
+      formData.pricing.forEach((price, index) => {
+        if (!price.adultPrice || price.adultPrice <= 0) {
+          newErrors[`pricing_${index}_adult`] = 'Adult price is required';
+        }
+        if (!price.validFrom) {
+          newErrors[`pricing_${index}_from`] = 'Valid from date is required';
+        }
+        if (!price.validTo) {
+          newErrors[`pricing_${index}_to`] = 'Valid to date is required';
+        }
+      });
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (currentStep === 0 && selectedType) {
-      setCurrentStep(1);
-    } else if (currentStep === 1 && validateForm()) {
-      setCurrentStep(2);
+  const handleSave = async () => {
+    if (!validateForm()) return;
+    
+    setIsSaving(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log('Saving package:', formData);
+      
+      // Show success message
+      alert('Package created successfully!');
+      
+      // Redirect to packages list
+      router.push('/operator/packages');
+    } catch (error) {
+      console.error('Error saving package:', error);
+      alert('Error saving package. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep === 2) {
-      setCurrentStep(1);
-    } else if (currentStep === 1) {
-      setCurrentStep(0);
-    }
-  };
-
-  const handlePublish = () => {
-    alert('Package created successfully! 🎉');
-    // Reset form
-    setCurrentStep(0);
-    setSelectedType(null);
-    setFormData({});
-    setErrors({});
-  };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 0:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Create Your Package</h1>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Choose the type of travel package you want to create. Each type is optimized for different services.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {PACKAGE_TYPES.map((type) => (
-                <div
-                  key={type.id}
-                  onClick={() => setSelectedType(type.id)}
-                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                    selectedType === type.id
-                      ? type.color
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="text-center space-y-4">
-                    <div className="text-4xl">{type.icon}</div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">{type.title}</h3>
-                      <p className="text-gray-600">{type.description}</p>
-                    </div>
-                    {selectedType === type.id && (
-                      <div className="flex items-center justify-center">
-                        <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center">
-                          <Check className="w-4 h-4" />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 1:
-        return (
-          <div className="space-y-8">
-            {selectedType === 'TRANSFERS' && (
-              <TransferForm data={formData} onChange={setFormData} errors={errors} />
-            )}
-            {selectedType === 'ACTIVITY' && (
-              <ActivityForm data={formData} onChange={setFormData} errors={errors} />
-            )}
-            {selectedType === 'MULTI_CITY_PACKAGE' && (
-              <ComboItineraryForm 
-                data={formData} 
-                onChange={setFormData} 
-                errors={errors}
-                currentTab={currentTab}
-                setCurrentTab={setCurrentTab}
-              />
-            )}
-            {selectedType === 'FIXED_DEPARTURE_WITH_FLIGHT' && (
-              <FixedItineraryForm data={formData} onChange={setFormData} errors={errors} />
-            )}
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <div className="text-4xl mb-4">🎉</div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">Review Your Package</h2>
-              <p className="text-lg text-gray-600">
-                Please review all details before publishing your package
-              </p>
-            </div>
-
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white border border-gray-200 rounded-xl p-8 space-y-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <h3 className="text-2xl font-bold text-gray-900">
-                      {formData.name || formData.title || 'Untitled Package'}
-                    </h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {formData.place || 'Location not specified'}
-                      </div>
-                      {formData.duration && (
-                        <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {formData.duration} hours
-                        </div>
-                      )}
-                      {formData.days && (
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          {formData.days} days
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-600">
-                      ${formData.pricing?.adult || '0'}
-                    </div>
-                    <div className="text-sm text-gray-600">per adult</div>
-                  </div>
-                </div>
-
-                {formData.image && (
-                  <div className="rounded-lg overflow-hidden">
-                    <img 
-                      src={formData.image} 
-                      alt="Package preview" 
-                      className="w-full h-48 object-cover"
-                    />
-                  </div>
-                )}
-
-                <div className="prose max-w-none">
-                  <p className="text-gray-700">{formData.description}</p>
-                </div>
-
-                {formData.inclusions && formData.inclusions.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">What's Included</h4>
-                    <ul className="space-y-1">
-                      {formData.inclusions.filter(Boolean).map((item, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                          <Check className="w-4 h-4 text-green-500" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {formData.exclusions && formData.exclusions.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">What's Not Included</h4>
-                    <ul className="space-y-1">
-                      {formData.exclusions.filter(Boolean).map((item, index) => (
-                        <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
-                          <X className="w-4 h-4 text-red-500" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Pricing Summary */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-gray-900 mb-3">Pricing Summary</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Adult Price:</span>
-                      <span className="font-medium">${formData.pricing?.adult || '0'}</span>
-                    </div>
-                    {formData.pricing?.child && (
-                      <div className="flex justify-between text-sm">
-                        <span>Child Price:</span>
-                        <span className="font-medium">${formData.pricing.child}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-sm">
-                      <span>Valid Until:</span>
-                      <span className="font-medium">
-                        {formData.pricing?.validUntil ? 
-                          new Date(formData.pricing.validUntil).toLocaleDateString() : 
-                          'Not specified'
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
+  const renderForm = () => {
+    switch (selectedType) {
+      case PackageType.TRANSFERS:
+        return <TransferForm data={formData} onChange={updateFormData} />;
+      case PackageType.ACTIVITY:
+        return <ActivityForm data={formData} onChange={updateFormData} />;
+      case PackageType.MULTI_CITY_PACKAGE:
+        return <MultiCityPackageForm data={formData} onChange={updateFormData} />;
+      case PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL:
+        return <MultiCityPackageWithHotelForm data={formData} onChange={updateFormData} />;
+      case PackageType.FIXED_DEPARTURE_WITH_FLIGHT:
+        return <FixedDepartureForm data={formData} onChange={updateFormData} />;
       default:
-        return null;
+        return <div>Form for {selectedType} coming soon...</div>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Progress Bar */}
-        {selectedType && (
-          <div className="mb-8">
-            <div className="flex items-center justify-center space-x-4">
-              {steps.map((step, index) => (
-                <div key={step} className="flex items-center">
-                  <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                      index <= currentStep
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-600'
-                    }`}
-                  >
-                    {index < currentStep ? <Check className="w-5 h-5" /> : index + 1}
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`w-12 h-1 mx-2 transition-colors ${
-                        index < currentStep ? 'bg-blue-600' : 'bg-gray-200'
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-center mt-4">
-              <div className="text-sm text-gray-600">
-                Step {currentStep + 1} of {steps.length}
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50">
+      <AnimatePresence mode="wait">
+        {step === 'type' && (
+          <motion.div
+            key="type"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="py-12"
+          >
+            <PackageTypeSelector onSelect={handleTypeSelect} />
+          </motion.div>
         )}
 
-        {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-8">
-            {renderStep()}
-          </div>
-
-          {/* Navigation */}
-          {selectedType && (
-            <div className="bg-gray-50 px-8 py-4 flex items-center justify-between border-t border-gray-100">
-              <div className="flex items-center space-x-4">
-                {currentStep > 0 && (
+        {step === 'form' && (
+          <motion.div
+            key="form"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="py-8"
+          >
+            <div className="max-w-6xl mx-auto px-4">
+              <div className="flex items-center justify-between mb-8">
+                <button
+                  onClick={() => setStep('type')}
+                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Package Types
+                </button>
+                
+                <div className="flex items-center gap-4">
+                  {Object.keys(errors).length > 0 && (
+                    <div className="flex items-center gap-2 text-red-600 text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      Please fix errors before saving
+                    </div>
+                  )}
+                  
                   <button
-                    onClick={handlePrevious}
-                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
-                    <ArrowLeft className="w-4 h-4" />
-                    Previous
+                    {isSaving ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Package
+                      </>
+                    )}
                   </button>
-                )}
+                </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                {currentStep < 2 && (
-                  <button
-                    onClick={() => {
-                      // Save as draft logic
-                      alert('Draft saved! 💾');
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg transition-colors"
-                  >
-                    <Save className="w-4 h-4" />
-                    Save Draft
-                  </button>
-                )}
-
-                {currentStep < 2 ? (
-                  <button
-                    onClick={handleNext}
-                    disabled={currentStep === 0 && !selectedType}
-                    className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Continue
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => {
-                        // Preview logic
-                        alert('Opening preview... 👀');
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-                    >
-                      <Eye className="w-4 h-4" />
-                      Preview
-                    </button>
-                    <button
-                      onClick={handlePublish}
-                      className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      <Check className="w-4 h-4" />
-                      Publish Package
-                    </button>
-                  </div>
-                )}
-              </div>
+              {renderForm()}
             </div>
-          )}
-        </div>
-
-        {/* Help Text */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500">
-            Need help? Contact our support team at{' '}
-            <a href="mailto:support@example.com" className="text-blue-600 hover:underline">
-              support@example.com
-            </a>
-          </p>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
