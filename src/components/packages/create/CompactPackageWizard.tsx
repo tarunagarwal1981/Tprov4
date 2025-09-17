@@ -1249,7 +1249,7 @@ const FixedDepartureForm = ({ data, onChange }: {
 };
 
 // Main wizard component
-export default function ModernPackageWizard() {
+export default function CompactPackageWizard() {
   const router = useRouter();
   const [step, setStep] = useState<'type' | 'form'>('type');
   const [selectedType, setSelectedType] = useState<PackageType | null>(null);
