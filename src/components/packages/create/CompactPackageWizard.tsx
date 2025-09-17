@@ -1,1022 +1,1072 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useSupabasePackageWizard } from '@/hooks/useSupabasePackageWizard';
-import { WizardStep, StepProps } from '@/lib/types/wizard';
-import { PackageType } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   ArrowRight, 
-  Save, 
-  X,
-  AlertTriangle,
-  CheckCircle,
-  Sparkles,
-  FileText,
-  DollarSign,
+  Check, 
+  Plus, 
+  X, 
+  Upload,
+  MapPin,
   Clock,
   Users,
-  MapPin,
-  Star
+  DollarSign,
+  Calendar,
+  FileText,
+  Image as ImageIcon,
+  Star,
+  Info,
+  ChevronDown,
+  Save,
+  Eye,
+  AlertCircle
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
-interface CompactPackageWizardProps {
-  className?: string;
-}
-
-// Package types for selection
-const packageTypes = [
-  { value: PackageType.ACTIVITY, label: 'Activity', description: 'Single or multiple activities' },
-  { value: PackageType.TRANSFERS, label: 'Transfers', description: 'Transportation services' },
-  { value: PackageType.MULTI_CITY_PACKAGE, label: 'Multi City Package', description: 'Multi-day tours without accommodation' },
-  { value: PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL, label: 'Multi City Package with Hotel', description: 'Complete packages with accommodation' },
-  { value: PackageType.FIXED_DEPARTURE_WITH_FLIGHT, label: 'Fixed Departure with Flight', description: 'Pre-scheduled group tours with flights' }
+// Package Types
+const PACKAGE_TYPES = [
+  {
+    id: 'TRANSFERS',
+    title: 'Transfers',
+    description: 'Airport pickups, city transfers, transportation services',
+    icon: '🚗',
+    color: 'bg-blue-50 border-blue-200 text-blue-700'
+  },
+  {
+    id: 'ACTIVITY',
+    title: 'Activities',
+    description: 'Day trips, tours, experiences, adventure activities',
+    icon: '🎯',
+    color: 'bg-green-50 border-green-200 text-green-700'
+  },
+  {
+    id: 'MULTI_CITY_PACKAGE',
+    title: 'Combo Itinerary',
+    description: 'Multi-day tours with activities and experiences',
+    icon: '🗺️',
+    color: 'bg-purple-50 border-purple-200 text-purple-700'
+  },
+  {
+    id: 'FIXED_DEPARTURE_WITH_FLIGHT',
+    title: 'Fixed Itinerary',
+    description: 'Pre-planned tours with fixed schedules',
+    icon: '✈️',
+    color: 'bg-orange-50 border-orange-200 text-orange-700'
+  }
 ];
 
-// Simple step components embedded directly
-function PackageTypeStep({ formData, updateFormData, onNext }: StepProps) {
-  const [selectedType, setSelectedType] = useState<PackageType>(formData.type || PackageType.ACTIVITY);
+// Common Components
+const FormField = ({ label, required, children, error, hint }) => (
+  <div className="space-y-2">
+    <label className="block text-sm font-medium text-gray-700">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    {children}
+    {hint && <p className="text-xs text-gray-500">{hint}</p>}
+    {error && (
+      <div className="flex items-center gap-1 text-red-600 text-xs">
+        <AlertCircle className="w-3 h-3" />
+        {error}
+      </div>
+    )}
+  </div>
+);
 
-  const handleTypeChange = (type: PackageType) => {
-    setSelectedType(type);
-    updateFormData({ ...formData, type });
-  };
+const Input = ({ className = '', ...props }) => (
+  <input
+    className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${className}`}
+    {...props}
+  />
+);
 
-  const handleNext = () => {
-    updateFormData({ ...formData, type: selectedType });
-    onNext();
-  };
+const Textarea = ({ className = '', ...props }) => (
+  <textarea
+    className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${className}`}
+    {...props}
+  />
+);
 
-  return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Choose Package Type</h2>
-        <p className="text-lg text-gray-600">Select the type of package you want to create</p>
+const Select = ({ children, className = '', ...props }) => (
+  <div className="relative">
+    <select
+      className={`w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors appearance-none bg-white ${className}`}
+      {...props}
+    >
+      {children}
+    </select>
+    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+  </div>
+);
+
+const ImageUpload = ({ onUpload, preview, label = "Upload Image" }) => (
+  <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 text-center hover:border-gray-300 transition-colors">
+    {preview ? (
+      <div className="relative">
+        <img src={preview} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
+        <button
+          onClick={() => onUpload(null)}
+          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+        >
+          <X className="w-3 h-3" />
+        </button>
+      </div>
+    ) : (
+      <div className="space-y-2">
+        <Upload className="w-8 h-8 text-gray-400 mx-auto" />
+        <p className="text-sm text-gray-600">{label}</p>
+        <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
+      </div>
+    )}
+  </div>
+);
+
+const PricingField = ({ pricing, onChange, showChild = true }) => (
+  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+    <h4 className="font-medium text-gray-900">Pricing Details</h4>
+    <div className="grid grid-cols-2 gap-4">
+      <FormField label="Adult Price" required>
+        <div className="relative">
+          <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            type="number"
+            className="pl-10"
+            placeholder="0.00"
+            value={pricing.adult || ''}
+            onChange={(e) => onChange({ ...pricing, adult: e.target.value })}
+          />
+        </div>
+      </FormField>
+      {showChild && (
+        <FormField label="Child Price" required>
+          <div className="relative">
+            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              type="number"
+              className="pl-10"
+              placeholder="0.00"
+              value={pricing.child || ''}
+              onChange={(e) => onChange({ ...pricing, child: e.target.value })}
+            />
+          </div>
+        </FormField>
+      )}
+    </div>
+    <FormField label="Valid Until" required>
+      <div className="relative">
+        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Input
+          type="date"
+          className="pl-10"
+          value={pricing.validUntil || ''}
+          onChange={(e) => onChange({ ...pricing, validUntil: e.target.value })}
+        />
+      </div>
+    </FormField>
+  </div>
+);
+
+const ListInput = ({ items, onChange, placeholder, addLabel }) => (
+  <div className="space-y-2">
+    {items.map((item, index) => (
+      <div key={index} className="flex gap-2">
+        <Input
+          value={item}
+          onChange={(e) => {
+            const newItems = [...items];
+            newItems[index] = e.target.value;
+            onChange(newItems);
+          }}
+          placeholder={placeholder}
+        />
+        <button
+          type="button"
+          onClick={() => onChange(items.filter((_, i) => i !== index))}
+          className="px-3 py-2 text-gray-400 hover:text-red-500 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    ))}
+    <button
+      type="button"
+      onClick={() => onChange([...items, ''])}
+      className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+    >
+      <Plus className="w-4 h-4" />
+      {addLabel}
+    </button>
+  </div>
+);
+
+// Package Type Specific Forms
+const TransferForm = ({ data, onChange, errors }) => (
+  <div className="space-y-6">
+    <div className="text-center mb-8">
+      <div className="text-4xl mb-2">🚗</div>
+      <h2 className="text-2xl font-bold text-gray-900">Transfer Service</h2>
+      <p className="text-gray-600">Create your transportation service</p>
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
+        <FormField label="Service Name" required error={errors.name}>
+          <Input
+            placeholder="e.g., Airport to Hotel Transfer"
+            value={data.name || ''}
+            onChange={(e) => onChange({ ...data, name: e.target.value })}
+          />
+        </FormField>
+
+        <FormField label="Location/City" required error={errors.place}>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Select
+              className="pl-10"
+              value={data.place || ''}
+              onChange={(e) => onChange({ ...data, place: e.target.value })}
+            >
+              <option value="">Select city...</option>
+              <option value="mumbai">Mumbai</option>
+              <option value="delhi">Delhi</option>
+              <option value="bangalore">Bangalore</option>
+              <option value="goa">Goa</option>
+            </Select>
+          </div>
+        </FormField>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField label="Pick-up Location" required error={errors.from}>
+            <Input
+              placeholder="e.g., Airport"
+              value={data.from || ''}
+              onChange={(e) => onChange({ ...data, from: e.target.value })}
+            />
+          </FormField>
+          <FormField label="Drop-off Location" required error={errors.to}>
+            <Input
+              placeholder="e.g., Hotel"
+              value={data.to || ''}
+              onChange={(e) => onChange({ ...data, to: e.target.value })}
+            />
+          </FormField>
+        </div>
+
+        <FormField label="Description" required error={errors.description}>
+          <Textarea
+            rows={3}
+            placeholder="Describe your transfer service..."
+            value={data.description || ''}
+            onChange={(e) => onChange({ ...data, description: e.target.value })}
+          />
+        </FormField>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {packageTypes.map((pkgType) => (
-          <Card
-            key={pkgType.value}
-            className={cn(
-              'cursor-pointer transition-all duration-300 hover:shadow-lg',
-              selectedType === pkgType.value
-                ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                : 'border-gray-200 hover:border-gray-300'
-            )}
-            onClick={() => handleTypeChange(pkgType.value)}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-lg">{pkgType.label}</h3>
-                {selectedType === pkgType.value && (
-                  <CheckCircle className="w-5 h-5 text-blue-600" />
-                )}
-              </div>
-              <p className="text-sm text-gray-600">{pkgType.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <div className="space-y-6">
+        <FormField label="Service Image">
+          <ImageUpload
+            preview={data.image}
+            onUpload={(image) => onChange({ ...data, image })}
+          />
+        </FormField>
 
-      <div className="flex justify-end">
-        <Button onClick={handleNext} className="bg-blue-600 hover:bg-blue-700">
-          Continue
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
+        <PricingField
+          pricing={data.pricing || {}}
+          onChange={(pricing) => onChange({ ...data, pricing })}
+        />
       </div>
     </div>
-  );
-}
+  </div>
+);
 
-function BasicInfoStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
-  const [localData, setLocalData] = useState({
-    title: formData.title || '',
-    description: formData.description || '',
-    shortDescription: formData.shortDescription || '',
-    place: formData.place || '',
-    duration: formData.duration || { days: 1, nights: 0 },
-    groupSize: formData.groupSize || { min: 1, max: 10, ideal: 4 }
-  });
+const ActivityForm = ({ data, onChange, errors }) => (
+  <div className="space-y-6">
+    <div className="text-center mb-8">
+      <div className="text-4xl mb-2">🎯</div>
+      <h2 className="text-2xl font-bold text-gray-900">Activity Experience</h2>
+      <p className="text-gray-600">Create an exciting activity for travelers</p>
+    </div>
 
-  useEffect(() => {
-    updateFormData({ ...formData, ...localData });
-  }, [localData, updateFormData]);
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
+        <FormField label="Activity Name" required error={errors.name}>
+          <Input
+            placeholder="e.g., City Walking Tour"
+            value={data.name || ''}
+            onChange={(e) => onChange({ ...data, name: e.target.value })}
+          />
+        </FormField>
 
-  const handleNext = () => {
-    updateFormData({ ...formData, ...localData });
-    onNext();
-  };
+        <FormField label="Destination" required error={errors.place}>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Select
+              className="pl-10"
+              value={data.place || ''}
+              onChange={(e) => onChange({ ...data, place: e.target.value })}
+            >
+              <option value="">Select destination...</option>
+              <option value="mumbai">Mumbai</option>
+              <option value="delhi">Delhi</option>
+              <option value="bangalore">Bangalore</option>
+              <option value="goa">Goa</option>
+            </Select>
+          </div>
+        </FormField>
 
-  return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Package Information</h2>
-        <p className="text-lg text-gray-600">Provide basic details about your package</p>
+        <div className="grid grid-cols-2 gap-4">
+          <FormField label="Duration" required error={errors.duration}>
+            <div className="relative">
+              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                type="number"
+                className="pl-10"
+                placeholder="Hours"
+                value={data.duration || ''}
+                onChange={(e) => onChange({ ...data, duration: e.target.value })}
+              />
+            </div>
+          </FormField>
+          <FormField label="Start Time" required error={errors.timing}>
+            <Input
+              type="time"
+              value={data.timing || ''}
+              onChange={(e) => onChange({ ...data, timing: e.target.value })}
+            />
+          </FormField>
+        </div>
+
+        <FormField label="Description" required error={errors.description}>
+          <Textarea
+            rows={3}
+            placeholder="Describe what makes this activity special..."
+            value={data.description || ''}
+            onChange={(e) => onChange({ ...data, description: e.target.value })}
+          />
+        </FormField>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Package Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">Package Title *</Label>
+      <div className="space-y-6">
+        <FormField label="Activity Image">
+          <ImageUpload
+            preview={data.image}
+            onUpload={(image) => onChange({ ...data, image })}
+          />
+        </FormField>
+
+        <FormField label="What's Included">
+          <ListInput
+            items={data.inclusions || ['']}
+            onChange={(inclusions) => onChange({ ...data, inclusions })}
+            placeholder="e.g., Professional guide"
+            addLabel="Add inclusion"
+          />
+        </FormField>
+
+        <FormField label="What's Not Included">
+          <ListInput
+            items={data.exclusions || ['']}
+            onChange={(exclusions) => onChange({ ...data, exclusions })}
+            placeholder="e.g., Personal expenses"
+            addLabel="Add exclusion"
+          />
+        </FormField>
+
+        <PricingField
+          pricing={data.pricing || {}}
+          onChange={(pricing) => onChange({ ...data, pricing })}
+        />
+      </div>
+    </div>
+  </div>
+);
+
+const ComboItineraryForm = ({ data, onChange, errors, currentTab, setCurrentTab }) => {
+  const tabs = [
+    { id: 'overview', label: 'Overview', icon: FileText },
+    { id: 'destinations', label: 'Destinations', icon: MapPin },
+    { id: 'itinerary', label: 'Itinerary', icon: Calendar },
+    { id: 'pricing', label: 'Pricing', icon: DollarSign }
+  ];
+
+  const TabContent = () => {
+    switch (currentTab) {
+      case 'overview':
+        return (
+          <div className="space-y-6">
+            <FormField label="Package Title" required error={errors.title}>
               <Input
-                id="title"
-                value={localData.title}
-                onChange={(e) => setLocalData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="Enter package title..."
+                placeholder="e.g., Golden Triangle Tour"
+                value={data.title || ''}
+                onChange={(e) => onChange({ ...data, title: e.target.value })}
               />
-            </div>
-            <div>
-              <Label htmlFor="shortDescription">Short Description *</Label>
-              <Textarea
-                id="shortDescription"
-                value={localData.shortDescription}
-                onChange={(e) => setLocalData(prev => ({ ...prev, shortDescription: e.target.value }))}
-                placeholder="Brief description..."
-                rows={3}
+            </FormField>
+
+            <FormField label="Banner Image">
+              <ImageUpload
+                preview={data.banner}
+                onUpload={(banner) => onChange({ ...data, banner })}
+                label="Upload package banner"
               />
-            </div>
-            <div>
-              <Label htmlFor="description">Full Description *</Label>
+            </FormField>
+
+            <FormField label="Package Description" required error={errors.description}>
               <Textarea
-                id="description"
-                value={localData.description}
-                onChange={(e) => setLocalData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Detailed description..."
                 rows={4}
+                placeholder="Describe your complete package experience..."
+                value={data.description || ''}
+                onChange={(e) => onChange({ ...data, description: e.target.value })}
               />
-            </div>
-          </CardContent>
-        </Card>
+            </FormField>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Location & Duration</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="place">Primary Location *</Label>
-              <Input
-                id="place"
-                value={localData.place}
-                onChange={(e) => setLocalData(prev => ({ ...prev, place: e.target.value }))}
-                placeholder="e.g., Bali, Indonesia"
+            <FormField label="Additional Notes">
+              <Textarea
+                rows={3}
+                placeholder="Any special notes or instructions..."
+                value={data.notes || ''}
+                onChange={(e) => onChange({ ...data, notes: e.target.value })}
               />
+            </FormField>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <FormField label="Tour Inclusions">
+                <ListInput
+                  items={data.inclusions || ['']}
+                  onChange={(inclusions) => onChange({ ...data, inclusions })}
+                  placeholder="e.g., All meals included"
+                  addLabel="Add inclusion"
+                />
+              </FormField>
+
+              <FormField label="Tour Exclusions">
+                <ListInput
+                  items={data.exclusions || ['']}
+                  onChange={(exclusions) => onChange({ ...data, exclusions })}
+                  placeholder="e.g., International flights"
+                  addLabel="Add exclusion"
+                />
+              </FormField>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="days">Days *</Label>
-                <Input
-                  id="days"
-                  type="number"
-                  min="1"
-                  value={localData.duration.days}
-                  onChange={(e) => setLocalData(prev => ({ 
-                    ...prev, 
-                    duration: { ...prev.duration, days: parseInt(e.target.value) || 0 }
-                  }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="nights">Nights *</Label>
-                <Input
-                  id="nights"
-                  type="number"
-                  min="0"
-                  value={localData.duration.nights}
-                  onChange={(e) => setLocalData(prev => ({ 
-                    ...prev, 
-                    duration: { ...prev.duration, nights: parseInt(e.target.value) || 0 }
-                  }))}
-                />
-              </div>
+          </div>
+        );
+
+      case 'destinations':
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Package Destinations</h3>
+              <p className="text-gray-600">Add all cities and places covered in this tour</p>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div>
-                <Label htmlFor="minGroup">Min Group</Label>
+
+            <FormField label="Destinations">
+              <ListInput
+                items={data.destinations || ['']}
+                onChange={(destinations) => onChange({ ...data, destinations })}
+                placeholder="e.g., Delhi, Agra, Jaipur"
+                addLabel="Add destination"
+              />
+            </FormField>
+          </div>
+        );
+
+      case 'itinerary':
+        return (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-gray-900">Day-wise Itinerary</h3>
+              <FormField label="Total Days">
                 <Input
-                  id="minGroup"
                   type="number"
                   min="1"
-                  value={localData.groupSize.min}
-                  onChange={(e) => setLocalData(prev => ({ 
-                    ...prev, 
-                    groupSize: { ...prev.groupSize, min: parseInt(e.target.value) || 0 }
-                  }))}
+                  className="w-20"
+                  value={data.totalDays || ''}
+                  onChange={(e) => {
+                    const days = parseInt(e.target.value) || 0;
+                    const itinerary = Array.from({ length: days }, (_, i) => 
+                      data.itinerary?.[i] || { day: i + 1, title: '', activities: '' }
+                    );
+                    onChange({ ...data, totalDays: days, itinerary });
+                  }}
                 />
-              </div>
-              <div>
-                <Label htmlFor="maxGroup">Max Group</Label>
-                <Input
-                  id="maxGroup"
-                  type="number"
-                  min="1"
-                  value={localData.groupSize.max}
-                  onChange={(e) => setLocalData(prev => ({ 
-                    ...prev, 
-                    groupSize: { ...prev.groupSize, max: parseInt(e.target.value) || 0 }
-                  }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="idealGroup">Ideal Group</Label>
-                <Input
-                  id="idealGroup"
-                  type="number"
-                  min="1"
-                  value={localData.groupSize.ideal}
-                  onChange={(e) => setLocalData(prev => ({ 
-                    ...prev, 
-                    groupSize: { ...prev.groupSize, ideal: parseInt(e.target.value) || 0 }
-                  }))}
-                />
-              </div>
+              </FormField>
             </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={handleNext}>
-          Continue
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
-    </div>
-  );
-}
+            {(data.itinerary || []).map((day, index) => (
+              <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
+                <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                  <div className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm">
+                    {day.day}
+                  </div>
+                  Day {day.day}
+                </h4>
+                
+                <FormField label="Day Title">
+                  <Input
+                    placeholder="e.g., Arrival in Delhi"
+                    value={day.title || ''}
+                    onChange={(e) => {
+                      const newItinerary = [...(data.itinerary || [])];
+                      newItinerary[index] = { ...day, title: e.target.value };
+                      onChange({ ...data, itinerary: newItinerary });
+                    }}
+                  />
+                </FormField>
 
-function LocationTimingStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
-  const [localData, setLocalData] = useState({
-    place: formData.place || '',
-    pickupPoints: formData.pickupPoints || [''],
-    durationHours: formData.durationHours || 0,
-    startTime: formData.startTime || '',
-    endTime: formData.endTime || '',
-    timingNotes: formData.timingNotes || ''
-  });
+                <FormField label="Activities & Highlights">
+                  <Textarea
+                    rows={3}
+                    placeholder="Describe the day's activities..."
+                    value={day.activities || ''}
+                    onChange={(e) => {
+                      const newItinerary = [...(data.itinerary || [])];
+                      newItinerary[index] = { ...day, activities: e.target.value };
+                      onChange({ ...data, itinerary: newItinerary });
+                    }}
+                  />
+                </FormField>
+              </div>
+            ))}
+          </div>
+        );
 
-  useEffect(() => {
-    updateFormData({ ...formData, ...localData });
-  }, [localData, updateFormData]);
+      case 'pricing':
+        return (
+          <div className="space-y-6">
+            <PricingField
+              pricing={data.pricing || {}}
+              onChange={(pricing) => onChange({ ...data, pricing })}
+            />
+          </div>
+        );
 
-  const handleNext = () => {
-    updateFormData({ ...formData, ...localData });
-    onNext();
-  };
-
-  const addPickupPoint = () => {
-    setLocalData(prev => ({
-      ...prev,
-      pickupPoints: [...prev.pickupPoints, '']
-    }));
-  };
-
-  const removePickupPoint = (index: number) => {
-    setLocalData(prev => ({
-      ...prev,
-      pickupPoints: prev.pickupPoints.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updatePickupPoint = (index: number, value: string) => {
-    setLocalData(prev => ({
-      ...prev,
-      pickupPoints: prev.pickupPoints.map((point, i) => i === index ? value : point)
-    }));
+      default:
+        return null;
+    }
   };
 
   return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Location & Timing</h2>
-        <p className="text-lg text-gray-600">Set the location and timing details for your activity</p>
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <div className="text-4xl mb-2">🗺️</div>
+        <h2 className="text-2xl font-bold text-gray-900">Combo Itinerary Package</h2>
+        <p className="text-gray-600">Create a comprehensive multi-day tour experience</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Location Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="place">Primary Location *</Label>
-              <Input
-                id="place"
-                value={localData.place}
-                onChange={(e) => setLocalData(prev => ({ ...prev, place: e.target.value }))}
-                placeholder="e.g., Bali, Indonesia"
-              />
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setCurrentTab(tab.id)}
+                className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  currentTab === tab.id
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <TabContent />
+    </div>
+  );
+};
+
+const FixedItineraryForm = ({ data, onChange, errors }) => (
+  <div className="space-y-6">
+    <div className="text-center mb-8">
+      <div className="text-4xl mb-2">✈️</div>
+      <h2 className="text-2xl font-bold text-gray-900">Fixed Itinerary Package</h2>
+      <p className="text-gray-600">Create a pre-planned tour with fixed schedule</p>
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="space-y-6">
+        <FormField label="Package Title" required error={errors.title}>
+          <Input
+            placeholder="e.g., 10-Day India Discovery Tour"
+            value={data.title || ''}
+            onChange={(e) => onChange({ ...data, title: e.target.value })}
+          />
+        </FormField>
+
+        <FormField label="Duration (Days)" required error={errors.days}>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input
+              type="number"
+              min="1"
+              className="pl-10"
+              placeholder="Number of days"
+              value={data.days || ''}
+              onChange={(e) => onChange({ ...data, days: e.target.value })}
+            />
+          </div>
+        </FormField>
+
+        <FormField label="Destinations Covered">
+          <ListInput
+            items={data.destinations || ['']}
+            onChange={(destinations) => onChange({ ...data, destinations })}
+            placeholder="e.g., Mumbai, Goa, Kerala"
+            addLabel="Add destination"
+          />
+        </FormField>
+
+        <FormField label="Package Description" required error={errors.description}>
+          <Textarea
+            rows={4}
+            placeholder="Describe this fixed itinerary package..."
+            value={data.description || ''}
+            onChange={(e) => onChange({ ...data, description: e.target.value })}
+          />
+        </FormField>
+      </div>
+
+      <div className="space-y-6">
+        <FormField label="Package Image">
+          <ImageUpload
+            preview={data.image}
+            onUpload={(image) => onChange({ ...data, image })}
+            label="Upload package image"
+          />
+        </FormField>
+
+        <PricingField
+          pricing={data.pricing || {}}
+          onChange={(pricing) => onChange({ ...data, pricing })}
+        />
+      </div>
+    </div>
+
+    {/* Day-wise Plan */}
+    {data.days && (
+      <div className="space-y-6 mt-8">
+        <h3 className="text-lg font-semibold text-gray-900">Day-wise Plan</h3>
+        {Array.from({ length: parseInt(data.days) || 0 }, (_, index) => {
+          const dayData = data.dayPlans?.[index] || {};
+          return (
+            <div key={index} className="p-4 border border-gray-200 rounded-lg space-y-4">
+              <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                <div className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">
+                  {index + 1}
+                </div>
+                Day {index + 1}
+              </h4>
+              
+              <FormField label="Day Summary">
+                <Input
+                  placeholder="e.g., Arrival & City Tour"
+                  value={dayData.summary || ''}
+                  onChange={(e) => {
+                    const newDayPlans = [...(data.dayPlans || [])];
+                    newDayPlans[index] = { ...dayData, summary: e.target.value };
+                    onChange({ ...data, dayPlans: newDayPlans });
+                  }}
+                />
+              </FormField>
+
+              <FormField label="Day Details">
+                <Textarea
+                  rows={2}
+                  placeholder="Detailed plan for this day..."
+                  value={dayData.details || ''}
+                  onChange={(e) => {
+                    const newDayPlans = [...(data.dayPlans || [])];
+                    newDayPlans[index] = { ...dayData, details: e.target.value };
+                    onChange({ ...data, dayPlans: newDayPlans });
+                  }}
+                />
+              </FormField>
             </div>
-            
-            <div>
-              <Label>Pickup Points *</Label>
-              {localData.pickupPoints.map((point, index) => (
-                <div key={index} className="flex gap-2 mb-2">
-                  <Input
-                    value={point}
-                    onChange={(e) => updatePickupPoint(index, e.target.value)}
-                    placeholder={`Pickup point ${index + 1}`}
-                  />
-                  {localData.pickupPoints.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removePickupPoint(index)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+          );
+        })}
+      </div>
+    )}
+  </div>
+);
+
+// Main Wizard Component
+export default function ModernPackageWizard() {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedType, setSelectedType] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [errors, setErrors] = useState({});
+  const [currentTab, setCurrentTab] = useState('overview');
+
+  const steps = selectedType ? ['type', 'details', 'preview'] : ['type'];
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!selectedType) return false;
+
+    switch (selectedType) {
+      case 'TRANSFERS':
+        if (!formData.name) newErrors.name = 'Service name is required';
+        if (!formData.place) newErrors.place = 'Location is required';
+        if (!formData.from) newErrors.from = 'Pick-up location is required';
+        if (!formData.to) newErrors.to = 'Drop-off location is required';
+        if (!formData.description) newErrors.description = 'Description is required';
+        break;
+      
+      case 'ACTIVITY':
+        if (!formData.name) newErrors.name = 'Activity name is required';
+        if (!formData.place) newErrors.place = 'Destination is required';
+        if (!formData.duration) newErrors.duration = 'Duration is required';
+        if (!formData.timing) newErrors.timing = 'Start time is required';
+        if (!formData.description) newErrors.description = 'Description is required';
+        break;
+      
+      case 'MULTI_CITY_PACKAGE':
+        if (!formData.title) newErrors.title = 'Package title is required';
+        if (!formData.description) newErrors.description = 'Description is required';
+        break;
+      
+      case 'FIXED_DEPARTURE_WITH_FLIGHT':
+        if (!formData.title) newErrors.title = 'Package title is required';
+        if (!formData.days) newErrors.days = 'Duration is required';
+        if (!formData.description) newErrors.description = 'Description is required';
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 0 && selectedType) {
+      setCurrentStep(1);
+    } else if (currentStep === 1 && validateForm()) {
+      setCurrentStep(2);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep === 2) {
+      setCurrentStep(1);
+    } else if (currentStep === 1) {
+      setCurrentStep(0);
+    }
+  };
+
+  const handlePublish = () => {
+    alert('Package created successfully! 🎉');
+    // Reset form
+    setCurrentStep(0);
+    setSelectedType(null);
+    setFormData({});
+    setErrors({});
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Create Your Package</h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Choose the type of travel package you want to create. Each type is optimized for different services.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {PACKAGE_TYPES.map((type) => (
+                <div
+                  key={type.id}
+                  onClick={() => setSelectedType(type.id)}
+                  className={`p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                    selectedType === type.id
+                      ? type.color
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="text-center space-y-4">
+                    <div className="text-4xl">{type.icon}</div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">{type.title}</h3>
+                      <p className="text-gray-600">{type.description}</p>
+                    </div>
+                    {selectedType === type.id && (
+                      <div className="flex items-center justify-center">
+                        <div className="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center">
+                          <Check className="w-4 h-4" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 1:
+        return (
+          <div className="space-y-8">
+            {selectedType === 'TRANSFERS' && (
+              <TransferForm data={formData} onChange={setFormData} errors={errors} />
+            )}
+            {selectedType === 'ACTIVITY' && (
+              <ActivityForm data={formData} onChange={setFormData} errors={errors} />
+            )}
+            {selectedType === 'MULTI_CITY_PACKAGE' && (
+              <ComboItineraryForm 
+                data={formData} 
+                onChange={setFormData} 
+                errors={errors}
+                currentTab={currentTab}
+                setCurrentTab={setCurrentTab}
+              />
+            )}
+            {selectedType === 'FIXED_DEPARTURE_WITH_FLIGHT' && (
+              <FixedItineraryForm data={formData} onChange={setFormData} errors={errors} />
+            )}
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎉</div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">Review Your Package</h2>
+              <p className="text-lg text-gray-600">
+                Please review all details before publishing your package
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white border border-gray-200 rounded-xl p-8 space-y-6">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <h3 className="text-2xl font-bold text-gray-900">
+                      {formData.name || formData.title || 'Untitled Package'}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        {formData.place || 'Location not specified'}
+                      </div>
+                      {formData.duration && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {formData.duration} hours
+                        </div>
+                      )}
+                      {formData.days && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {formData.days} days
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-600">
+                      ${formData.pricing?.adult || '0'}
+                    </div>
+                    <div className="text-sm text-gray-600">per adult</div>
+                  </div>
+                </div>
+
+                {formData.image && (
+                  <div className="rounded-lg overflow-hidden">
+                    <img 
+                      src={formData.image} 
+                      alt="Package preview" 
+                      className="w-full h-48 object-cover"
+                    />
+                  </div>
+                )}
+
+                <div className="prose max-w-none">
+                  <p className="text-gray-700">{formData.description}</p>
+                </div>
+
+                {formData.inclusions && formData.inclusions.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">What's Included</h4>
+                    <ul className="space-y-1">
+                      {formData.inclusions.filter(Boolean).map((item, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
+                          <Check className="w-4 h-4 text-green-500" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {formData.exclusions && formData.exclusions.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">What's Not Included</h4>
+                    <ul className="space-y-1">
+                      {formData.exclusions.filter(Boolean).map((item, index) => (
+                        <li key={index} className="flex items-center gap-2 text-sm text-gray-700">
+                          <X className="w-4 h-4 text-red-500" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Pricing Summary */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-gray-900 mb-3">Pricing Summary</h4>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Adult Price:</span>
+                      <span className="font-medium">${formData.pricing?.adult || '0'}</span>
+                    </div>
+                    {formData.pricing?.child && (
+                      <div className="flex justify-between text-sm">
+                        <span>Child Price:</span>
+                        <span className="font-medium">${formData.pricing.child}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-sm">
+                      <span>Valid Until:</span>
+                      <span className="font-medium">
+                        {formData.pricing?.validUntil ? 
+                          new Date(formData.pricing.validUntil).toLocaleDateString() : 
+                          'Not specified'
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Progress Bar */}
+        {selectedType && (
+          <div className="mb-8">
+            <div className="flex items-center justify-center space-x-4">
+              {steps.map((step, index) => (
+                <div key={step} className="flex items-center">
+                  <div
+                    className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
+                      index <= currentStep
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-600'
+                    }`}
+                  >
+                    {index < currentStep ? <Check className="w-5 h-5" /> : index + 1}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div
+                      className={`w-12 h-1 mx-2 transition-colors ${
+                        index < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+                      }`}
+                    />
                   )}
                 </div>
               ))}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={addPickupPoint}
-                className="w-full"
-              >
-                + Add Pickup Point
-              </Button>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Timing Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="durationHours">Duration (Hours) *</Label>
-              <Input
-                id="durationHours"
-                type="number"
-                min="1"
-                value={localData.durationHours}
-                onChange={(e) => setLocalData(prev => ({ ...prev, durationHours: parseInt(e.target.value) || 0 }))}
-                placeholder="e.g., 4"
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="startTime">Start Time *</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  value={localData.startTime}
-                  onChange={(e) => setLocalData(prev => ({ ...prev, startTime: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="endTime">End Time *</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  value={localData.endTime}
-                  onChange={(e) => setLocalData(prev => ({ ...prev, endTime: e.target.value }))}
-                />
+            <div className="flex justify-center mt-4">
+              <div className="text-sm text-gray-600">
+                Step {currentStep + 1} of {steps.length}
               </div>
             </div>
-            
-            <div>
-              <Label htmlFor="timingNotes">Timing Notes *</Label>
-              <Textarea
-                id="timingNotes"
-                value={localData.timingNotes}
-                onChange={(e) => setLocalData(prev => ({ ...prev, timingNotes: e.target.value }))}
-                placeholder="Additional timing information..."
-                rows={3}
-              />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-8">
+            {renderStep()}
+          </div>
+
+          {/* Navigation */}
+          {selectedType && (
+            <div className="bg-gray-50 px-8 py-4 flex items-center justify-between border-t border-gray-100">
+              <div className="flex items-center space-x-4">
+                {currentStep > 0 && (
+                  <button
+                    onClick={handlePrevious}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center space-x-4">
+                {currentStep < 2 && (
+                  <button
+                    onClick={() => {
+                      // Save as draft logic
+                      alert('Draft saved! 💾');
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Draft
+                  </button>
+                )}
+
+                {currentStep < 2 ? (
+                  <button
+                    onClick={handleNext}
+                    disabled={currentStep === 0 && !selectedType}
+                    className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Continue
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => {
+                        // Preview logic
+                        alert('Opening preview... 👀');
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Preview
+                    </button>
+                    <button
+                      onClick={handlePublish}
+                      className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <Check className="w-4 h-4" />
+                      Publish Package
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={handleNext}>
-          Continue
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function DetailedPlanningStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
-  const [localData, setLocalData] = useState({
-    vehicleType: formData.vehicleType || '',
-    acNonAc: formData.acNonAc || '',
-    fuelInclusion: formData.fuelInclusion || false,
-    difficulty: formData.difficulty || 'MODERATE'
-  });
-
-  useEffect(() => {
-    updateFormData({ ...formData, ...localData });
-  }, [localData, updateFormData]);
-
-  const handleNext = () => {
-    updateFormData({ ...formData, ...localData });
-    onNext();
-  };
-
-  return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Detailed Planning</h2>
-        <p className="text-lg text-gray-600">Configure transportation and activity details</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Transportation Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="vehicleType">Vehicle Type *</Label>
-              <Select
-                value={localData.vehicleType}
-                onValueChange={(value) => setLocalData(prev => ({ ...prev, vehicleType: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select vehicle type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="car">Car</SelectItem>
-                  <SelectItem value="van">Van</SelectItem>
-                  <SelectItem value="bus">Bus</SelectItem>
-                  <SelectItem value="boat">Boat</SelectItem>
-                  <SelectItem value="bicycle">Bicycle</SelectItem>
-                  <SelectItem value="motorcycle">Motorcycle</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="acNonAc">AC/Non-AC *</Label>
-              <Select
-                value={localData.acNonAc}
-                onValueChange={(value) => setLocalData(prev => ({ ...prev, acNonAc: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select AC option" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ac">AC</SelectItem>
-                  <SelectItem value="non-ac">Non-AC</SelectItem>
-                  <SelectItem value="both">Both Available</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="fuelInclusion"
-                checked={localData.fuelInclusion}
-                onChange={(e) => setLocalData(prev => ({ ...prev, fuelInclusion: e.target.checked }))}
-                className="rounded"
-              />
-              <Label htmlFor="fuelInclusion">Fuel Included</Label>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="difficulty">Difficulty Level *</Label>
-              <Select
-                value={localData.difficulty}
-                onValueChange={(value) => setLocalData(prev => ({ ...prev, difficulty: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select difficulty level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="EASY">Easy</SelectItem>
-                  <SelectItem value="MODERATE">Moderate</SelectItem>
-                  <SelectItem value="CHALLENGING">Challenging</SelectItem>
-                  <SelectItem value="EXPERT">Expert</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-blue-900 mb-2">Activity Information</h4>
-              <p className="text-sm text-blue-800">
-                This activity package includes transportation and basic planning. 
-                Additional details can be added in the next steps.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={handleNext}>
-          Continue
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function InclusionsExclusionsStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
-  const [localData, setLocalData] = useState({
-    tourInclusions: formData.tourInclusions || [''],
-    mealInclusions: formData.mealInclusions || [''],
-    entryTickets: formData.entryTickets || [''],
-    guideServices: formData.guideServices || [''],
-    tourExclusions: formData.tourExclusions || [''],
-    personalExpenses: formData.personalExpenses || [''],
-    optionalActivities: formData.optionalActivities || ['']
-  });
-
-  useEffect(() => {
-    updateFormData({ ...formData, ...localData });
-  }, [localData, updateFormData]);
-
-  const handleNext = () => {
-    updateFormData({ ...formData, ...localData });
-    onNext();
-  };
-
-  const addItem = (field: keyof typeof localData) => {
-    setLocalData(prev => ({
-      ...prev,
-      [field]: [...prev[field], '']
-    }));
-  };
-
-  const removeItem = (field: keyof typeof localData, index: number) => {
-    setLocalData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateItem = (field: keyof typeof localData, index: number, value: string) => {
-    setLocalData(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
-    }));
-  };
-
-  const renderListField = (field: keyof typeof localData, label: string, placeholder: string) => (
-    <div>
-      <Label>{label} *</Label>
-      {localData[field].map((item, index) => (
-        <div key={index} className="flex gap-2 mb-2">
-          <Input
-            value={item}
-            onChange={(e) => updateItem(field, index, e.target.value)}
-            placeholder={placeholder}
-          />
-          {localData[field].length > 1 && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => removeItem(field, index)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
           )}
         </div>
-      ))}
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => addItem(field)}
-        className="w-full"
-      >
-        + Add {label.slice(0, -1)}
-      </Button>
-    </div>
-  );
 
-  return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Inclusions & Exclusions</h2>
-        <p className="text-lg text-gray-600">Define what's included and excluded in your activity</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>What's Included</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {renderListField('tourInclusions', 'Tour Inclusions', 'e.g., Transportation, Guide')}
-            {renderListField('mealInclusions', 'Meal Inclusions', 'e.g., Breakfast, Lunch')}
-            {renderListField('entryTickets', 'Entry Tickets', 'e.g., Museum entry, Park fees')}
-            {renderListField('guideServices', 'Guide Services', 'e.g., Professional guide, Local expert')}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>What's Excluded</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {renderListField('tourExclusions', 'Tour Exclusions', 'e.g., Personal expenses, Tips')}
-            {renderListField('personalExpenses', 'Personal Expenses', 'e.g., Shopping, Personal items')}
-            {renderListField('optionalActivities', 'Optional Activities', 'e.g., Additional tours, Upgrades')}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={handleNext}>
-          Continue
-          <ArrowRight className="w-4 h-4 ml-2" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function PricingStep({ formData, updateFormData, onNext, onPrevious, onPublish }: StepProps) {
-  const [localData, setLocalData] = useState({
-    basePrice: formData.basePrice || 0,
-    currency: formData.currency || 'USD',
-    cancellationPolicy: formData.cancellationPolicy || 'moderate'
-  });
-
-  useEffect(() => {
-    updateFormData({ ...formData, ...localData });
-  }, [localData, updateFormData]);
-
-  const handlePublish = async () => {
-    updateFormData({ ...formData, ...localData });
-    await onPublish();
-  };
-
-  return (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-3">Pricing & Review</h2>
-        <p className="text-lg text-gray-600">Set your pricing and review your package</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pricing</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="basePrice">Base Price *</Label>
-                <Input
-                  id="basePrice"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={localData.basePrice}
-                  onChange={(e) => setLocalData(prev => ({ ...prev, basePrice: parseFloat(e.target.value) || 0 }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="currency">Currency</Label>
-                <Select
-                  value={localData.currency}
-                  onValueChange={(value) => setLocalData(prev => ({ ...prev, currency: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                    <SelectItem value="INR">INR (₹)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="cancellationPolicy">Cancellation Policy</Label>
-              <Select
-                value={localData.cancellationPolicy}
-                onValueChange={(value) => setLocalData(prev => ({ ...prev, cancellationPolicy: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="flexible">Flexible</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="strict">Strict</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Package Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="font-medium">Type:</span>
-                <span>{formData.type}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Title:</span>
-                <span>{formData.title || 'Not set'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Location:</span>
-                <span>{formData.place || 'Not set'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Duration:</span>
-                <span>{formData.duration?.days || 0} days, {formData.duration?.nights || 0} nights</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Group Size:</span>
-                <span>{formData.groupSize?.min || 0} - {formData.groupSize?.max || 0} people</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Price:</span>
-                <span className="font-bold">{localData.currency} {localData.basePrice}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Previous
-        </Button>
-        <Button onClick={handlePublish} className="bg-green-600 hover:bg-green-700">
-          <CheckCircle className="w-4 h-4 mr-2" />
-          Publish Package
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export default function CompactPackageWizard({ className }: CompactPackageWizardProps) {
-  const router = useRouter();
-  
-  // Use the existing wizard hook
-  const {
-    currentStep,
-    steps,
-    formData,
-    isDirty,
-    isSaving,
-    lastSaved,
-    errors,
-    isValid,
-    actions,
-    form
-  } = useSupabasePackageWizard();
-
-  const {
-    goToStep,
-    nextStep,
-    previousStep,
-    updateFormData,
-    saveDraft,
-    publishPackage,
-    resetWizard
-  } = actions;
-
-  // Simple step mapping
-  const stepComponents = {
-    'package-type': PackageTypeStep,
-    'basic-info': BasicInfoStep,
-    'location-timing': LocationTimingStep,
-    'detailed-planning': DetailedPlanningStep,
-    'inclusions-exclusions': InclusionsExclusionsStep,
-    'pricing-policies': PricingStep,
-    'review': PricingStep
-  };
-
-  const CurrentStepComponent = stepComponents[currentStep as keyof typeof stepComponents];
-
-  const handleNextStep = () => {
-    if (nextStep) {
-      nextStep();
-    }
-  };
-
-  const handlePreviousStep = () => {
-    if (previousStep) {
-      previousStep();
-    }
-  };
-
-  const handleSaveDraft = async () => {
-    try {
-      await saveDraft();
-    } catch (error) {
-      console.error('Error saving draft:', error);
-    }
-  };
-
-  const handlePublishPackage = async () => {
-    try {
-      await publishPackage();
-      router.push('/operator/packages');
-    } catch (error) {
-      console.error('Error publishing package:', error);
-    }
-  };
-
-  const handleResetWizard = () => {
-    resetWizard();
-  };
-
-  return (
-    <div className={`min-h-screen bg-gray-50 py-8 ${className || ''}`}>
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Create Package
-          </h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-            Create amazing travel packages with our streamlined process.
+        {/* Help Text */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-500">
+            Need help? Contact our support team at{' '}
+            <a href="mailto:support@example.com" className="text-blue-600 hover:underline">
+              support@example.com
+            </a>
           </p>
-        </motion.div>
-
-        {/* Simple Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-8">
-            {[
-              { step: 'package-type', icon: Sparkles, title: 'Package Type', color: 'blue' },
-              { step: 'basic-info', icon: FileText, title: 'Basic Info', color: 'green' },
-              { step: 'pricing-policies', icon: DollarSign, title: 'Pricing', color: 'purple' }
-            ].map((stepInfo, index) => {
-              const IconComponent = stepInfo.icon;
-              const isActive = currentStep === stepInfo.step;
-              const isCompleted = ['package-type', 'basic-info', 'location-timing', 'detailed-planning', 'inclusions-exclusions'].includes(currentStep) && 
-                                 ['package-type', 'basic-info', 'location-timing', 'detailed-planning', 'inclusions-exclusions'].indexOf(currentStep) > 
-                                 ['package-type', 'basic-info', 'location-timing', 'detailed-planning', 'inclusions-exclusions'].indexOf(stepInfo.step);
-              
-              return (
-                <div key={stepInfo.step} className="flex flex-col items-center">
-                  <div
-                    className={cn(
-                      "w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300",
-                      isActive
-                        ? `bg-${stepInfo.color}-600 text-white shadow-lg scale-110`
-                        : isCompleted
-                        ? "bg-green-600 text-white shadow-md"
-                        : "bg-gray-200 text-gray-400"
-                    )}
-                  >
-                    <IconComponent className="w-6 h-6" />
-                  </div>
-                  <div className="mt-3 text-center">
-                    <h3 className={cn(
-                      "text-sm font-medium",
-                      isActive ? `text-${stepInfo.color}-600` : "text-gray-600"
-                    )}>
-                      {stepInfo.title}
-                    </h3>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Status Bar */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {isDirty && (
-              <Badge variant="outline" className="text-orange-600 border-orange-200">
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                Unsaved Changes
-              </Badge>
-            )}
-            {isSaving && (
-              <Badge variant="outline" className="text-blue-600 border-blue-200">
-                <Clock className="w-3 h-3 mr-1" />
-                Saving...
-              </Badge>
-            )}
-            {lastSaved && (
-              <Badge variant="outline" className="text-green-600 border-green-200">
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Saved {new Date(lastSaved).toLocaleTimeString()}
-              </Badge>
-            )}
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveDraft}
-              disabled={isSaving || !isDirty}
-              className="flex items-center"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Draft
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleResetWizard}
-              className="flex items-center text-red-600 hover:text-red-700"
-            >
-              <X className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
-          </div>
-        </div>
-
-        {/* Step Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white rounded-lg shadow-sm p-8"
-          >
-            {CurrentStepComponent && (
-              <CurrentStepComponent
-                formData={formData}
-                updateFormData={updateFormData}
-                errors={errors}
-                isValid={isValid}
-                onNext={handleNextStep}
-                onPrevious={handlePreviousStep}
-                onPublish={handlePublishPackage}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Footer Actions */}
-        <div className="mt-8 flex justify-between items-center">
-          <div className="text-sm text-gray-500">
-            Current Step: {currentStep} • 
-            {isValid ? (
-              <span className="text-green-600 ml-1">Ready to continue</span>
-            ) : (
-              <span className="text-red-600 ml-1">Please complete required fields</span>
-            )}
-          </div>
         </div>
       </div>
     </div>
