@@ -112,6 +112,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== LOAD USER PROFILE =====
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return;
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       
       // Debug: Log the user metadata
@@ -169,6 +174,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let mounted = true;
 
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     // Get initial session
     const getInitialSession = async () => {
       try {
@@ -210,7 +220,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        if (!mounted) return;
+        if (!mounted || typeof window === 'undefined') return;
 
         dispatch({ 
           type: 'SET_SESSION', 
@@ -241,6 +251,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userData?: { name: string; role?: UserRole }
   ): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
@@ -280,6 +295,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
@@ -309,6 +329,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== SIGN OUT =====
   const signOut = async (): Promise<void> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return;
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       
       const { error } = await supabase.auth.signOut();
@@ -328,6 +353,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== UPDATE PROFILE =====
   const updateProfile = async (updates: Partial<User>): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       if (!state.supabaseUser) {
         return { success: false, error: 'No user logged in' };
       }
@@ -377,6 +407,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== RESET PASSWORD =====
   const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
@@ -401,6 +436,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== UPDATE PASSWORD =====
   const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
