@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { withSimpleAuth } from '@/components/auth/SimpleProtectedRoute';
+import { withAuth } from '@/components/auth/ProtectedRoute';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { UserRole } from '@/lib/types';
 
@@ -18,7 +18,7 @@ function OperatorLayoutContent({ children }: OperatorLayoutProps) {
 }
 
 // Wrap with role-based protection
-const OperatorLayout = withSimpleAuth(OperatorLayoutContent, {
+const OperatorLayout = withAuth(OperatorLayoutContent, {
   requiredRoles: [UserRole.TOUR_OPERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN]
 });
 

@@ -12,12 +12,12 @@ import {
   Star,
   Clock
 } from 'lucide-react';
-import { SimpleProtectedRoute } from '@/components/auth/SimpleProtectedRoute';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/lib/types';
-import { useSimpleAuth } from '@/context/SimpleAuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 
 function OperatorDashboard() {
-  const { state } = useSimpleAuth();
+  const { state } = useAuth();
   
   console.log('🏢 OperatorDashboard component loaded:', {
     user: state.user,
@@ -303,8 +303,8 @@ export default function OperatorDashboardPage() {
   console.log('📄 OperatorDashboardPage wrapper loaded');
   
   return (
-    <SimpleProtectedRoute requiredRoles={[UserRole.TOUR_OPERATOR]}>
+    <ProtectedRoute requiredRoles={[UserRole.TOUR_OPERATOR]}>
       <OperatorDashboard />
-    </SimpleProtectedRoute>
+    </ProtectedRoute>
   );
 }
