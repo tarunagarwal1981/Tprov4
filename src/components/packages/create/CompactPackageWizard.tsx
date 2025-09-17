@@ -264,6 +264,169 @@ function BasicInfoStep({ formData, updateFormData, onNext, onPrevious }: StepPro
   );
 }
 
+function LocationTimingStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
+  const [localData, setLocalData] = useState({
+    place: formData.place || '',
+    pickupPoints: formData.pickupPoints || [''],
+    durationHours: formData.durationHours || 0,
+    startTime: formData.startTime || '',
+    endTime: formData.endTime || '',
+    timingNotes: formData.timingNotes || ''
+  });
+
+  useEffect(() => {
+    updateFormData({ ...formData, ...localData });
+  }, [localData, updateFormData]);
+
+  const handleNext = () => {
+    updateFormData({ ...formData, ...localData });
+    onNext();
+  };
+
+  const addPickupPoint = () => {
+    setLocalData(prev => ({
+      ...prev,
+      pickupPoints: [...prev.pickupPoints, '']
+    }));
+  };
+
+  const removePickupPoint = (index: number) => {
+    setLocalData(prev => ({
+      ...prev,
+      pickupPoints: prev.pickupPoints.filter((_, i) => i !== index)
+    }));
+  };
+
+  const updatePickupPoint = (index: number, value: string) => {
+    setLocalData(prev => ({
+      ...prev,
+      pickupPoints: prev.pickupPoints.map((point, i) => i === index ? value : point)
+    }));
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">Location & Timing</h2>
+        <p className="text-lg text-gray-600">Set the location and timing details for your activity</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Location Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="place">Primary Location *</Label>
+              <Input
+                id="place"
+                value={localData.place}
+                onChange={(e) => setLocalData(prev => ({ ...prev, place: e.target.value }))}
+                placeholder="e.g., Bali, Indonesia"
+              />
+            </div>
+            
+            <div>
+              <Label>Pickup Points *</Label>
+              {localData.pickupPoints.map((point, index) => (
+                <div key={index} className="flex gap-2 mb-2">
+                  <Input
+                    value={point}
+                    onChange={(e) => updatePickupPoint(index, e.target.value)}
+                    placeholder={`Pickup point ${index + 1}`}
+                  />
+                  {localData.pickupPoints.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removePickupPoint(index)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addPickupPoint}
+                className="w-full"
+              >
+                + Add Pickup Point
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Timing Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="durationHours">Duration (Hours) *</Label>
+              <Input
+                id="durationHours"
+                type="number"
+                min="1"
+                value={localData.durationHours}
+                onChange={(e) => setLocalData(prev => ({ ...prev, durationHours: parseInt(e.target.value) || 0 }))}
+                placeholder="e.g., 4"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="startTime">Start Time *</Label>
+                <Input
+                  id="startTime"
+                  type="time"
+                  value={localData.startTime}
+                  onChange={(e) => setLocalData(prev => ({ ...prev, startTime: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="endTime">End Time *</Label>
+                <Input
+                  id="endTime"
+                  type="time"
+                  value={localData.endTime}
+                  onChange={(e) => setLocalData(prev => ({ ...prev, endTime: e.target.value }))}
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="timingNotes">Timing Notes *</Label>
+              <Textarea
+                id="timingNotes"
+                value={localData.timingNotes}
+                onChange={(e) => setLocalData(prev => ({ ...prev, timingNotes: e.target.value }))}
+                placeholder="Additional timing information..."
+                rows={3}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onPrevious}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Previous
+        </Button>
+        <Button onClick={handleNext}>
+          Continue
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function PricingStep({ formData, updateFormData, onNext, onPrevious, onPublish }: StepProps) {
   const [localData, setLocalData] = useState({
     basePrice: formData.basePrice || 0,
@@ -422,7 +585,7 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
   const stepComponents = {
     'package-type': PackageTypeStep,
     'basic-info': BasicInfoStep,
-    'location-timing': BasicInfoStep,
+    'location-timing': LocationTimingStep,
     'detailed-planning': BasicInfoStep,
     'inclusions-exclusions': BasicInfoStep,
     'pricing-policies': PricingStep,
