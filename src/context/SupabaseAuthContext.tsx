@@ -30,7 +30,7 @@ const initialState: AuthState = {
   supabaseUser: null,
   session: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: typeof window !== 'undefined',
   error: null,
 };
 
@@ -108,6 +108,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // ===== LOAD USER PROFILE =====
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {
@@ -174,8 +175,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let mounted = true;
 
-    // Only run on client side
-    if (typeof window === 'undefined') {
+    // Only run on client side and only once
+    if (typeof window === 'undefined' || isInitialized) {
       return;
     }
 
@@ -204,6 +205,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (session?.user) {
             await loadUserProfile(session.user);
           }
+          
+          setIsInitialized(true);
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -220,7 +223,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        if (!mounted || typeof window === 'undefined') return;
+        if (!mounted || typeof window === 'undefined' || !isInitialized) return;
 
         dispatch({ 
           type: 'SET_SESSION', 
@@ -242,7 +245,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isInitialized]);
 
   // ===== SIGN UP =====
   const signUp = async (

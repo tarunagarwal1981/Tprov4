@@ -30,18 +30,25 @@ export function ProtectedRoute({
   const { state } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  // Handle hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   console.log('🛡️ ProtectedRoute - Current state:', {
     pathname,
     user: state.user,
     isLoading: state.isLoading,
     requiredRoles,
+    isClient,
   });
 
   // ===== REDIRECT LOGIC =====
   useEffect(() => {
-    // Don't redirect while loading
-    if (state.isLoading) return;
+    // Don't redirect while loading or before client hydration
+    if (state.isLoading || !isClient) return;
 
     // If not authenticated, redirect to login
     if (!state.user) {
@@ -81,11 +88,11 @@ export function ProtectedRoute({
     } else {
       console.log('✅ User has required role, allowing access');
     }
-  }, [state.user, state.isLoading, requiredRoles, redirectTo, router, pathname]);
+  }, [state.user, state.isLoading, requiredRoles, redirectTo, router, pathname, isClient]);
 
   // ===== LOADING STATE =====
-  if (state.isLoading) {
-    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname);
+  if (state.isLoading || !isClient) {
+    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname, 'isClient:', isClient);
     
     // If we're on a dashboard page and user is null, we might be redirecting
     if (pathname.includes('/dashboard') && !state.user) {

@@ -10,13 +10,6 @@ declare global {
   var __supabaseAdminClient: any;
 }
 
-// Log environment status for debugging (only once)
-if (typeof window !== 'undefined' && !global.__supabaseClient) {
-  console.log('🔍 Supabase Environment Check:');
-  console.log('URL:', supabaseUrl ? '✅ Loaded' : '❌ Missing');
-  console.log('Key:', supabaseAnonKey ? '✅ Loaded' : '❌ Missing');
-}
-
 // Create singleton client instances using global variables
 if (!global.__supabaseClient) {
   global.__supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -24,12 +17,16 @@ if (!global.__supabaseClient) {
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      flowType: 'pkce'
     }
   });
   
-  // Log successful client creation
+  // Log successful client creation (only once)
   if (typeof window !== 'undefined') {
+    console.log('🔍 Supabase Environment Check:');
+    console.log('URL:', supabaseUrl ? '✅ Loaded' : '❌ Missing');
+    console.log('Key:', supabaseAnonKey ? '✅ Loaded' : '❌ Missing');
     console.log('✅ Supabase client created successfully');
   }
 }
