@@ -428,30 +428,53 @@ export class PackageService {
   }
 
   static convertToAppPackage(dbPackage: PackageWithDetails): Package {
+    // Map optimized schema fields to app model with safe fallbacks
+    const basePrice = (dbPackage as any).adult_price ?? 0
+    const currency = (dbPackage as any).currency ?? 'USD'
+    const durationDays = (dbPackage as any).duration_days ?? 1
+    const durationHours = (dbPackage as any).duration_hours ?? 0
+    const minGroup = (dbPackage as any).min_group_size ?? 1
+    const maxGroup = (dbPackage as any).max_group_size ?? 10
+
+    // Images relation comes as array of objects; map to URL strings
+    const imageRows: any[] = (dbPackage as any).images || []
+    const imageUrls: string[] = Array.isArray(imageRows)
+      ? imageRows.map((img: any) => img?.url).filter(Boolean)
+      : []
+
     return {
       id: dbPackage.id,
-      tourOperatorId: dbPackage.tour_operator_id,
+      tourOperatorId: (dbPackage as any).tour_operator_id,
       title: dbPackage.title,
       description: dbPackage.description,
       type: dbPackage.type as PackageType,
       status: dbPackage.status as PackageStatus,
-      pricing: dbPackage.pricing as any,
-      itinerary: dbPackage.itinerary as any,
-      inclusions: dbPackage.inclusions || [],
-      exclusions: dbPackage.exclusions || [],
-      termsAndConditions: dbPackage.terms_and_conditions || [],
-      cancellationPolicy: dbPackage.cancellation_policy as any,
-      images: dbPackage.images || [],
-      destinations: dbPackage.destinations || [],
-      duration: dbPackage.duration as any,
-      groupSize: dbPackage.group_size as any,
-      difficulty: dbPackage.difficulty as any,
-      tags: dbPackage.tags || [],
-      isFeatured: dbPackage.is_featured || false,
-      rating: dbPackage.rating || 0,
-      reviewCount: dbPackage.review_count || 0,
-      createdAt: new Date(dbPackage.created_at),
-      updatedAt: new Date(dbPackage.updated_at)
+      pricing: {
+        basePrice: Number(basePrice) || 0,
+        currency: String(currency || 'USD'),
+        pricePerPerson: true,
+        groupDiscounts: [],
+        seasonalPricing: [],
+        inclusions: [],
+        taxes: { gst: 0, serviceTax: 0, tourismTax: 0, other: [] },
+        fees: { bookingFee: 0, processingFee: 0, cancellationFee: 0, other: [] },
+      },
+      itinerary: [],
+      inclusions: [],
+      exclusions: [],
+      termsAndConditions: [],
+      cancellationPolicy: { refundable: true, refundPercentage: 0, processingDays: 0, conditions: [] },
+      images: imageUrls,
+      destinations: [],
+      duration: { days: Number(durationDays) || 1, nights: Math.max((Number(durationDays) || 1) - 1, 0), totalHours: Number(durationHours) || 0 },
+      groupSize: { min: Number(minGroup) || 1, max: Number(maxGroup) || 10, ideal: Math.max(Math.min(Number(maxGroup) || 10, 6), Number(minGroup) || 1) },
+      difficulty: (dbPackage as any).difficulty as any,
+      tags: (dbPackage as any).tags || [],
+      isFeatured: (dbPackage as any).is_featured || false,
+      rating: (dbPackage as any).rating || 0,
+      reviewCount: (dbPackage as any).review_count || 0,
+      createdAt: new Date((dbPackage as any).created_at),
+      updatedAt: new Date((dbPackage as any).updated_at)
     }
   }
 
