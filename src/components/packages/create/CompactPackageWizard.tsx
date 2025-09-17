@@ -1330,20 +1330,28 @@ export default function ModernPackageWizard() {
 
     setIsSaving(true);
     try {
+      console.log('🚀 Starting package save process...');
+      console.log('📋 Form data:', formData);
+
       // 1) Get current user and tour_operator_id
+      console.log('🔐 Getting current user...');
       const { data: authData } = await supabase.auth.getUser();
       const authUserId = authData.user?.id;
+      console.log('👤 Auth user ID:', authUserId);
       if (!authUserId) throw new Error('Not authenticated');
 
+      console.log('🏢 Looking up tour operator for user:', authUserId);
       const { data: tourOperator, error: tourOpErr } = await supabase
         .from('tour_operators')
         .select('id')
         .eq('user_id', authUserId)
         .maybeSingle();
+      console.log('🏢 Tour operator lookup result:', { tourOperator, error: tourOpErr });
       if (tourOpErr) throw tourOpErr;
       if (!tourOperator?.id) throw new Error('No tour operator profile found');
 
       // 2) Insert main package
+      console.log('📦 Preparing main package insert...');
       const mainInsert = {
         tour_operator_id: tourOperator.id,
         title: formData.title || formData.name || 'Untitled Package',
@@ -1355,39 +1363,71 @@ export default function ModernPackageWizard() {
         duration_hours: formData.durationHours ?? 0,
         status: 'DRAFT'
       } as const;
+      console.log('📦 Main insert data:', mainInsert);
 
+      console.log('💾 Inserting main package...');
       const { data: pkgInsert, error: pkgErr } = await supabase
         .from('packages')
         .insert(mainInsert)
         .select('id')
         .single();
+      console.log('💾 Package insert result:', { pkgInsert, error: pkgErr });
       if (pkgErr) throw pkgErr;
       const packageId = pkgInsert.id as string;
 
+      if (!packageId) {
+        throw new Error('Package was not created. No ID returned from database.');
+      }
+      console.log('✅ Package ID obtained:', packageId);
+
+      // Verify insert exists (defensive check vs RLS or triggers)
+      console.log('🔍 Verifying package exists...');
+      const { data: verifyPkg, error: verifyErr } = await supabase
+        .from('packages')
+        .select('id')
+        .eq('id', packageId)
+        .maybeSingle();
+      console.log('🔍 Verification result:', { verifyPkg, error: verifyErr });
+      if (verifyErr) throw verifyErr;
+      if (!verifyPkg?.id) {
+        throw new Error('Package creation verification failed. Check RLS permissions and schema.');
+      }
+
       // 3) Insert inclusions
       if (formData.inclusions && formData.inclusions.length > 0) {
+        console.log('📝 Inserting inclusions:', formData.inclusions);
         const inclusionsRows = formData.inclusions.map((inc, i) => ({
           package_id: packageId,
           inclusion: inc,
           order_index: i
         }));
         const { error } = await supabase.from('package_inclusions').insert(inclusionsRows);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Inclusions insert error:', error);
+          throw error;
+        }
+        console.log('✅ Inclusions inserted successfully');
       }
 
       // 4) Insert exclusions
       if (formData.exclusions && formData.exclusions.length > 0) {
+        console.log('📝 Inserting exclusions:', formData.exclusions);
         const exclusionsRows = formData.exclusions.map((exc, i) => ({
           package_id: packageId,
           exclusion: exc,
           order_index: i
         }));
         const { error } = await supabase.from('package_exclusions').insert(exclusionsRows);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Exclusions insert error:', error);
+          throw error;
+        }
+        console.log('✅ Exclusions inserted successfully');
       }
 
       // 5) Insert destinations (as free-text destination names into package_type_details OR link to destinations if you have IDs)
       if (formData.destinations && formData.destinations.length > 0) {
+        console.log('🗺️ Inserting destinations:', formData.destinations);
         // If you maintain a destinations master table, you should resolve names -> destination_id first
         // For now, store them as ordered type details
         const destRows = formData.destinations.map((dest, i) => ({
@@ -1397,11 +1437,16 @@ export default function ModernPackageWizard() {
           field_type: 'text'
         }));
         const { error } = await supabase.from('package_type_details').insert(destRows);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Destinations insert error:', error);
+          throw error;
+        }
+        console.log('✅ Destinations inserted successfully');
       }
 
       // 6) Insert itinerary
       if (formData.itinerary && formData.itinerary.length > 0) {
+        console.log('📅 Inserting itinerary:', formData.itinerary);
         const itineraryRows = formData.itinerary.map((day, i) => ({
           package_id: packageId,
           day_number: day.day ?? i + 1,
@@ -1414,10 +1459,15 @@ export default function ModernPackageWizard() {
           order_index: i
         }));
         const { error } = await supabase.from('package_itinerary').insert(itineraryRows);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Itinerary insert error:', error);
+          throw error;
+        }
+        console.log('✅ Itinerary inserted successfully');
       }
 
       // 7) Type-specific fields -> package_type_details
+      console.log('🔧 Processing type-specific fields for type:', formData.type);
       const typeDetails: Array<{ package_id: string; field_name: string; field_value: string; field_type: string }> = [];
       if (formData.type === PackageType.TRANSFERS) {
         if (formData.place) typeDetails.push({ package_id: packageId, field_name: 'place', field_value: String(formData.place), field_type: 'text' });
@@ -1443,12 +1493,18 @@ export default function ModernPackageWizard() {
         });
       }
       if (typeDetails.length > 0) {
+        console.log('🔧 Inserting type-specific details:', typeDetails);
         const { error } = await supabase.from('package_type_details').insert(typeDetails);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Type details insert error:', error);
+          throw error;
+        }
+        console.log('✅ Type-specific details inserted successfully');
       }
 
       // 8) Pricing slabs beyond the first (if provided)
       if (formData.pricing && formData.pricing.length > 1) {
+        console.log('💰 Inserting extra pricing slabs:', formData.pricing.slice(1));
         const extraPricingRows = formData.pricing.slice(1).map((p, i) => ({
           package_id: packageId,
           field_name: `pricing_slab_${i + 2}`,
@@ -1456,13 +1512,19 @@ export default function ModernPackageWizard() {
           field_type: 'text'
         }));
         const { error } = await supabase.from('package_type_details').insert(extraPricingRows);
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Extra pricing insert error:', error);
+          throw error;
+        }
+        console.log('✅ Extra pricing slabs inserted successfully');
       }
 
       // 9) Upload images to storage and create package_images records
+      console.log('🖼️ Processing images...');
       const imageFiles: File[] = [];
       if (formData.image instanceof File) imageFiles.push(formData.image);
       if (formData.banner instanceof File) imageFiles.push(formData.banner);
+      console.log('🖼️ Found image files:', imageFiles.length);
 
       if (imageFiles.length > 0) {
         const imageRecords: Array<{
@@ -1513,22 +1575,34 @@ export default function ModernPackageWizard() {
 
         // Insert image records
         if (imageRecords.length > 0) {
+          console.log('🖼️ Inserting image records:', imageRecords);
           const { error: imageError } = await supabase
             .from('package_images')
             .insert(imageRecords);
           if (imageError) {
-            console.warn('Failed to create image records:', imageError);
+            console.warn('❌ Failed to create image records:', imageError);
             // Don't throw - images are optional
+          } else {
+            console.log('✅ Image records inserted successfully');
           }
         }
       }
 
+      console.log('🎉 Package creation completed successfully!');
+      console.log('✅ Final package ID:', packageId);
       alert('Package created successfully!');
       router.push('/operator/packages');
     } catch (error: any) {
-      console.error('Error saving package:', error);
+      console.error('💥 CRITICAL ERROR in package save:', error);
+      console.error('💥 Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      });
       alert(error?.message || 'Error saving package. Please try again.');
     } finally {
+      console.log('🏁 Save process finished, setting isSaving to false');
       setIsSaving(false);
     }
   };
