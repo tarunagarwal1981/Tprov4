@@ -91,6 +91,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   logout: () => Promise<void>; // Alias for signOut for compatibility
   updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   hasRole: (role: UserRole) => boolean;
   hasAnyRole: (roles: UserRole[]) => boolean;
   clearError: () => void;
@@ -372,6 +374,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return state.user ? roles.includes(state.user.role) : false;
   };
 
+  // ===== RESET PASSWORD =====
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { success: false, error: error.message };
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // ===== UPDATE PASSWORD =====
+  const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { success: false, error: error.message };
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update password';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+  };
+
   // ===== CLEAR ERROR =====
   const clearError = (): void => {
     dispatch({ type: 'CLEAR_ERROR' });
@@ -389,6 +439,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     logout,
     updateProfile,
+    resetPassword,
+    updatePassword,
     hasRole,
     hasAnyRole,
     clearError,
