@@ -1588,6 +1588,18 @@ export default function ModernPackageWizard() {
         }
       }
 
+      // 10) Activate package so it appears in listings (which default to ACTIVE)
+      console.log('🚦 Activating package to make it visible in listings...');
+      const { error: activateErr } = await supabase
+        .from('packages')
+        .update({ status: 'ACTIVE' })
+        .eq('id', packageId);
+      if (activateErr) {
+        console.warn('⚠️ Failed to activate package (will remain DRAFT):', activateErr);
+      } else {
+        console.log('✅ Package activated');
+      }
+
       console.log('🎉 Package creation completed successfully!');
       console.log('✅ Final package ID:', packageId);
       alert('Package created successfully!');
