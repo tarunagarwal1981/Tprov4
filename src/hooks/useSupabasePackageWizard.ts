@@ -97,8 +97,7 @@ const STEP_VALIDATIONS: StepValidation[] = [
       { field: 'description', type: 'required', message: 'Package description is required' },
       { field: 'description', type: 'min', value: 50, message: 'Description must be at least 50 characters' },
       { field: 'shortDescription', type: 'required', message: 'Short description is required' },
-      { field: 'shortDescription', type: 'min', value: 20, message: 'Short description must be at least 20 characters' },
-      { field: 'bannerImage', type: 'required', message: 'Banner image is required' }
+      { field: 'shortDescription', type: 'min', value: 20, message: 'Short description must be at least 20 characters' }
     ]
   },
   {
