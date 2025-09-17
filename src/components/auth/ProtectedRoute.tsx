@@ -1,6 +1,6 @@
 'use client';
 
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/SupabaseAuthContext';
 import { UserRole } from '@/lib/types';
@@ -31,11 +31,13 @@ export function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const routerRef = useRef(router);
 
   // Handle hydration
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    routerRef.current = router;
+  }, [router]);
 
   console.log('🛡️ ProtectedRoute - Current state:', {
     pathname,
@@ -54,7 +56,7 @@ export function ProtectedRoute({
     if (!state.user) {
       console.log('🚫 Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-      router.push(loginUrl);
+      routerRef.current.push(loginUrl);
       return;
     }
 
@@ -70,7 +72,7 @@ export function ProtectedRoute({
       
       // If redirectTo is specified, use it
       if (redirectTo) {
-        router.push(redirectTo);
+        routerRef.current.push(redirectTo);
         return;
       }
 
@@ -78,17 +80,17 @@ export function ProtectedRoute({
       const userDashboard = defaultRoleRedirects[state.user.role];
       if (userDashboard) {
         console.log('🔄 Redirecting to user role dashboard:', userDashboard);
-        router.push(userDashboard);
+        routerRef.current.push(userDashboard);
         return;
       }
 
       // Fallback to home page
       console.log('🏠 Fallback redirect to home');
-      router.push('/');
+      routerRef.current.push('/');
     } else {
       console.log('✅ User has required role, allowing access');
     }
-  }, [state.user, state.isLoading, requiredRoles, redirectTo, router, pathname, isClient]);
+  }, [state.user, state.isLoading, requiredRoles, redirectTo, pathname, isClient]);
 
   // ===== LOADING STATE =====
   if (state.isLoading || !isClient) {

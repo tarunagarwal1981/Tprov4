@@ -29,6 +29,9 @@ if (!global.__supabaseClient) {
     console.log('Key:', supabaseAnonKey ? '✅ Loaded' : '❌ Missing');
     console.log('✅ Supabase client created successfully');
   }
+} else if (typeof window !== 'undefined') {
+  // Log if client already exists (for debugging)
+  console.log('🔄 Using existing Supabase client instance');
 }
 
 if (!global.__supabaseAdminClient) {
