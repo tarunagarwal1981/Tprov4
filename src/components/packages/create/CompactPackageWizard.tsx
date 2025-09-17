@@ -427,6 +427,256 @@ function LocationTimingStep({ formData, updateFormData, onNext, onPrevious }: St
   );
 }
 
+function DetailedPlanningStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
+  const [localData, setLocalData] = useState({
+    vehicleType: formData.vehicleType || '',
+    acNonAc: formData.acNonAc || '',
+    fuelInclusion: formData.fuelInclusion || false,
+    difficulty: formData.difficulty || 'MODERATE'
+  });
+
+  useEffect(() => {
+    updateFormData({ ...formData, ...localData });
+  }, [localData, updateFormData]);
+
+  const handleNext = () => {
+    updateFormData({ ...formData, ...localData });
+    onNext();
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">Detailed Planning</h2>
+        <p className="text-lg text-gray-600">Configure transportation and activity details</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Transportation Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="vehicleType">Vehicle Type *</Label>
+              <Select
+                value={localData.vehicleType}
+                onValueChange={(value) => setLocalData(prev => ({ ...prev, vehicleType: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select vehicle type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="car">Car</SelectItem>
+                  <SelectItem value="van">Van</SelectItem>
+                  <SelectItem value="bus">Bus</SelectItem>
+                  <SelectItem value="boat">Boat</SelectItem>
+                  <SelectItem value="bicycle">Bicycle</SelectItem>
+                  <SelectItem value="motorcycle">Motorcycle</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="acNonAc">AC/Non-AC *</Label>
+              <Select
+                value={localData.acNonAc}
+                onValueChange={(value) => setLocalData(prev => ({ ...prev, acNonAc: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select AC option" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ac">AC</SelectItem>
+                  <SelectItem value="non-ac">Non-AC</SelectItem>
+                  <SelectItem value="both">Both Available</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="fuelInclusion"
+                checked={localData.fuelInclusion}
+                onChange={(e) => setLocalData(prev => ({ ...prev, fuelInclusion: e.target.checked }))}
+                className="rounded"
+              />
+              <Label htmlFor="fuelInclusion">Fuel Included</Label>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Activity Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="difficulty">Difficulty Level *</Label>
+              <Select
+                value={localData.difficulty}
+                onValueChange={(value) => setLocalData(prev => ({ ...prev, difficulty: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EASY">Easy</SelectItem>
+                  <SelectItem value="MODERATE">Moderate</SelectItem>
+                  <SelectItem value="CHALLENGING">Challenging</SelectItem>
+                  <SelectItem value="EXPERT">Expert</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-semibold text-blue-900 mb-2">Activity Information</h4>
+              <p className="text-sm text-blue-800">
+                This activity package includes transportation and basic planning. 
+                Additional details can be added in the next steps.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onPrevious}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Previous
+        </Button>
+        <Button onClick={handleNext}>
+          Continue
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function InclusionsExclusionsStep({ formData, updateFormData, onNext, onPrevious }: StepProps) {
+  const [localData, setLocalData] = useState({
+    tourInclusions: formData.tourInclusions || [''],
+    mealInclusions: formData.mealInclusions || [''],
+    entryTickets: formData.entryTickets || [''],
+    guideServices: formData.guideServices || [''],
+    tourExclusions: formData.tourExclusions || [''],
+    personalExpenses: formData.personalExpenses || [''],
+    optionalActivities: formData.optionalActivities || ['']
+  });
+
+  useEffect(() => {
+    updateFormData({ ...formData, ...localData });
+  }, [localData, updateFormData]);
+
+  const handleNext = () => {
+    updateFormData({ ...formData, ...localData });
+    onNext();
+  };
+
+  const addItem = (field: keyof typeof localData) => {
+    setLocalData(prev => ({
+      ...prev,
+      [field]: [...prev[field], '']
+    }));
+  };
+
+  const removeItem = (field: keyof typeof localData, index: number) => {
+    setLocalData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateItem = (field: keyof typeof localData, index: number, value: string) => {
+    setLocalData(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => i === index ? value : item)
+    }));
+  };
+
+  const renderListField = (field: keyof typeof localData, label: string, placeholder: string) => (
+    <div>
+      <Label>{label} *</Label>
+      {localData[field].map((item, index) => (
+        <div key={index} className="flex gap-2 mb-2">
+          <Input
+            value={item}
+            onChange={(e) => updateItem(field, index, e.target.value)}
+            placeholder={placeholder}
+          />
+          {localData[field].length > 1 && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => removeItem(field, index)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => addItem(field)}
+        className="w-full"
+      >
+        + Add {label.slice(0, -1)}
+      </Button>
+    </div>
+  );
+
+  return (
+    <div className="space-y-8">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 mb-3">Inclusions & Exclusions</h2>
+        <p className="text-lg text-gray-600">Define what's included and excluded in your activity</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>What's Included</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {renderListField('tourInclusions', 'Tour Inclusions', 'e.g., Transportation, Guide')}
+            {renderListField('mealInclusions', 'Meal Inclusions', 'e.g., Breakfast, Lunch')}
+            {renderListField('entryTickets', 'Entry Tickets', 'e.g., Museum entry, Park fees')}
+            {renderListField('guideServices', 'Guide Services', 'e.g., Professional guide, Local expert')}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>What's Excluded</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {renderListField('tourExclusions', 'Tour Exclusions', 'e.g., Personal expenses, Tips')}
+            {renderListField('personalExpenses', 'Personal Expenses', 'e.g., Shopping, Personal items')}
+            {renderListField('optionalActivities', 'Optional Activities', 'e.g., Additional tours, Upgrades')}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onPrevious}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Previous
+        </Button>
+        <Button onClick={handleNext}>
+          Continue
+          <ArrowRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function PricingStep({ formData, updateFormData, onNext, onPrevious, onPublish }: StepProps) {
   const [localData, setLocalData] = useState({
     basePrice: formData.basePrice || 0,
@@ -586,8 +836,8 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
     'package-type': PackageTypeStep,
     'basic-info': BasicInfoStep,
     'location-timing': LocationTimingStep,
-    'detailed-planning': BasicInfoStep,
-    'inclusions-exclusions': BasicInfoStep,
+    'detailed-planning': DetailedPlanningStep,
+    'inclusions-exclusions': InclusionsExclusionsStep,
     'pricing-policies': PricingStep,
     'review': PricingStep
   };
