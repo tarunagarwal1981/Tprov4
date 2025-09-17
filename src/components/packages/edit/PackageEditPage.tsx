@@ -3,29 +3,253 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PackageService } from '@/lib/services/packageService';
-import { PackageWithDetails } from '@/lib/supabase-types';
 import { PackageFormData } from '@/lib/types/wizard';
 import { PackageType } from '@/lib/types';
-import { convertDbPackageToFormData, getPackageTypeSpecificFields } from '@/lib/utils/packageDataConverter';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, 
   Save, 
   Eye, 
-  Calendar, 
-  MapPin, 
-  Users, 
-  DollarSign,
-  Star,
+  X,
+  Upload,
+  Plus,
+  MapPin,
   Clock,
-  Globe,
-  Camera,
-  BarChart3
+  DollarSign,
+  Calendar,
+  Star,
+  FileText,
+  Package,
+  Plane,
+  Car,
+  Building,
+  CheckCircle,
+  AlertCircle,
+  Trash2,
+  Bed
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+// Reuse components from the creation wizard
+const FormField = ({ label, required = false, children, error }: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+  error?: string;
+}) => (
+  <div className="space-y-1">
+    <label className="text-sm font-medium text-gray-700 flex items-center">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </label>
+    {children}
+    {error && (
+      <div className="flex items-center text-red-600 text-xs mt-1">
+        <AlertCircle className="w-3 h-3 mr-1" />
+        {error}
+      </div>
+    )}
+  </div>
+);
+
+const Input = ({ placeholder, value, onChange, type = "text", ...props }: {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  [key: string]: any;
+}) => (
+  <input
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+    {...props}
+  />
+);
+
+const Textarea = ({ placeholder, value, onChange, rows = 3 }: {
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  rows?: number;
+}) => (
+  <textarea
+    placeholder={placeholder}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    rows={rows}
+    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm resize-none"
+  />
+);
+
+const Select = ({ value, onChange, options, placeholder }: {
+  value: string;
+  onChange: (value: string) => void;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+}) => (
+  <select
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm bg-white"
+  >
+    {placeholder && <option value="">{placeholder}</option>}
+    {options.map((option) => (
+      <option key={option.value} value={option.value}>
+        {option.label}
+      </option>
+    ))}
+  </select>
+);
+
+const ListManager = ({ items, onChange, placeholder }: {
+  items: string[];
+  onChange: (items: string[]) => void;
+  placeholder: string;
+}) => {
+  const [newItem, setNewItem] = useState('');
+
+  const addItem = () => {
+    if (newItem.trim()) {
+      onChange([...items, newItem.trim()]);
+      setNewItem('');
+    }
+  };
+
+  const removeItem = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={newItem}
+          onChange={(e) => setNewItem(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && addItem()}
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+        />
+        <button
+          onClick={addItem}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+      
+      {items.length > 0 && (
+        <div className="space-y-2">
+          {items.map((item, index) => (
+            <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
+              <span className="text-sm text-gray-700">{item}</span>
+              <button
+                onClick={() => removeItem(index)}
+                className="text-red-500 hover:text-red-700 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PricingSection = ({ pricing, onChange }: {
+  pricing: Array<{
+    adultPrice: number;
+    childPrice: number;
+    validFrom: string;
+    validTo: string;
+  }>;
+  onChange: (pricing: typeof pricing) => void;
+}) => {
+  const addPricing = () => {
+    onChange([
+      ...pricing,
+      { adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }
+    ]);
+  };
+
+  const updatePricing = (index: number, field: string, value: any) => {
+    const updated = [...pricing];
+    updated[index] = { ...updated[index], [field]: value };
+    onChange(updated);
+  };
+
+  const removePricing = (index: number) => {
+    onChange(pricing.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-4">
+      {pricing.map((price, index) => (
+        <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+          <div className="flex justify-between items-center">
+            <h4 className="font-medium text-gray-900">Price Slab {index + 1}</h4>
+            {pricing.length > 1 && (
+              <button
+                onClick={() => removePricing(index)}
+                className="text-red-500 hover:text-red-700"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Adult Price" required>
+              <Input
+                type="number"
+                placeholder="0"
+                value={price.adultPrice.toString()}
+                onChange={(value) => updatePricing(index, 'adultPrice', parseFloat(value) || 0)}
+              />
+            </FormField>
+            <FormField label="Child Price">
+              <Input
+                type="number"
+                placeholder="0"
+                value={price.childPrice.toString()}
+                onChange={(value) => updatePricing(index, 'childPrice', parseFloat(value) || 0)}
+              />
+            </FormField>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label="Valid From" required>
+              <Input
+                type="date"
+                value={price.validFrom}
+                onChange={(value) => updatePricing(index, 'validFrom', value)}
+              />
+            </FormField>
+            <FormField label="Valid To" required>
+              <Input
+                type="date"
+                value={price.validTo}
+                onChange={(value) => updatePricing(index, 'validTo', value)}
+              />
+            </FormField>
+          </div>
+        </div>
+      ))}
+      
+      <button
+        onClick={addPricing}
+        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors flex items-center justify-center gap-2"
+      >
+        <Plus className="w-4 h-4" />
+        Add Another Price Slab
+      </button>
+    </div>
+  );
+};
 
 export default function PackageEditPage() {
   const router = useRouter();
@@ -34,6 +258,7 @@ export default function PackageEditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'basic' | 'details' | 'itinerary' | 'pricing'>('basic');
 
   const packageId = searchParams.get('id');
 
@@ -53,26 +278,7 @@ export default function PackageEditPage() {
           setError('Failed to load package details');
           console.error('Error fetching package:', response.error);
         } else {
-          const formData = convertDbPackageToFormData(response.data);
-          setPackageData(formData);
-          // Debug the loaded data
-          if (response.data) {
-            console.log('PackageData loaded in edit page:', {
-              title: typeof formData?.title,
-              description: typeof formData?.description,
-              status: typeof formData?.status,
-              type: typeof formData?.type,
-              adultPrice: typeof formData?.adultPrice,
-              durationDays: typeof formData?.durationDays,
-              minGroupSize: typeof formData?.minGroupSize,
-              maxGroupSize: typeof formData?.maxGroupSize,
-              multipleDestinations: Array.isArray(formData?.multipleDestinations),
-              itinerary: Array.isArray(formData?.itinerary),
-              tourInclusions: Array.isArray(formData?.tourInclusions),
-              tourExclusions: Array.isArray(formData?.tourExclusions),
-              images: Array.isArray(formData?.images),
-            });
-          }
+          setPackageData(response.data);
         }
       } catch (err) {
         setError('An unexpected error occurred');
@@ -85,49 +291,21 @@ export default function PackageEditPage() {
     fetchPackage();
   }, [packageId]);
 
+  const updatePackageData = (updates: Partial<PackageFormData>) => {
+    setPackageData(prev => prev ? { ...prev, ...updates } : null);
+  };
+
   const handleSave = async () => {
     if (!packageData || !packageId) return;
     
     try {
       setSaving(true);
-      const response = await PackageService.updatePackage(packageId, {
-        title: packageData.title,
-        description: packageData.description,
-        pricing: {
-          basePrice: packageData.adultPrice,
-          currency: packageData.currency,
-          groupDiscounts: packageData.groupDiscounts,
-          seasonalPricing: packageData.seasonalPricing
-        },
-        duration: {
-          days: packageData.durationDays,
-          hours: packageData.durationHours
-        },
-        group_size: {
-          min: packageData.minGroupSize,
-          max: packageData.maxGroupSize
-        },
-        destinations: packageData.multipleDestinations,
-        status: packageData.status,
-        type: packageData.type,
-        itinerary: packageData.itinerary,
-        inclusions: packageData.tourInclusions,
-        exclusions: packageData.tourExclusions,
-        terms_and_conditions: packageData.termsAndConditions,
-        cancellation_policy: packageData.cancellationPolicy,
-        images: packageData.images,
-        difficulty: packageData.difficulty,
-        tags: packageData.tags,
-        is_featured: packageData.isFeatured,
-        rating: 0,
-        review_count: 0,
-      });
+      const response = await PackageService.updatePackage(packageId, packageData);
       
       if (response.error) {
         setError('Failed to save package');
         console.error('Error updating package:', response.error);
       } else {
-        // Redirect to package detail page
         router.push(`/operator/packages/view?id=${packageId}`);
       }
     } catch (err) {
@@ -149,10 +327,14 @@ export default function PackageEditPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading package details...</p>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -160,734 +342,409 @@ export default function PackageEditPage() {
   if (error || !packageData) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
           <div className="text-red-500 mb-4">
-            <Eye className="h-12 w-12 mx-auto" />
+            <AlertCircle className="h-12 w-12 mx-auto" />
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Package Not Found</h2>
           <p className="text-gray-600 mb-4">{error || 'The package you are looking for does not exist.'}</p>
-          <Button onClick={() => router.push('/operator/packages')} variant="outline">
-            <ArrowLeft className="w-4 h-4 mr-2" />
+          <button
+            onClick={() => router.push('/operator/packages')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto"
+          >
+            <ArrowLeft className="w-4 h-4" />
             Back to Packages
-          </Button>
-        </div>
+          </button>
+        </motion.div>
       </div>
     );
   }
 
-  const safeRender = (value: any, fallback: string = 'Not specified'): string => {
-    if (value === null || value === undefined) return fallback;
-    if (typeof value === 'object') {
-      console.warn('Attempting to render object:', value);
-      return fallback;
-    }
-    return String(value);
-  };
+  const tabs = [
+    { id: 'basic', label: 'Basic Info', icon: FileText },
+    { id: 'details', label: 'Details', icon: Package },
+    { id: 'itinerary', label: 'Itinerary', icon: Calendar },
+    { id: 'pricing', label: 'Pricing', icon: DollarSign }
+  ];
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(price);
-  };
+  const statusOptions = [
+    { value: 'DRAFT', label: 'Draft' },
+    { value: 'ACTIVE', label: 'Active' },
+    { value: 'INACTIVE', label: 'Inactive' },
+    { value: 'ARCHIVED', label: 'Archived' }
+  ];
 
-  const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return 'Not specified';
-    
-    try {
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
-      
-      // Check if the date is valid
-      if (isNaN(dateObj.getTime())) {
-        return 'Invalid date';
-      }
-      
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }).format(dateObj);
-    } catch (error) {
-      console.error('Error formatting date:', error, date);
-      return 'Invalid date';
-    }
-  };
+  const typeOptions = [
+    { value: PackageType.TRANSFERS, label: 'Transfers' },
+    { value: PackageType.ACTIVITY, label: 'Activities' },
+    { value: PackageType.MULTI_CITY_PACKAGE, label: 'Multi City Package' },
+    { value: PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL, label: 'Multi City + Hotels' },
+    { value: PackageType.FIXED_DEPARTURE_WITH_FLIGHT, label: 'Fixed Departure' }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <button
                 onClick={handleBack}
-                className="flex items-center"
+                className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="w-4 h-4" />
                 Back
-              </Button>
+              </button>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Edit Package</h1>
-                <p className="text-gray-600">{safeRender(packageData.title, 'Untitled Package')}</p>
+                <p className="text-gray-600">{packageData.title}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
+              <button
                 onClick={handleView}
-                className="flex items-center"
+                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
-                <Eye className="w-4 h-4 mr-2" />
+                <Eye className="w-4 h-4" />
                 View Package
-              </Button>
-              <Button 
-                onClick={handleSave} 
+              </button>
+              <button
+                onClick={handleSave}
                 disabled={saving}
-                className="flex items-center"
+                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
-                <Save className="w-4 h-4 mr-2" />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </Button>
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Package Title
-                  </label>
-                  <input
-                    type="text"
-                    value={safeRender(packageData.title, '')}
-                    onChange={(e) => setPackageData({...packageData, title: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={safeRender(packageData.description, '')}
-                    onChange={(e) => setPackageData({...packageData, description: e.target.value})}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Adult Price (USD)
-                    </label>
-                    <input
-                      type="number"
-                      value={packageData.adultPrice || 0}
-                      onChange={(e) => setPackageData({
-                        ...packageData, 
-                        adultPrice: parseFloat(e.target.value) || 0
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Child Price (USD)
-                    </label>
-                    <input
-                      type="number"
-                      value={packageData.childPrice || 0}
-                      onChange={(e) => setPackageData({
-                        ...packageData, 
-                        childPrice: parseFloat(e.target.value) || 0
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Currency
-                    </label>
-                    <select
-                      value={packageData.currency || 'USD'}
-                      onChange={(e) => setPackageData({
-                        ...packageData, 
-                        currency: e.target.value
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                      <option value="INR">INR</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Duration (days)
-                    </label>
-                    <input
-                      type="number"
-                      value={packageData.durationDays || 0}
-                      onChange={(e) => setPackageData({
-                        ...packageData, 
-                        durationDays: parseInt(e.target.value) || 0
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Min Group Size
-                    </label>
-                    <input
-                      type="number"
-                      value={packageData.minGroupSize || 0}
-                      onChange={(e) => setPackageData({
-                        ...packageData, 
-                        minGroupSize: parseInt(e.target.value) || 0
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Max Group Size
-                    </label>
-                    <input
-                      type="number"
-                      value={packageData.maxGroupSize || 0}
-                      onChange={(e) => setPackageData({
-                        ...packageData, 
-                        maxGroupSize: parseInt(e.target.value) || 0
-                      })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Destinations (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={packageData.multipleDestinations?.join(', ') || ''}
-                    onChange={(e) => setPackageData({
-                      ...packageData, 
-                      multipleDestinations: e.target.value.split(',').map(d => d.trim()).filter(d => d)
-                    })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Paris, London, Rome"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Status
-                    </label>
-                    <select
-                      value={safeRender(packageData.status, 'DRAFT')}
-                      onChange={(e) => setPackageData({...packageData, status: e.target.value as any})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="DRAFT">Draft</option>
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
-                      <option value="ARCHIVED">Archived</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Package Type
-                    </label>
-                    <select
-                      value={safeRender(packageData.type, 'ADVENTURE')}
-                      onChange={(e) => setPackageData({...packageData, type: e.target.value as any})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="ADVENTURE">Adventure</option>
-                      <option value="CULTURAL">Cultural</option>
-                      <option value="RELAXATION">Relaxation</option>
-                      <option value="BUSINESS">Business</option>
-                      <option value="LUXURY">Luxury</option>
-                      <option value="BUDGET">Budget</option>
-                    </select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Package Type Specific Fields */}
-            {packageData && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Package Type Specific Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Activity specific fields */}
-                  {packageData.type === PackageType.ACTIVITY && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Start Time
-                        </label>
-                        <input
-                          type="time"
-                          value={packageData.startTime || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            startTime: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          End Time
-                        </label>
-                        <input
-                          type="time"
-                          value={packageData.endTime || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            endTime: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Transfers specific fields */}
-                  {packageData.type === PackageType.TRANSFERS && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          From Location
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.fromLocation || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            fromLocation: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          To Location
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.toLocation || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            toLocation: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Vehicle Type
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.vehicleType || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            vehicleType: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          AC/Non-AC
-                        </label>
-                        <select
-                          value={packageData.acNonAc || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            acNonAc: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select</option>
-                          <option value="AC">AC</option>
-                          <option value="Non-AC">Non-AC</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Driver Details
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.driverDetails || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            driverDetails: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Driver experience, language, etc."
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Fuel Inclusion
-                        </label>
-                        <select
-                          value={packageData.fuelInclusion ? 'true' : 'false'}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            fuelInclusion: e.target.value === 'true'
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="true">Included</option>
-                          <option value="false">Not Included</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Multi City Package specific fields */}
-                  {packageData.type === PackageType.MULTI_CITY_PACKAGE && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          From Location
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.fromLocation || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            fromLocation: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          To Location
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.toLocation || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            toLocation: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Vehicle Type
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.vehicleType || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            vehicleType: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          AC/Non-AC
-                        </label>
-                        <select
-                          value={packageData.acNonAc || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            acNonAc: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select</option>
-                          <option value="AC">AC</option>
-                          <option value="Non-AC">Non-AC</option>
-                        </select>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Multi City Package with Hotel specific fields */}
-                  {packageData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Hotel Category
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.hotelCategory || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            hotelCategory: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Room Type
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.roomType || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            roomType: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Fixed Departure with Flight specific fields */}
-                  {packageData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Departure Airport
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.departureAirport || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            departureAirport: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Arrival Airport
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.arrivalAirport || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            arrivalAirport: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Flight Class
-                        </label>
-                        <input
-                          type="text"
-                          value={packageData.flightClass || ''}
-                          onChange={(e) => setPackageData({
-                            ...packageData, 
-                            flightClass: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Itinerary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Itinerary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {packageData.itinerary && packageData.itinerary.length > 0 ? (
-                    packageData.itinerary.map((day, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="font-semibold text-gray-900">Day {String(day.day || index + 1)}</h4>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const newItinerary = packageData.itinerary?.filter((_, i) => i !== index);
-                              setPackageData({...packageData, itinerary: newItinerary});
-                            }}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                        <textarea
-                          value={safeRender(day.description, '')}
-                          onChange={(e) => {
-                            const newItinerary = [...(packageData.itinerary || [])];
-                            newItinerary[index] = {...day, description: e.target.value};
-                            setPackageData({...packageData, itinerary: newItinerary});
-                          }}
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-center py-8">No itinerary added yet.</p>
-                  )}
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      const newDay = {
-                        day: (packageData.itinerary?.length || 0) + 1,
-                        description: '',
-                        activities: []
-                      };
-                      setPackageData({
-                        ...packageData, 
-                        itinerary: [...(packageData.itinerary || []), newDay]
-                      });
-                    }}
-                    className="w-full"
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-xl shadow-sm border border-gray-200"
+        >
+          {/* Tabs */}
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8 px-6">
+              {tabs.map((tab) => {
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={cn(
+                      "flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors",
+                      activeTab === tab.id
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    )}
                   >
-                    Add Day
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    <IconComponent className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Package Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Package Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <DollarSign className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Adult Price</p>
-                    <p className="text-lg font-semibold">
-                      {packageData.adultPrice ? formatPrice(packageData.adultPrice) : 'Price not set'}
-                    </p>
+          {/* Tab Content */}
+          <div className="p-6">
+            <AnimatePresence mode="wait">
+              {activeTab === 'basic' && (
+                <motion.div
+                  key="basic"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <FormField label="Package Title" required>
+                    <Input
+                      placeholder="Enter package title"
+                      value={packageData.title || ''}
+                      onChange={(value) => updatePackageData({ title: value })}
+                    />
+                  </FormField>
+
+                  <FormField label="Description">
+                    <Textarea
+                      placeholder="Describe your package..."
+                      value={packageData.description || ''}
+                      onChange={(value) => updatePackageData({ description: value })}
+                      rows={4}
+                    />
+                  </FormField>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField label="Package Type" required>
+                      <Select
+                        value={packageData.type || ''}
+                        onChange={(value) => updatePackageData({ type: value as PackageType })}
+                        options={typeOptions}
+                        placeholder="Select type"
+                      />
+                    </FormField>
+
+                    <FormField label="Status" required>
+                      <Select
+                        value={packageData.status || ''}
+                        onChange={(value) => updatePackageData({ status: value })}
+                        options={statusOptions}
+                        placeholder="Select status"
+                      />
+                    </FormField>
                   </div>
-                </div>
-                
-                {packageData.childPrice && packageData.childPrice > 0 && (
-                  <>
-                    <Separator />
-                    <div className="flex items-center space-x-3">
-                      <DollarSign className="w-5 h-5 text-green-600" />
-                      <div>
-                        <p className="text-sm text-gray-500">Child Price</p>
-                        <p className="text-lg font-semibold">{formatPrice(packageData.childPrice)}</p>
-                      </div>
+
+                  {packageData.type === PackageType.TRANSFERS && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField label="From Location" required>
+                        <Input
+                          placeholder="Starting location"
+                          value={packageData.from || ''}
+                          onChange={(value) => updatePackageData({ from: value })}
+                        />
+                      </FormField>
+                      <FormField label="To Location" required>
+                        <Input
+                          placeholder="Destination"
+                          value={packageData.to || ''}
+                          onChange={(value) => updatePackageData({ to: value })}
+                        />
+                      </FormField>
                     </div>
-                  </>
-                )}
-                
-                <Separator />
-                
-                <div className="flex items-center space-x-3">
-                  <Clock className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Duration</p>
-                    <p className="font-semibold">{safeRender(packageData.duration, '0')} days</p>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center space-x-3">
-                  <Users className="w-5 h-5 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Group Size</p>
-                    <p className="font-semibold">
-                      {safeRender(packageData.minGroupSize, '0')} - {safeRender(packageData.maxGroupSize, '0')} people
-                    </p>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center space-x-3">
-                  <MapPin className="w-5 h-5 text-red-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Destinations</p>
-                    <p className="font-semibold">{safeRender(packageData.destinations?.join(', '), 'Not specified')}</p>
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-orange-600" />
-                  <div>
-                    <p className="text-sm text-gray-500">Created</p>
-                    <p className="font-semibold">{formatDate(packageData.createdAt)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  )}
 
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button onClick={handleSave} disabled={saving} className="w-full justify-start">
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
-                <Button variant="outline" onClick={handleView} className="w-full justify-start">
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Package
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  View Analytics
-                </Button>
-              </CardContent>
-            </Card>
+                  {packageData.type === PackageType.ACTIVITY && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField label="Timing" required>
+                        <Input
+                          placeholder="e.g., 9:00 AM - 5:00 PM"
+                          value={packageData.timing || ''}
+                          onChange={(value) => updatePackageData({ timing: value })}
+                        />
+                      </FormField>
+                      <FormField label="Duration (Hours)" required>
+                        <Input
+                          type="number"
+                          placeholder="8"
+                          value={packageData.durationHours?.toString() || ''}
+                          onChange={(value) => updatePackageData({ durationHours: parseInt(value) || 0 })}
+                        />
+                      </FormField>
+                    </div>
+                  )}
+
+                  <FormField label="Location/Place">
+                    <Input
+                      placeholder="Package location"
+                      value={packageData.place || ''}
+                      onChange={(value) => updatePackageData({ place: value })}
+                    />
+                  </FormField>
+                </motion.div>
+              )}
+
+              {activeTab === 'details' && (
+                <motion.div
+                  key="details"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <FormField label="Destinations">
+                    <ListManager
+                      items={packageData.destinations || []}
+                      onChange={(destinations) => updatePackageData({ destinations })}
+                      placeholder="Add destination..."
+                    />
+                  </FormField>
+
+                  <FormField label="Inclusions">
+                    <ListManager
+                      items={packageData.inclusions || []}
+                      onChange={(inclusions) => updatePackageData({ inclusions })}
+                      placeholder="Add inclusion..."
+                    />
+                  </FormField>
+
+                  <FormField label="Exclusions">
+                    <ListManager
+                      items={packageData.exclusions || []}
+                      onChange={(exclusions) => updatePackageData({ exclusions })}
+                      placeholder="Add exclusion..."
+                    />
+                  </FormField>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField label="Duration (Days)">
+                      <Input
+                        type="number"
+                        placeholder="7"
+                        value={packageData.days?.toString() || ''}
+                        onChange={(value) => updatePackageData({ days: parseInt(value) || 0 })}
+                      />
+                    </FormField>
+                    <FormField label="Max Group Size">
+                      <Input
+                        type="number"
+                        placeholder="15"
+                        value={packageData.maxGroupSize?.toString() || ''}
+                        onChange={(value) => updatePackageData({ maxGroupSize: parseInt(value) || 0 })}
+                      />
+                    </FormField>
+                  </div>
+                </motion.div>
+              )}
+
+              {activeTab === 'itinerary' && (
+                <motion.div
+                  key="itinerary"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-medium text-gray-900">Day-wise Itinerary</h3>
+                    <button
+                      onClick={() => {
+                        const newDay = {
+                          day: (packageData.itinerary?.length || 0) + 1,
+                          title: '',
+                          description: '',
+                          activities: []
+                        };
+                        updatePackageData({
+                          itinerary: [...(packageData.itinerary || []), newDay]
+                        });
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Day
+                    </button>
+                  </div>
+
+                  {(packageData.itinerary || []).map((day, index) => (
+                    <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium text-gray-900">Day {day.day}</h4>
+                        <button
+                          onClick={() => {
+                            const updated = (packageData.itinerary || []).filter((_, i) => i !== index);
+                            updatePackageData({ itinerary: updated });
+                          }}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <FormField label="Day Title">
+                        <Input
+                          placeholder="e.g., Arrival in Delhi"
+                          value={day.title}
+                          onChange={(value) => {
+                            const updated = [...(packageData.itinerary || [])];
+                            updated[index] = { ...updated[index], title: value };
+                            updatePackageData({ itinerary: updated });
+                          }}
+                        />
+                      </FormField>
+
+                      <FormField label="Description">
+                        <Textarea
+                          placeholder="Describe the day's activities..."
+                          value={day.description}
+                          onChange={(value) => {
+                            const updated = [...(packageData.itinerary || [])];
+                            updated[index] = { ...updated[index], description: value };
+                            updatePackageData({ itinerary: updated });
+                          }}
+                        />
+                      </FormField>
+
+                      <FormField label="Activities">
+                        <ListManager
+                          items={day.activities || []}
+                          onChange={(activities) => {
+                            const updated = [...(packageData.itinerary || [])];
+                            updated[index] = { ...updated[index], activities };
+                            updatePackageData({ itinerary: updated });
+                          }}
+                          placeholder="Add activity..."
+                        />
+                      </FormField>
+                    </div>
+                  ))}
+
+                  {(!packageData.itinerary || packageData.itinerary.length === 0) && (
+                    <div className="text-center py-12 text-gray-500">
+                      <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                      <p>No itinerary added yet. Click "Add Day" to start planning.</p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {activeTab === 'pricing' && (
+                <motion.div
+                  key="pricing"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <FormField label="Package Pricing" required>
+                    <PricingSection
+                      pricing={packageData.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+                      onChange={(pricing) => updatePackageData({ pricing })}
+                    />
+                  </FormField>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
+        </motion.div>
+
+        {/* Floating Save Button for Mobile */}
+        <div className="fixed bottom-6 right-6 md:hidden">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            {saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                Save
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
