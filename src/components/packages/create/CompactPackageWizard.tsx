@@ -404,15 +404,19 @@ export default function CompactPackageWizard({ className }: CompactPackageWizard
     lastSaved,
     errors,
     isValid,
+    actions,
+    form
+  } = useSupabasePackageWizard();
+
+  const {
     goToStep,
     nextStep,
     previousStep,
     updateFormData,
     saveDraft,
     publishPackage,
-    resetWizard,
-    form
-  } = useSupabasePackageWizard();
+    resetWizard
+  } = actions;
 
   // Simple step mapping
   const stepComponents = {
