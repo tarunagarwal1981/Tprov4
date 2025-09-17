@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -96,50 +96,61 @@ interface PricingInfo {
   notes?: string;
 }
 
+// Package types data - moved outside component to prevent re-creation on every render
+const packageTypes = [
+  {
+    type: PackageType.TRANSFERS,
+    title: 'Transfers',
+    description: 'Airport pickups, city transfers, transportation services',
+    icon: Car,
+    color: 'blue',
+    features: ['Point to point', 'Quick setup', 'Simple pricing']
+  },
+  {
+    type: PackageType.ACTIVITY,
+    title: 'Activities',
+    description: 'Day trips, tours, experiences, adventure activities',
+    icon: Star,
+    color: 'green',
+    features: ['Duration based', 'Inclusions/exclusions', 'Flexible timing']
+  },
+  {
+    type: PackageType.MULTI_CITY_PACKAGE,
+    title: 'Multi City Package',
+    description: 'Multi-day tours covering multiple destinations',
+    icon: Package,
+    color: 'purple',
+    features: ['Multiple destinations', 'Day-wise itinerary', 'Tour inclusions']
+  },
+  {
+    type: PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL,
+    title: 'Multi City + Hotels',
+    description: 'Complete packages with accommodation included',
+    icon: Building,
+    color: 'orange',
+    features: ['Hotels included', 'Full packages', 'End-to-end service']
+  },
+  {
+    type: PackageType.FIXED_DEPARTURE_WITH_FLIGHT,
+    title: 'Fixed Departure',
+    description: 'Pre-scheduled group tours with fixed dates',
+    icon: Plane,
+    color: 'red',
+    features: ['Fixed dates', 'Group tours', 'International flights']
+  }
+];
+
+// Places data - moved outside component to prevent re-creation on every render
+const places = [
+  { value: 'mumbai', label: 'Mumbai' },
+  { value: 'delhi', label: 'Delhi' },
+  { value: 'bangalore', label: 'Bangalore' },
+  { value: 'goa', label: 'Goa' },
+  { value: 'kerala', label: 'Kerala' }
+];
+
 // Package type selection component
 const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => void }) => {
-  const packageTypes = [
-    {
-      type: PackageType.TRANSFERS,
-      title: 'Transfers',
-      description: 'Airport pickups, city transfers, transportation services',
-      icon: Car,
-      color: 'blue',
-      features: ['Point to point', 'Quick setup', 'Simple pricing']
-    },
-    {
-      type: PackageType.ACTIVITY,
-      title: 'Activities',
-      description: 'Day trips, tours, experiences, adventure activities',
-      icon: Star,
-      color: 'green',
-      features: ['Duration based', 'Inclusions/exclusions', 'Flexible timing']
-    },
-    {
-      type: PackageType.MULTI_CITY_PACKAGE,
-      title: 'Multi City Package',
-      description: 'Multi-day tours covering multiple destinations',
-      icon: Package,
-      color: 'purple',
-      features: ['Multiple destinations', 'Day-wise itinerary', 'Tour inclusions']
-    },
-    {
-      type: PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL,
-      title: 'Multi City + Hotels',
-      description: 'Complete packages with accommodation included',
-      icon: Building,
-      color: 'orange',
-      features: ['Hotels included', 'Full packages', 'End-to-end service']
-    },
-    {
-      type: PackageType.FIXED_DEPARTURE_WITH_FLIGHT,
-      title: 'Fixed Departure',
-      description: 'Pre-scheduled group tours with fixed dates',
-      icon: Plane,
-      color: 'red',
-      features: ['Fixed dates', 'Group tours', 'International flights']
-    }
-  ];
 
   const getColorClasses = (color: string, type: 'bg' | 'text') => {
     const colorMap = {
@@ -446,13 +457,6 @@ const TransferForm = ({ data, onChange }: {
   data: PackageFormData;
   onChange: (data: Partial<PackageFormData>) => void;
 }) => {
-  const places = [
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'goa', label: 'Goa' },
-    { value: 'kerala', label: 'Kerala' }
-  ];
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -526,13 +530,6 @@ const ActivityForm = ({ data, onChange }: {
   data: PackageFormData;
   onChange: (data: Partial<PackageFormData>) => void;
 }) => {
-  const places = [
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'goa', label: 'Goa' },
-    { value: 'kerala', label: 'Kerala' }
-  ];
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -643,12 +640,12 @@ const MultiCityPackageForm = ({ data, onChange }: {
     onChange({ itinerary: updated });
   };
 
-  const tabs = [
+  const tabs = useMemo(() => [
     { id: 'overview', label: 'Overview', icon: FileText },
     { id: 'destinations', label: 'Destinations', icon: MapPin },
     { id: 'itinerary', label: 'Itinerary', icon: Calendar },
     { id: 'pricing', label: 'Pricing', icon: DollarSign }
-  ];
+  ], []);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -865,13 +862,13 @@ const MultiCityPackageWithHotelForm = ({ data, onChange }: {
     onChange({ itinerary: updated });
   };
 
-  const tabs = [
+  const tabs = useMemo(() => [
     { id: 'overview', label: 'Overview', icon: FileText },
     { id: 'destinations', label: 'Destinations', icon: MapPin },
     { id: 'itinerary', label: 'Itinerary', icon: Calendar },
     { id: 'hotels', label: 'Hotels', icon: Bed },
     { id: 'pricing', label: 'Pricing', icon: DollarSign }
-  ];
+  ], []);
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
