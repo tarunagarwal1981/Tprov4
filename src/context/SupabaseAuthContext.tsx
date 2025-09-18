@@ -108,7 +108,6 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const [isInitialized, setIsInitialized] = useState(false);
   const renderCountRef = useRef(0);
 
   // Circuit breaker to prevent infinite loops
@@ -190,8 +189,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     let mounted = true;
 
-    // Only run on client side and only once
-    if (typeof window === 'undefined' || isInitialized) {
+    // Only run on client side
+    if (typeof window === 'undefined') {
       return;
     }
 
@@ -220,8 +219,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           if (session?.user) {
             await loadUserProfile(session.user);
           }
-          
-          setIsInitialized(true);
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
@@ -238,7 +235,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        if (!mounted || typeof window === 'undefined' || !isInitialized) return;
+        if (!mounted || typeof window === 'undefined') return;
 
         dispatch({ 
           type: 'SET_SESSION', 
