@@ -74,48 +74,44 @@ export function ProtectedRoute({
     // Don't redirect while loading or before client hydration
     if (state.isLoading || !isClient) return;
 
-    const timeoutId = setTimeout(() => {
-      // If not authenticated, redirect to login
-      if (!state.user) {
-        console.log('🚫 Not authenticated, redirecting to login');
-        const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-        router.push(loginUrl);
+    // If not authenticated, redirect to login
+    if (!state.user) {
+      console.log('🚫 Not authenticated, redirecting to login');
+      const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+      router.push(loginUrl);
+      return;
+    }
+
+    // If user is authenticated but no specific roles required, allow access
+    if (!requiredRoles || requiredRoles.length === 0) {
+      console.log('✅ No role requirements, allowing access');
+      return;
+    }
+
+    // Check if user has required role
+    if (!requiredRoles.includes(state.user.role)) {
+      console.log('❌ User does not have required role, redirecting');
+      
+      // If redirectTo is specified, use it
+      if (redirectTo) {
+        router.push(redirectTo);
         return;
       }
 
-      // If user is authenticated but no specific roles required, allow access
-      if (!requiredRoles || requiredRoles.length === 0) {
-        console.log('✅ No role requirements, allowing access');
+      // Otherwise, redirect based on user's role
+      const userDashboard = defaultRoleRedirects[state.user.role];
+      if (userDashboard) {
+        console.log('🔄 Redirecting to user role dashboard:', userDashboard);
+        router.push(userDashboard);
         return;
       }
 
-      // Check if user has required role
-      if (!requiredRoles.includes(state.user.role)) {
-        console.log('❌ User does not have required role, redirecting');
-        
-        // If redirectTo is specified, use it
-        if (redirectTo) {
-          router.push(redirectTo);
-          return;
-        }
-
-        // Otherwise, redirect based on user's role
-        const userDashboard = defaultRoleRedirects[state.user.role];
-        if (userDashboard) {
-          console.log('🔄 Redirecting to user role dashboard:', userDashboard);
-          router.push(userDashboard);
-          return;
-        }
-
-        // Fallback to home page
-        console.log('🏠 Fallback redirect to home');
-        router.push('/');
-      } else {
-        console.log('✅ User has required role, allowing access');
-      }
-    }, 0);
-
-    return () => clearTimeout(timeoutId);
+      // Fallback to home page
+      console.log('🏠 Fallback redirect to home');
+      router.push('/');
+    } else {
+      console.log('✅ User has required role, allowing access');
+    }
   }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo, router]);
 
   // ===== LOADING STATE =====

@@ -132,8 +132,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      dispatch({ type: 'SET_LOADING', payload: true });
-      
       // Debug: Log the user metadata
       console.log('🔍 Supabase user metadata:', supabaseUser.user_metadata);
       console.log('🔍 User email:', supabaseUser.email);
