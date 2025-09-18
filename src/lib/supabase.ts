@@ -11,13 +11,12 @@ class SupabaseClientSingleton {
   private static isInitialized = false;
 
   static getInstance() {
-    if (!SupabaseClientSingleton.instance) {
-      // Check if we're in browser environment and if client already exists globally
-      if (typeof window !== 'undefined' && (window as any).__supabaseClient) {
-        SupabaseClientSingleton.instance = (window as any).__supabaseClient;
-        return SupabaseClientSingleton.instance;
-      }
+    // Check if we're in browser environment and if client already exists globally
+    if (typeof window !== 'undefined' && (window as any).__supabaseClient) {
+      return (window as any).__supabaseClient;
+    }
 
+    if (!SupabaseClientSingleton.instance) {
       SupabaseClientSingleton.instance = createClient(supabaseUrl, supabaseAnonKey, {
         auth: {
           persistSession: true,

@@ -31,7 +31,6 @@ export function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const routerRef = useRef(router);
   const renderCountRef = useRef(0);
 
   // Circuit breaker to prevent infinite loops
@@ -51,7 +50,6 @@ export function ProtectedRoute({
   // Handle hydration - use a more robust approach
   useEffect(() => {
     setIsClient(true);
-    routerRef.current = router;
   }, []);
 
   // Prevent hydration mismatch by not rendering until client-side
@@ -80,7 +78,7 @@ export function ProtectedRoute({
     if (!state.user) {
       console.log('🚫 Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
-      routerRef.current.push(loginUrl);
+      router.push(loginUrl);
       return;
     }
 
@@ -96,7 +94,7 @@ export function ProtectedRoute({
       
       // If redirectTo is specified, use it
       if (redirectTo) {
-        routerRef.current.push(redirectTo);
+        router.push(redirectTo);
         return;
       }
 
@@ -104,13 +102,13 @@ export function ProtectedRoute({
       const userDashboard = defaultRoleRedirects[state.user.role];
       if (userDashboard) {
         console.log('🔄 Redirecting to user role dashboard:', userDashboard);
-        routerRef.current.push(userDashboard);
+        router.push(userDashboard);
         return;
       }
 
       // Fallback to home page
       console.log('🏠 Fallback redirect to home');
-      routerRef.current.push('/');
+      router.push('/');
     } else {
       console.log('✅ User has required role, allowing access');
     }
