@@ -103,6 +103,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   });
   
   return newState;
+}
 
 // ===== AUTH CONTEXT INTERFACE =====
 interface AuthContextType {
