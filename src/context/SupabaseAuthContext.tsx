@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useReducer, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useReducer, useState, useRef, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { User, UserRole } from '@/lib/types';
@@ -109,6 +109,21 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [isInitialized, setIsInitialized] = useState(false);
+  const renderCountRef = useRef(0);
+
+  // Circuit breaker to prevent infinite loops
+  renderCountRef.current += 1;
+  if (renderCountRef.current > 100) {
+    console.error('🚨 AuthProvider: Potential infinite render loop detected, breaking');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Auth Loop Detected</h2>
+          <p className="text-gray-600">Please refresh the page</p>
+        </div>
+      </div>
+    );
+  }
 
   // ===== LOAD USER PROFILE =====
   const loadUserProfile = async (supabaseUser: SupabaseUser) => {

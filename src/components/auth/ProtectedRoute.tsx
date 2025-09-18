@@ -32,12 +32,27 @@ export function ProtectedRoute({
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
   const routerRef = useRef(router);
+  const renderCountRef = useRef(0);
+
+  // Circuit breaker to prevent infinite loops
+  renderCountRef.current += 1;
+  if (renderCountRef.current > 50) {
+    console.error('🚨 ProtectedRoute: Potential infinite render loop detected, breaking');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Render Loop Detected</h2>
+          <p className="text-gray-600">Please refresh the page</p>
+        </div>
+      </div>
+    );
+  }
 
   // Handle hydration - use a more robust approach
   useEffect(() => {
     setIsClient(true);
     routerRef.current = router;
-  }, [router]);
+  }, []);
 
   // Prevent hydration mismatch by not rendering until client-side
   if (!isClient) {
