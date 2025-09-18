@@ -31,10 +31,6 @@ export function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const routerRef = useRef(router);
-  const pathnameRef = useRef(pathname);
-  const requiredRolesRef = useRef(requiredRoles);
-  const redirectToRef = useRef(redirectTo);
   const renderCountRef = useRef(0);
 
   // Circuit breaker to prevent infinite loops
@@ -50,12 +46,6 @@ export function ProtectedRoute({
       </div>
     );
   }
-
-  // Update refs when values change
-  routerRef.current = router;
-  pathnameRef.current = pathname;
-  requiredRolesRef.current = requiredRoles;
-  redirectToRef.current = redirectTo;
 
   // Handle hydration - use a more robust approach
   useEffect(() => {
@@ -84,29 +74,28 @@ export function ProtectedRoute({
     // Don't redirect while loading or before client hydration
     if (state.isLoading || !isClient) return;
 
-    // Use a timeout to prevent immediate re-renders
     const timeoutId = setTimeout(() => {
       // If not authenticated, redirect to login
       if (!state.user) {
         console.log('🚫 Not authenticated, redirecting to login');
-        const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathnameRef.current)}`;
-        routerRef.current.push(loginUrl);
+        const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+        router.push(loginUrl);
         return;
       }
 
       // If user is authenticated but no specific roles required, allow access
-      if (!requiredRolesRef.current || requiredRolesRef.current.length === 0) {
+      if (!requiredRoles || requiredRoles.length === 0) {
         console.log('✅ No role requirements, allowing access');
         return;
       }
 
       // Check if user has required role
-      if (!requiredRolesRef.current.includes(state.user.role)) {
+      if (!requiredRoles.includes(state.user.role)) {
         console.log('❌ User does not have required role, redirecting');
         
         // If redirectTo is specified, use it
-        if (redirectToRef.current) {
-          routerRef.current.push(redirectToRef.current);
+        if (redirectTo) {
+          router.push(redirectTo);
           return;
         }
 
@@ -114,20 +103,20 @@ export function ProtectedRoute({
         const userDashboard = defaultRoleRedirects[state.user.role];
         if (userDashboard) {
           console.log('🔄 Redirecting to user role dashboard:', userDashboard);
-          routerRef.current.push(userDashboard);
+          router.push(userDashboard);
           return;
         }
 
         // Fallback to home page
         console.log('🏠 Fallback redirect to home');
-        routerRef.current.push('/');
+        router.push('/');
       } else {
         console.log('✅ User has required role, allowing access');
       }
     }, 0);
 
     return () => clearTimeout(timeoutId);
-  }, [state.user, state.isLoading]);
+  }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo, router]);
 
   // ===== LOADING STATE =====
   if (state.isLoading) {
@@ -153,7 +142,7 @@ export function ProtectedRoute({
   }
 
   // ===== ROLE CHECK =====
-  if (requiredRolesRef.current && requiredRolesRef.current.length > 0 && !requiredRolesRef.current.includes(state.user.role)) {
+  if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(state.user.role)) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">

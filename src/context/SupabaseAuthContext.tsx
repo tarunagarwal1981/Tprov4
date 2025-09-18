@@ -136,7 +136,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       // Debug: Log the user metadata
       console.log('🔍 Supabase user metadata:', supabaseUser.user_metadata);
-      console.log('🔍 Supabase user raw metadata:', supabaseUser.raw_user_meta_data);
       console.log('🔍 User email:', supabaseUser.email);
       
       // Get user role from the users table in Supabase
@@ -149,14 +148,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error) {
         console.error('❌ Error loading user profile from database:', error);
         dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
-        dispatch({ type: 'SET_LOADING', payload: false });
         return;
       }
 
       if (!userProfile) {
         console.error('❌ User profile not found in database');
         dispatch({ type: 'SET_ERROR', payload: 'User profile not found' });
-        dispatch({ type: 'SET_LOADING', payload: false });
         return;
       }
 
@@ -184,7 +181,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
-      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -235,7 +231,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event: string, session: Session | null) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
         if (!mounted || typeof window === 'undefined') return;
