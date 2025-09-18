@@ -170,22 +170,35 @@ export default function PackagesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+      
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="relative z-10 backdrop-blur-xl border-b border-white/20"
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+      }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Package Management</h1>
-                <p className="mt-2 text-gray-600">
+                <h1 className="text-2xl font-bold text-gray-900">Package Management</h1>
+                <p className="mt-1 text-gray-600 text-sm">
                   Manage your travel packages, view analytics, and track performance
                 </p>
               </div>
               <Button 
                 onClick={handleCreatePackage}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white backdrop-blur-sm"
                 size="lg"
+                style={{
+                  boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                }}
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Create Package
@@ -193,77 +206,103 @@ export default function PackagesPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <PackageIcon className="h-8 w-8 text-blue-600" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Total Packages</p>
-                      <p className="text-2xl font-semibold text-gray-900">{stats.totalPackages}</p>
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="h-8 w-8 bg-blue-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    }}>
+                      <PackageIcon className="h-5 w-5 text-blue-600" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="ml-3">
+                    <p className="text-xs font-medium text-gray-500">Total Packages</p>
+                    <p className="text-xl font-semibold text-gray-900">{stats.totalPackages}</p>
+                  </div>
+                </div>
+              </div>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <div className="h-4 w-4 bg-green-600 rounded-full"></div>
-                      </div>
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Active Packages</p>
-                      <p className="text-2xl font-semibold text-gray-900">{stats.activePackages}</p>
+              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(34,197,94,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(34,197,94,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="h-8 w-8 bg-green-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(34,197,94,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    }}>
+                      <div className="h-4 w-4 bg-green-600 rounded-full"></div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="ml-3">
+                    <p className="text-xs font-medium text-gray-500">Active Packages</p>
+                    <p className="text-xl font-semibold text-gray-900">{stats.activePackages}</p>
+                  </div>
+                </div>
+              </div>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <DollarSign className="h-8 w-8 text-green-600" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Total Revenue</p>
-                      <p className="text-2xl font-semibold text-gray-900">
-                        ${stats.totalRevenue.toLocaleString()}
-                      </p>
+              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(34,197,94,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(34,197,94,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="h-8 w-8 bg-green-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(34,197,94,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    }}>
+                      <DollarSign className="h-5 w-5 text-green-600" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="ml-3">
+                    <p className="text-xs font-medium text-gray-500">Total Revenue</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      ${stats.totalRevenue.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <TrendingUp className="h-8 w-8 text-yellow-600" />
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-500">Avg Rating</p>
-                      <p className="text-2xl font-semibold text-gray-900">
-                        {stats.averageRating.toFixed(1)}
-                      </p>
+              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(245,158,11,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="h-8 w-8 bg-yellow-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(245,158,11,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    }}>
+                      <TrendingUp className="h-5 w-5 text-yellow-600" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="ml-3">
+                    <p className="text-xs font-medium text-gray-500">Avg Rating</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {stats.averageRating.toFixed(1)}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
         {/* Search and Controls */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Search */}
             <div className="flex-1 max-w-md">
@@ -274,14 +313,17 @@ export default function PackagesPage() {
             </div>
 
             {/* Controls */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               {/* Sort */}
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-700">Sort by:</label>
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 backdrop-blur-sm bg-white/10"
+                  style={{
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  }}
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -292,18 +334,36 @@ export default function PackagesPage() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex items-center border border-gray-300 rounded-md">
+              <div className="flex items-center border border-white/20 rounded-xl backdrop-blur-sm"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+              }}>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`p-2 rounded-xl transition-all duration-200 ${
+                    viewMode === 'grid' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
+                      : 'text-gray-600 hover:bg-white/20'
+                  }`}
+                  style={viewMode === 'grid' ? {
+                    boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  } : {}}
                 >
-                  <Grid3X3 className="w-5 h-5" />
+                  <Grid3X3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`p-2 rounded-xl transition-all duration-200 ${
+                    viewMode === 'list' 
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
+                      : 'text-gray-600 hover:bg-white/20'
+                  }`}
+                  style={viewMode === 'list' ? {
+                    boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  } : {}}
                 >
-                  <List className="w-5 h-5" />
+                  <List className="w-4 h-4" />
                 </button>
               </div>
 
@@ -311,12 +371,20 @@ export default function PackagesPage() {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="relative"
+                className="relative backdrop-blur-sm border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                }}
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
                 {getFilterCount() > 0 && (
-                  <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs">
+                  <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs backdrop-blur-sm"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(239,68,68,0.8) 0%, rgba(220,38,38,0.8) 100%)',
+                    boxShadow: '0 2px 8px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  }}>
                     {getFilterCount()}
                   </Badge>
                 )}
