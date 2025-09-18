@@ -32,6 +32,9 @@ export function ProtectedRoute({
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
   const routerRef = useRef(router);
+  const pathnameRef = useRef(pathname);
+  const requiredRolesRef = useRef(requiredRoles);
+  const redirectToRef = useRef(redirectTo);
   const renderCountRef = useRef(0);
 
   // Circuit breaker to prevent infinite loops
@@ -48,8 +51,11 @@ export function ProtectedRoute({
     );
   }
 
-  // Update router ref when router changes
+  // Update refs when values change
   routerRef.current = router;
+  pathnameRef.current = pathname;
+  requiredRolesRef.current = requiredRoles;
+  redirectToRef.current = redirectTo;
 
   // Handle hydration - use a more robust approach
   useEffect(() => {
@@ -81,24 +87,24 @@ export function ProtectedRoute({
     // If not authenticated, redirect to login
     if (!state.user) {
       console.log('🚫 Not authenticated, redirecting to login');
-      const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+      const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathnameRef.current)}`;
       routerRef.current.push(loginUrl);
       return;
     }
 
     // If user is authenticated but no specific roles required, allow access
-    if (!requiredRoles || requiredRoles.length === 0) {
+    if (!requiredRolesRef.current || requiredRolesRef.current.length === 0) {
       console.log('✅ No role requirements, allowing access');
       return;
     }
 
     // Check if user has required role
-    if (!requiredRoles.includes(state.user.role)) {
+    if (!requiredRolesRef.current.includes(state.user.role)) {
       console.log('❌ User does not have required role, redirecting');
       
       // If redirectTo is specified, use it
-      if (redirectTo) {
-        routerRef.current.push(redirectTo);
+      if (redirectToRef.current) {
+        routerRef.current.push(redirectToRef.current);
         return;
       }
 
@@ -116,7 +122,7 @@ export function ProtectedRoute({
     } else {
       console.log('✅ User has required role, allowing access');
     }
-  }, [state.user, state.isLoading, requiredRoles, redirectTo, pathname, isClient]);
+  }, [state.user, state.isLoading, isClient]);
 
   // ===== LOADING STATE =====
   if (state.isLoading) {
@@ -142,7 +148,7 @@ export function ProtectedRoute({
   }
 
   // ===== ROLE CHECK =====
-  if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(state.user.role)) {
+  if (requiredRolesRef.current && requiredRolesRef.current.length > 0 && !requiredRolesRef.current.includes(state.user.role)) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
