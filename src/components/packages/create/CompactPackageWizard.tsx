@@ -2036,8 +2036,8 @@ const FixedDepartureForm = ({ data, onChange }: FormProps) => {
   );
 };
 
-// Main wizard component
-export default function CompactPackageWizard() {
+// Inner component that uses toast
+function CompactPackageWizardContent() {
   const router = useRouter();
   const { addToast } = useToast();
   const [step, setStep] = useState<'type' | 'form'>('type');
@@ -2230,8 +2230,7 @@ export default function CompactPackageWizard() {
   };
 
   return (
-    <ToastProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
         <AnimatePresence mode="wait">
           {step === 'type' && (
             <motion.div
@@ -2314,6 +2313,14 @@ export default function CompactPackageWizard() {
           )}
         </AnimatePresence>
       </div>
+  );
+}
+
+// Main wizard component with ToastProvider wrapper
+export default function CompactPackageWizard() {
+  return (
+    <ToastProvider>
+      <CompactPackageWizardContent />
     </ToastProvider>
   );
 }
