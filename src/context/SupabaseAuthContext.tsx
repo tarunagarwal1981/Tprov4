@@ -58,7 +58,9 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         session: action.payload.session,
         supabaseUser: action.payload.user,
         isAuthenticated: !!action.payload.session,
-        isLoading: false,
+        // Keep loading true if we have a session (user profile needs to be loaded)
+        // Set loading false if no session (signed out)
+        isLoading: action.payload.session ? true : false,
       };
       break;
 
