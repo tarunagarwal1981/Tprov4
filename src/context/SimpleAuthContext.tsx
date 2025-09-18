@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { UserRole } from '@/lib/types';
@@ -292,9 +292,9 @@ export function SimpleAuthProvider({ children }: AuthProviderProps) {
   };
 
   // ===== CLEAR ERROR =====
-  const clearError = (): void => {
+  const clearError = useCallback((): void => {
     setState(prev => ({ ...prev, error: null }));
-  };
+  }, []);
 
   const value: AuthContextType = {
     state,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useReducer, useState, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useReducer, useState, useRef, useCallback, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { User, UserRole } from '@/lib/types';
@@ -481,9 +481,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // ===== CLEAR ERROR =====
-  const clearError = (): void => {
+  const clearError = useCallback((): void => {
     dispatch({ type: 'CLEAR_ERROR' });
-  };
+  }, []);
 
   // ===== LOGOUT ALIAS =====
   const logout = async (): Promise<void> => {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
 import { User, UserRole } from '@/lib/types';
 
 // Authentication state interface
@@ -346,9 +346,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   // Clear error function
-  const clearError = (): void => {
+  const clearError = useCallback((): void => {
     dispatch({ type: 'AUTH_CLEAR_ERROR' });
-  };
+  }, []);
 
   // Role checking functions
   const hasRole = (role: UserRole): boolean => {
