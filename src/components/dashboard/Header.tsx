@@ -15,7 +15,7 @@ import {
   Home,
   Building2
 } from 'lucide-react';
-import { useSimpleAuth } from '@/context/SimpleAuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -27,7 +27,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { state, signOut } = useSimpleAuth();
+  const { state, signOut } = useAuth();
   const router = useRouter();
 
   const handleLogout = () => {

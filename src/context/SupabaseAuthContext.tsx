@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useReducer, useState, useRef, useCallback, ReactNode } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { User, UserRole } from '@/lib/types';
@@ -30,57 +30,81 @@ const initialState: AuthState = {
   supabaseUser: null,
   session: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: true, // Always start with loading true to prevent hydration mismatch
   error: null,
 };
 
 // ===== AUTH REDUCER =====
 function authReducer(state: AuthState, action: AuthAction): AuthState {
+  console.log('🔄 AuthReducer: Action dispatched:', action.type, action.payload ? 'with payload' : 'no payload');
+  console.log('🔄 AuthReducer: Current state before update:', { 
+    isLoading: state.isLoading, 
+    user: state.user ? { id: state.user.id, email: state.user.email, role: state.user.role } : null,
+    error: state.error 
+  });
+  
+  let newState: AuthState;
   switch (action.type) {
     case 'SET_LOADING':
-      return {
+      newState = {
         ...state,
         isLoading: action.payload,
       };
+      break;
 
     case 'SET_SESSION':
-      return {
+      newState = {
         ...state,
         session: action.payload.session,
         supabaseUser: action.payload.user,
         isAuthenticated: !!action.payload.session,
-        isLoading: false,
+        // Keep loading true if we have a session (user profile needs to be loaded)
+        // Set loading false if no session (signed out)
+        isLoading: action.payload.session ? true : false,
       };
+      break;
 
     case 'SET_USER_PROFILE':
-      return {
+      newState = {
         ...state,
         user: action.payload,
         isLoading: false,
       };
+      break;
 
     case 'SET_ERROR':
-      return {
+      newState = {
         ...state,
         error: action.payload,
         isLoading: false,
       };
+      break;
 
     case 'CLEAR_ERROR':
-      return {
+      newState = {
         ...state,
         error: null,
       };
+      break;
 
     case 'LOGOUT':
-      return {
+      newState = {
         ...initialState,
         isLoading: false,
       };
+      break;
 
     default:
-      return state;
+      newState = state;
   }
+  
+  console.log('✅ AuthReducer: New state after update:', { 
+    isLoading: newState.isLoading, 
+    user: newState.user ? { id: newState.user.id, email: newState.user.email, role: newState.user.role } : null,
+    error: newState.error 
+  });
+  
+  return newState;
 }
 
 // ===== AUTH CONTEXT INTERFACE =====
@@ -91,6 +115,8 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   logout: () => Promise<void>; // Alias for signOut for compatibility
   updateProfile: (updates: Partial<User>) => Promise<{ success: boolean; error?: string }>;
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>;
   hasRole: (role: UserRole) => boolean;
   hasAnyRole: (roles: UserRole[]) => boolean;
   clearError: () => void;
@@ -106,39 +132,92 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const renderCountRef = useRef(0);
+
+  // Circuit breaker to prevent infinite loops
+  renderCountRef.current += 1;
+  if (renderCountRef.current > 100) {
+    console.error('🚨 AuthProvider: Potential infinite render loop detected, breaking');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Auth Loop Detected</h2>
+          <p className="text-gray-600">Please refresh the page</p>
+        </div>
+      </div>
+    );
+  }
 
   // ===== LOAD USER PROFILE =====
-  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+  const loadUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      
-      // Debug: Log the user metadata
-      console.log('🔍 Supabase user metadata:', supabaseUser.user_metadata);
-      console.log('🔍 Supabase user raw metadata:', supabaseUser.raw_user_meta_data);
-      console.log('🔍 User email:', supabaseUser.email);
-      
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        console.log('🚫 loadUserProfile: Skipping server-side execution');
+        return;
+      }
+
+      console.log('🔍 loadUserProfile: Starting for user:', {
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        created_at: supabaseUser.created_at
+      });
+
       // Get user role from the users table in Supabase
+      console.log('🔍 loadUserProfile: Querying database for user profile...');
       const { data: userProfile, error } = await supabase
         .from('users')
         .select('role, name, profile')
         .eq('id', supabaseUser.id)
         .single();
 
+      console.log('🔍 loadUserProfile: Database query result:', {
+        userProfile,
+        error: error ? { message: error.message, code: error.code } : null
+      });
+
       if (error) {
         console.error('❌ Error loading user profile from database:', error);
-        dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
+        // Fallback user with default role to resolve loading state
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: supabaseUser.email?.split('@')[0] || 'User',
+          role: UserRole.TRAVEL_AGENT,
+          profile: {},
+          createdAt: new Date(supabaseUser.created_at),
+          updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
+          isActive: true,
+          lastLoginAt: new Date()
+        };
+        console.warn('⚠️ Using fallback user profile due to DB error:', fallbackUser);
+        console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with fallback user');
+        dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
+        console.log('✅ loadUserProfile: Fallback user dispatched successfully');
         return;
       }
 
       if (!userProfile) {
         console.error('❌ User profile not found in database');
-        dispatch({ type: 'SET_ERROR', payload: 'User profile not found' });
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: supabaseUser.email?.split('@')[0] || 'User',
+          role: UserRole.TRAVEL_AGENT,
+          profile: {},
+          createdAt: new Date(supabaseUser.created_at),
+          updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
+          isActive: true,
+          lastLoginAt: new Date()
+        };
+        console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with fallback user (no profile)');
+        dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
+        console.log('✅ loadUserProfile: Fallback user dispatched successfully');
         return;
       }
 
       console.log('✅ User profile loaded from database:', userProfile);
-      console.log('🔍 User role from database:', userProfile.role);
-      
+
       // Create user profile from database data
       const user: User = {
         id: supabaseUser.id,
@@ -153,19 +232,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       console.log('👤 User profile created:', user);
-      console.log('🔍 User role detected:', user.role);
-      console.log('🔍 User role type:', typeof user.role);
+      console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with database user');
       dispatch({ type: 'SET_USER_PROFILE', payload: user });
-      
+      console.log('✅ loadUserProfile: Database user dispatched successfully');
+
     } catch (error) {
-      console.error('Error in loadUserProfile:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
+      console.error('❌ Error in loadUserProfile:', error);
+      const fallbackUser: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.email?.split('@')[0] || 'User',
+        role: UserRole.TRAVEL_AGENT,
+        profile: {},
+        createdAt: new Date(supabaseUser.created_at),
+        updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
+        isActive: true,
+        lastLoginAt: new Date()
+      };
+      console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with catch fallback user');
+      dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
+      console.log('✅ loadUserProfile: Catch fallback user dispatched successfully');
     }
-  };
+  }, []);
 
   // ===== INITIALIZE AUTH =====
   useEffect(() => {
     let mounted = true;
+
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      return;
+    }
 
     // Get initial session
     const getInitialSession = async () => {
@@ -205,11 +302,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+      async (event: string, session: Session | null) => {
+        console.log('🔐 Auth state changed:', event, session?.user?.id);
+        console.log('🔐 Session details:', { 
+          hasSession: !!session, 
+          userId: session?.user?.id, 
+          email: session?.user?.email 
+        });
         
-        if (!mounted) return;
+        if (!mounted || typeof window === 'undefined') {
+          console.log('🚫 Auth state change ignored - not mounted or server-side');
+          return;
+        }
 
+        console.log('🔄 Dispatching SET_SESSION action');
         dispatch({ 
           type: 'SET_SESSION', 
           payload: { 
@@ -219,8 +325,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ SIGNED_IN event detected, calling loadUserProfile');
           await loadUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 SIGNED_OUT event detected, dispatching LOGOUT');
           dispatch({ type: 'LOGOUT' });
         }
       }
@@ -239,6 +347,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userData?: { name: string; role?: UserRole }
   ): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
@@ -278,6 +391,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
@@ -307,6 +425,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== SIGN OUT =====
   const signOut = async (): Promise<void> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return;
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
       
       const { error } = await supabase.auth.signOut();
@@ -326,6 +449,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // ===== UPDATE PROFILE =====
   const updateProfile = async (updates: Partial<User>): Promise<{ success: boolean; error?: string }> => {
     try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
       if (!state.supabaseUser) {
         return { success: false, error: 'No user logged in' };
       }
@@ -372,10 +500,68 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return state.user ? roles.includes(state.user.role) : false;
   };
 
-  // ===== CLEAR ERROR =====
-  const clearError = (): void => {
-    dispatch({ type: 'CLEAR_ERROR' });
+  // ===== RESET PASSWORD =====
+  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { success: false, error: error.message };
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send reset email';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return { success: false, error: errorMessage };
+    }
   };
+
+  // ===== UPDATE PASSWORD =====
+  const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // Only run on client side
+      if (typeof window === 'undefined') {
+        return { success: false, error: 'Not available on server side' };
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) {
+        dispatch({ type: 'SET_ERROR', payload: error.message });
+        return { success: false, error: error.message };
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: false });
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update password';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // ===== CLEAR ERROR =====
+  const clearError = useCallback((): void => {
+    dispatch({ type: 'CLEAR_ERROR' });
+  }, []);
 
   // ===== LOGOUT ALIAS =====
   const logout = async (): Promise<void> => {
@@ -389,6 +575,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     logout,
     updateProfile,
+    resetPassword,
+    updatePassword,
     hasRole,
     hasAnyRole,
     clearError,

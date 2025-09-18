@@ -3,12 +3,12 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CompactPackageWizard from '@/components/packages/create/CompactPackageWizard';
-import { useSimpleAuth } from '@/context/SimpleAuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 import { UserRole } from '@/lib/types';
 
 export default function CreatePackagePage() {
   const router = useRouter();
-  const { state } = useSimpleAuth();
+  const { state } = useAuth();
 
   // Check authentication and authorization
   useEffect(() => {
@@ -23,7 +23,7 @@ export default function CreatePackagePage() {
       router.push('/operator/dashboard');
       return;
     }
-  }, [state.user, state.isLoading, router]);
+  }, [state.user, state.isLoading]);
 
   // Show loading state
   if (state.isLoading) {

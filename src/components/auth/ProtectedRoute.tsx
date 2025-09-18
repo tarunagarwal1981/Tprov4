@@ -1,10 +1,11 @@
 'use client';
 
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/SupabaseAuthContext';
 import { UserRole } from '@/lib/types';
 
+// ===== INTERFACES =====
 interface ProtectedRouteProps {
   children: ReactNode;
   requiredRoles?: UserRole[];
@@ -12,12 +13,8 @@ interface ProtectedRouteProps {
   fallback?: ReactNode;
 }
 
-interface RoleBasedRedirects {
-  [key: string]: string;
-}
-
-// Default redirect paths based on user roles
-const defaultRoleRedirects: RoleBasedRedirects = {
+// ===== ROLE-BASED REDIRECTS =====
+const defaultRoleRedirects: Record<UserRole, string> = {
   [UserRole.SUPER_ADMIN]: '/admin/dashboard',
   [UserRole.ADMIN]: '/admin/dashboard',
   [UserRole.TOUR_OPERATOR]: '/operator/dashboard',
@@ -30,27 +27,68 @@ export function ProtectedRoute({
   redirectTo,
   fallback,
 }: ProtectedRouteProps) {
-  const { state, hasAnyRole } = useAuth();
+  console.log('🛡️ ProtectedRoute: Component function called');
+  
+  // ALL HOOKS MUST BE CALLED FIRST - Before any conditional returns
+  const { state } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-
-  console.log('🛡️ ProtectedRoute - Current state:', {
-    pathname,
-    isAuthenticated: state.isAuthenticated,
-    user: state.user,
-    userProfile: state.user?.profile,
+  const [isClient, setIsClient] = useState(false);
+  const renderCountRef = useRef(0);
+  const effectRunCountRef = useRef(0);
+  const prevDepsRef = useRef<any>({});
+  
+  console.log('🛡️ ProtectedRoute: useAuth state:', {
     isLoading: state.isLoading,
-    requiredRoles,
-    hasRequiredRole: requiredRoles ? hasAnyRole(requiredRoles) : 'N/A'
+    hasUser: !!state.user,
+    userRole: state.user?.role
   });
+  console.log('🛡️ ProtectedRoute: useRouter called');
+  console.log('🛡️ ProtectedRoute: usePathname called, pathname:', pathname);
 
+  // Circuit breaker to prevent infinite loops
+  renderCountRef.current += 1;
+  console.log(`🛡️ ProtectedRoute: Render count: ${renderCountRef.current}`);
+  
+  if (renderCountRef.current > 50) {
+    console.error('🚨 ProtectedRoute: Potential infinite render loop detected, breaking');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Render Loop Detected</h2>
+          <p className="text-gray-600">Please refresh the page</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ALL useEffect HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  // Handle hydration - use a more robust approach
   useEffect(() => {
-    // Don't redirect while loading
-    if (state.isLoading) return;
+    console.log('🛡️ ProtectedRoute: setIsClient useEffect running');
+    setIsClient(true);
+  }, []);
+
+  // ===== REDIRECT LOGIC USEEFFECT =====
+  useEffect(() => {
+    effectRunCountRef.current += 1;
+    console.log(`🛡️ ProtectedRoute useEffect triggered (run #${effectRunCountRef.current})`);
+    
+    // Circuit breaker for useEffect
+    if (effectRunCountRef.current > 10) {
+      console.error('🚨 ProtectedRoute: useEffect running too many times, breaking');
+      return;
+    }
+    
+    // Don't redirect while loading or before client hydration
+    if (state.isLoading || !isClient) {
+      console.log('⏳ ProtectedRoute: Skipping redirect - loading or not client-side');
+      return;
+    }
 
     // If not authenticated, redirect to login
-    if (!state.isAuthenticated) {
-      console.log('🚫 Not authenticated, redirecting to login');
+    if (!state.user) {
+      console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
       router.push(loginUrl);
       return;
@@ -58,13 +96,14 @@ export function ProtectedRoute({
 
     // If user is authenticated but no specific roles required, allow access
     if (!requiredRoles || requiredRoles.length === 0) {
-      console.log('✅ No role requirements, allowing access');
+      console.log('✅ ProtectedRoute: No role requirements, allowing access');
       return;
     }
 
     // Check if user has required role
-    if (!hasAnyRole(requiredRoles)) {
-      console.log('❌ User does not have required role, redirecting');
+    if (!requiredRoles.includes(state.user.role)) {
+      console.log('❌ ProtectedRoute: User does not have required role, redirecting');
+      
       // If redirectTo is specified, use it
       if (redirectTo) {
         router.push(redirectTo);
@@ -72,32 +111,79 @@ export function ProtectedRoute({
       }
 
       // Otherwise, redirect based on user's role
-      const userRole = state.user?.role;
-      if (userRole && defaultRoleRedirects[userRole]) {
-        console.log('🔄 Redirecting to user role dashboard:', defaultRoleRedirects[userRole]);
-        router.push(defaultRoleRedirects[userRole]);
+      const userDashboard = defaultRoleRedirects[state.user.role];
+      if (userDashboard) {
+        console.log('🔄 ProtectedRoute: Redirecting to user role dashboard:', userDashboard);
+        router.push(userDashboard);
         return;
       }
 
       // Fallback to home page
-      console.log('🏠 Fallback redirect to home');
+      console.log('🏠 ProtectedRoute: Fallback redirect to home');
       router.push('/');
     } else {
-      console.log('✅ User has required role, allowing access');
+      console.log('✅ ProtectedRoute: User has required role, allowing access');
     }
-  }, [state.isAuthenticated, state.isLoading, state.user, requiredRoles, redirectTo, router, pathname, hasAnyRole]);
+  }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo]);
 
-  // Show loading state
-  if (state.isLoading) {
+  // Store previous dependencies to detect changes
+  const currentDeps = {
+    user: state.user,
+    isLoading: state.isLoading,
+    isClient,
+    pathname,
+    requiredRoles,
+    redirectTo
+  };
+  
+  // Log what changed
+  const changedDeps = Object.keys(currentDeps).filter(key => {
+    const changed = prevDepsRef.current[key] !== currentDeps[key];
+    if (changed) {
+      console.log(`🔄 ProtectedRoute: Dependency changed - ${key}:`, {
+        old: prevDepsRef.current[key],
+        new: currentDeps[key]
+      });
+    }
+    return changed;
+  });
+  
+  prevDepsRef.current = currentDeps;
+
+  // Prevent hydration mismatch by not rendering until client-side
+  if (!isClient) {
+    console.log('🛡️ ProtectedRoute: Not client-side yet, showing hydration spinner');
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  console.log('🛡️ ProtectedRoute: Client-side confirmed, proceeding with logic');
+
+  console.log('🛡️ ProtectedRoute - Current state:', {
+    pathname,
+    user: state.user,
+    isLoading: state.isLoading,
+    requiredRoles,
+    isClient,
+  });
+
+
+  // ===== LOADING STATE =====
+  if (state.isLoading) {
+    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname);
+    
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  // Show fallback if not authenticated
-  if (!state.isAuthenticated) {
+  // ===== NOT AUTHENTICATED =====
+  if (!state.user) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -108,8 +194,8 @@ export function ProtectedRoute({
     );
   }
 
-  // Check role requirements
-  if (requiredRoles && requiredRoles.length > 0 && !hasAnyRole(requiredRoles)) {
+  // ===== ROLE CHECK =====
+  if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(state.user.role)) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -120,11 +206,12 @@ export function ProtectedRoute({
     );
   }
 
-  // Render children if all checks pass
+  // ===== RENDER CHILDREN =====
+  console.log('✅ ProtectedRoute: Rendering children');
   return <>{children}</>;
 }
 
-// Higher-order component for easier usage
+// ===== HIGHER-ORDER COMPONENT =====
 export function withAuth<P extends object>(
   Component: React.ComponentType<P>,
   options?: {
@@ -142,50 +229,4 @@ export function withAuth<P extends object>(
   WrappedComponent.displayName = `withAuth(${Component.displayName || Component.name})`;
   
   return WrappedComponent;
-}
-
-// Hook for checking authentication status
-export function useAuthGuard(requiredRoles?: UserRole[]) {
-  const { state, hasAnyRole } = useAuth();
-  const router = useRouter();
-
-  const checkAccess = (): boolean => {
-    if (state.isLoading) return false;
-    if (!state.isAuthenticated) return false;
-    if (!requiredRoles || requiredRoles.length === 0) return true;
-    return hasAnyRole(requiredRoles);
-  };
-
-  const redirectIfUnauthorized = (redirectTo?: string) => {
-    if (state.isLoading) return;
-
-    if (!state.isAuthenticated) {
-      const loginUrl = `/auth/login?redirect=${encodeURIComponent(window.location.pathname)}`;
-      router.push(loginUrl);
-      return;
-    }
-
-    if (requiredRoles && requiredRoles.length > 0 && !hasAnyRole(requiredRoles)) {
-      if (redirectTo) {
-        router.push(redirectTo);
-        return;
-      }
-
-      const userRole = state.user?.role;
-      if (userRole && defaultRoleRedirects[userRole]) {
-        router.push(defaultRoleRedirects[userRole]);
-        return;
-      }
-
-      router.push('/');
-    }
-  };
-
-  return {
-    isAuthorized: checkAccess(),
-    isLoading: state.isLoading,
-    isAuthenticated: state.isAuthenticated,
-    user: state.user,
-    redirectIfUnauthorized,
-  };
 }

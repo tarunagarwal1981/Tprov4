@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,8 +23,114 @@ import {
   CheckCircle,
   AlertCircle,
   Trash2,
-  Bed
+  Bed,
+  Check,
+  AlertTriangle,
+  Info
 } from 'lucide-react';
+
+// Toast notification system
+const ToastContext = createContext<{
+  addToast: (message: string, type?: 'success' | 'error' | 'warning' | 'info') => void;
+} | null>(null);
+
+interface ToastProps {
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  onClose: () => void;
+}
+
+const Toast = ({ message, type, onClose }: ToastProps) => {
+  const icons = {
+    success: <CheckCircle className="w-5 h-5" />,
+    error: <AlertCircle className="w-5 h-5" />,
+    warning: <AlertTriangle className="w-5 h-5" />,
+    info: <Info className="w-5 h-5" />
+  };
+
+  const colors = {
+    success: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+    error: 'bg-red-50 border-red-200 text-red-800',
+    warning: 'bg-amber-50 border-amber-200 text-amber-800',
+    info: 'bg-blue-50 border-blue-200 text-blue-800'
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(onClose, 4000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -50, scale: 0.9 }}
+      className={`fixed top-4 right-4 z-50 max-w-md rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl bg-white/10 ${colors[type]} p-4`}
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          {icons[type]}
+        </div>
+        <div className="flex-1 text-sm font-medium">
+          {message}
+        </div>
+        <button
+          onClick={onClose}
+          className="flex-shrink-0 ml-2 opacity-70 hover:opacity-100 transition-opacity"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
+interface ToastItem {
+  id: number;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+}
+
+const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+
+  const addToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+  };
+
+  const removeToast = (id: number) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  return (
+    <ToastContext.Provider value={{ addToast }}>
+      {children}
+      <AnimatePresence>
+        {toasts.map(toast => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </AnimatePresence>
+    </ToastContext.Provider>
+  );
+};
+
+const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within a ToastProvider');
+  }
+  return context;
+};
 
 // Enums - matching your original code structure
 export enum PackageType {
@@ -98,6 +204,8 @@ interface PricingInfo {
 
 // Package type selection component
 const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => void }) => {
+  const [selectedType, setSelectedType] = useState<PackageType | null>(null);
+
   const packageTypes = [
     {
       type: PackageType.TRANSFERS,
@@ -141,53 +249,143 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
     }
   ];
 
-  const getColorClasses = (color: string, type: 'bg' | 'text') => {
-    const colorMap = {
-      blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
-      green: { bg: 'bg-green-100', text: 'text-green-600' },
-      purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
-      orange: { bg: 'bg-orange-100', text: 'text-orange-600' },
-      red: { bg: 'bg-red-100', text: 'text-red-600' }
+  const getColorClasses = (color: string, type: 'bg' | 'text' | 'border' | 'selected') => {
+    const colorMap: Record<string, Record<string, string>> = {
+      blue: { 
+        bg: 'bg-blue-50', 
+        text: 'text-blue-600', 
+        border: 'border-blue-200',
+        selected: 'ring-2 ring-blue-500 bg-blue-50 border-blue-300'
+      },
+      green: { 
+        bg: 'bg-emerald-50', 
+        text: 'text-emerald-600', 
+        border: 'border-emerald-200',
+        selected: 'ring-2 ring-emerald-500 bg-emerald-50 border-emerald-300'
+      },
+      purple: { 
+        bg: 'bg-purple-50', 
+        text: 'text-purple-600', 
+        border: 'border-purple-200',
+        selected: 'ring-2 ring-purple-500 bg-purple-50 border-purple-300'
+      },
+      orange: { 
+        bg: 'bg-orange-50', 
+        text: 'text-orange-600', 
+        border: 'border-orange-200',
+        selected: 'ring-2 ring-orange-500 bg-orange-50 border-orange-300'
+      },
+      red: { 
+        bg: 'bg-red-50', 
+        text: 'text-red-600', 
+        border: 'border-red-200',
+        selected: 'ring-2 ring-red-500 bg-red-50 border-red-300'
+      }
     };
-    return colorMap[color as keyof typeof colorMap]?.[type] || 'bg-gray-100';
+    return colorMap[color]?.[type] || 'bg-gray-50';
+  };
+
+  const handleSelect = (type: PackageType) => {
+    setSelectedType(type);
+    setTimeout(() => onSelect(type), 300);
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">Create New Package</h1>
-        <p className="text-gray-600 text-lg">Choose the type of package you want to create</p>
-      </div>
+    <div className="max-w-6xl mx-auto px-4 py-4">
+      {/* Compact Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-6"
+      >
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Create Package</h1>
+        <p className="text-gray-600 max-w-xl mx-auto text-sm">Select the package type that best fits your offering</p>
+      </motion.div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {packageTypes.map((pkg) => {
+      {/* Compact Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {packageTypes.map((pkg, index) => {
           const IconComponent = pkg.icon;
+          const isSelected = selectedType === pkg.type;
+          
           return (
             <motion.div
               key={pkg.type}
-              whileHover={{ scale: 1.02, y: -4 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ 
+                y: -8, 
+                scale: 1.03,
+                rotateX: 5,
+                rotateY: 2,
+                transition: { duration: 0.3, ease: "easeOut" }
+              }}
               whileTap={{ scale: 0.98 }}
-              className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-lg transition-all duration-200"
-              onClick={() => onSelect(pkg.type)}
+              className={`group relative backdrop-blur-xl rounded-2xl border border-white/20 transition-all duration-300 cursor-pointer overflow-hidden ${
+                isSelected 
+                  ? getColorClasses(pkg.color, 'selected')
+                  : 'hover:border-white/30'
+              }`}
+              style={{
+                background: isSelected 
+                  ? `linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)`
+                  : `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)`,
+                boxShadow: isSelected 
+                  ? '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.2)',
+                transformStyle: 'preserve-3d'
+              }}
+              onClick={() => handleSelect(pkg.type)}
             >
-              <div className={`inline-flex p-3 rounded-xl ${getColorClasses(pkg.color, 'bg')} mb-4`}>
-                <IconComponent className={`w-6 h-6 ${getColorClasses(pkg.color, 'text')}`} />
-              </div>
-              
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">{pkg.title}</h3>
-              <p className="text-gray-600 mb-4 text-sm leading-relaxed">{pkg.description}</p>
-              
-              <div className="space-y-2">
-                {pkg.features.map((feature, index) => (
-                  <div key={index} className="flex items-center text-sm text-gray-500">
-                    <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                    {feature}
+              <div className="p-5">
+                {/* Compact Icon and Title */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`inline-flex p-2.5 rounded-xl transition-all duration-300 backdrop-blur-sm ${
+                    isSelected ? getColorClasses(pkg.color, 'bg') : 'bg-white/20 group-hover:' + getColorClasses(pkg.color, 'bg')
+                  }`}
+                  style={{
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  }}>
+                    <IconComponent className={`w-4 h-4 transition-colors duration-300 ${
+                      isSelected ? getColorClasses(pkg.color, 'text') : 'text-gray-500 group-hover:' + getColorClasses(pkg.color, 'text')
+                    }`} />
                   </div>
-                ))}
-              </div>
-              
-              <div className={`mt-6 text-center py-2 px-4 rounded-lg ${getColorClasses(pkg.color, 'bg')} ${getColorClasses(pkg.color, 'text')} font-medium text-sm`}>
-                Select {pkg.title}
+                  <h3 className="text-base font-semibold text-gray-900">{pkg.title}</h3>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`ml-auto p-1 rounded-full backdrop-blur-sm ${getColorClasses(pkg.color, 'bg')}`}
+                      style={{
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      }}
+                    >
+                      <Check className={`w-2.5 h-2.5 ${getColorClasses(pkg.color, 'text')}`} />
+                    </motion.div>
+                  )}
+                </div>
+                
+                {/* Compact Description */}
+                <p className="text-xs text-gray-600 mb-3 leading-relaxed">{pkg.description}</p>
+                
+                {/* Compact Features */}
+                <div className="space-y-1.5">
+                  {pkg.features.map((feature, featureIndex) => (
+                    <motion.div 
+                      key={featureIndex} 
+                      className="flex items-center text-xs text-gray-500"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: (index * 0.1) + (featureIndex * 0.05) }}
+                    >
+                      <div className={`w-1 h-1 rounded-full mr-2 transition-colors duration-300 ${
+                        isSelected ? getColorClasses(pkg.color, 'text').replace('text-', 'bg-') : 'bg-gray-300'
+                      }`} />
+                      {feature}
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </motion.div>
           );
@@ -197,70 +395,114 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
   );
 };
 
-// Form components
-const FormField = ({ label, required = false, children, error }: {
+// Enhanced form components
+interface FormFieldProps {
   label: string;
   required?: boolean;
   children: React.ReactNode;
   error?: string;
-}) => (
-  <div className="space-y-1">
-    <label className="text-sm font-medium text-gray-700 flex items-center">
+  description?: string;
+}
+
+const FormField = ({ label, required = false, children, error, description }: FormFieldProps) => (
+  <div className="space-y-1.5">
+    <label className="flex items-center gap-1 text-sm font-medium text-gray-700">
       {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
+      {required && <span className="text-red-500 text-xs">*</span>}
     </label>
-    {children}
-    {error && (
-      <div className="flex items-center text-red-600 text-xs mt-1">
-        <AlertCircle className="w-3 h-3 mr-1" />
-        {error}
-      </div>
+    {description && (
+      <p className="text-xs text-gray-500">{description}</p>
     )}
+    {children}
+    <AnimatePresence>
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="flex items-center text-red-600 text-xs"
+        >
+          <AlertCircle className="w-3 h-3 mr-1 flex-shrink-0" />
+          {error}
+        </motion.div>
+      )}
+    </AnimatePresence>
   </div>
 );
 
-const Input = ({ placeholder, value, onChange, type = "text", ...props }: {
+interface InputProps {
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
+  error?: string;
+  style?: React.CSSProperties;
   [key: string]: any;
-}) => (
+}
+
+const Input = ({ placeholder, value, onChange, type = "text", error, ...props }: InputProps) => (
   <input
     type={type}
     placeholder={placeholder}
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm ${
+      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
+    }`}
+    style={{
+      boxShadow: error 
+        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
     {...props}
   />
 );
 
-const Textarea = ({ placeholder, value, onChange, rows = 3 }: {
+interface TextareaProps {
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
   rows?: number;
-}) => (
+  error?: string;
+}
+
+const Textarea = ({ placeholder, value, onChange, rows = 3, error }: TextareaProps) => (
   <textarea
     placeholder={placeholder}
     value={value}
     onChange={(e) => onChange(e.target.value)}
     rows={rows}
-    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm resize-none"
+    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm resize-none ${
+      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
+    }`}
+    style={{
+      boxShadow: error 
+        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
   />
 );
 
-const Select = ({ value, onChange, options, placeholder }: {
+interface SelectProps {
   value: string;
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   placeholder?: string;
-}) => (
+  error?: string;
+}
+
+const Select = ({ value, onChange, options, placeholder, error }: SelectProps) => (
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm bg-white"
+    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm ${
+      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
+    }`}
+    style={{
+      boxShadow: error 
+        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
   >
     {placeholder && <option value="">{placeholder}</option>}
     {options.map((option) => (
@@ -271,45 +513,106 @@ const Select = ({ value, onChange, options, placeholder }: {
   </select>
 );
 
-const ImageUpload = ({ onUpload, preview }: {
+interface ImageUploadProps {
   onUpload: (file: File) => void;
-  preview?: string;
-}) => (
-  <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-    {preview ? (
-      <div className="relative">
-        <img src={preview} alt="Preview" className="max-h-32 mx-auto rounded-lg" />
-        <button className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    ) : (
-      <div>
-        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-        <p className="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
-        <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
-      </div>
-    )}
-    <input
-      type="file"
-      accept="image/*"
-      onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])}
-      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-    />
-  </div>
-);
+  preview?: string | File;
+  label?: string;
+}
 
-const ListManager = ({ items, onChange, placeholder }: {
+const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: ImageUploadProps) => {
+  const [dragOver, setDragOver] = useState(false);
+  
+  const previewUrl = typeof preview === 'string' ? preview : 
+                     preview instanceof File ? URL.createObjectURL(preview) : '';
+
+  return (
+    <div 
+      className={`relative border-2 border-dashed border-white/30 rounded-2xl p-6 text-center transition-all duration-300 cursor-pointer group backdrop-blur-sm ${
+        dragOver ? 'border-blue-400/50 bg-blue-50/20' : 'hover:border-white/50 hover:bg-white/10'
+      }`}
+      style={{
+        background: dragOver 
+          ? 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)'
+          : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+        boxShadow: dragOver 
+          ? '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          onUpload(file);
+        }
+      }}
+    >
+      {previewUrl ? (
+        <div className="relative">
+          <img src={previewUrl} alt="Preview" className="max-h-40 mx-auto rounded-xl shadow-md" />
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle remove logic here if needed
+            }}
+            className="absolute -top-2 -right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className={`inline-flex p-3 rounded-xl transition-colors backdrop-blur-sm ${
+            dragOver ? 'bg-blue-100/30' : 'bg-white/20 group-hover:bg-blue-50/30'
+          }`}
+          style={{
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}>
+            <Upload className={`w-6 h-6 transition-colors ${
+              dragOver ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-500'
+            }`} />
+          </div>
+          <div>
+            <p className="font-medium text-gray-700 mb-1 text-sm">{label}</p>
+            <p className="text-xs text-gray-500">Drag & drop or click to browse</p>
+            <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+          </div>
+        </div>
+      )}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+    </div>
+  );
+};
+
+interface ListManagerProps {
   items: string[];
   onChange: (items: string[]) => void;
   placeholder: string;
-}) => {
+  title?: string;
+}
+
+const ListManager = ({ items, onChange, placeholder, title }: ListManagerProps) => {
   const [newItem, setNewItem] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
 
   const addItem = () => {
     if (newItem.trim()) {
       onChange([...items, newItem.trim()]);
       setNewItem('');
+      setIsAdding(false);
     }
   };
 
@@ -318,47 +621,95 @@ const ListManager = ({ items, onChange, placeholder }: {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex gap-2">
-        <input
-          type="text"
-          placeholder={placeholder}
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && addItem()}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-        />
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        {title && <h4 className="font-medium text-gray-900">{title}</h4>}
         <button
-          onClick={addItem}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={() => setIsAdding(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 backdrop-blur-sm rounded-xl transition-colors border border-blue-200/30"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)',
+            boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
         >
           <Plus className="w-4 h-4" />
+          Add {title || 'Item'}
         </button>
       </div>
+
+      <AnimatePresence>
+        {isAdding && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="flex gap-2"
+          >
+            <Input
+              placeholder={placeholder}
+              value={newItem}
+              onChange={setNewItem}
+              onKeyPress={(e: React.KeyboardEvent) => e.key === 'Enter' && addItem()}
+            />
+            <button
+              onClick={addItem}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-colors flex-shrink-0 backdrop-blur-sm"
+              style={{
+                boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => {
+                setIsAdding(false);
+                setNewItem('');
+              }}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors flex-shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {items.length > 0 && (
         <div className="space-y-2">
-          {items.map((item, index) => (
-            <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
-              <span className="text-sm text-gray-700">{item}</span>
-              <button
-                onClick={() => removeItem(index)}
-                className="text-red-500 hover:text-red-700 transition-colors"
+          <AnimatePresence>
+            {items.map((item, index) => (
+              <motion.div
+                key={`${item}-${index}`}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="flex items-center justify-between backdrop-blur-sm px-4 py-3 rounded-xl group border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                }}
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+                <span className="text-sm text-gray-700 flex-1">{item}</span>
+                <button
+                  onClick={() => removeItem(index)}
+                  className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
   );
 };
 
-const PricingSection = ({ pricing, onChange }: {
+interface PricingSectionProps {
   pricing: PricingInfo[];
   onChange: (pricing: PricingInfo[]) => void;
-}) => {
+}
+
+const PricingSection = ({ pricing, onChange }: PricingSectionProps) => {
   const addPricing = () => {
     onChange([
       ...pricing,
@@ -377,75 +728,106 @@ const PricingSection = ({ pricing, onChange }: {
   };
 
   return (
-    <div className="space-y-4">
-      {pricing.map((price, index) => (
-        <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
-          <div className="flex justify-between items-center">
-            <h4 className="font-medium text-gray-900">Price Slab {index + 1}</h4>
-            {pricing.length > 1 && (
-              <button
-                onClick={() => removePricing(index)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Adult Price" required>
-              <Input
-                type="number"
-                placeholder="0"
-                value={price.adultPrice.toString()}
-                onChange={(value) => updatePricing(index, 'adultPrice', parseFloat(value) || 0)}
-              />
-            </FormField>
-            <FormField label="Child Price">
-              <Input
-                type="number"
-                placeholder="0"
-                value={price.childPrice.toString()}
-                onChange={(value) => updatePricing(index, 'childPrice', parseFloat(value) || 0)}
-              />
-            </FormField>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label="Valid From" required>
-              <Input
-                type="date"
-                value={price.validFrom}
-                onChange={(value) => updatePricing(index, 'validFrom', value)}
-              />
-            </FormField>
-            <FormField label="Valid To" required>
-              <Input
-                type="date"
-                value={price.validTo}
-                onChange={(value) => updatePricing(index, 'validTo', value)}
-              />
-            </FormField>
-          </div>
-        </div>
-      ))}
-      
-      <button
-        onClick={addPricing}
-        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors flex items-center justify-center gap-2"
-      >
-        <Plus className="w-4 h-4" />
-        Add Another Price Slab
-      </button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-gray-900">Pricing Information</h4>
+        <button
+          onClick={addPricing}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 backdrop-blur-sm rounded-xl transition-colors border border-blue-200/30"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)',
+            boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
+        >
+          <Plus className="w-4 h-4" />
+          Add Price Slab
+        </button>
+      </div>
+
+      <div className="space-y-4">
+        <AnimatePresence>
+          {pricing.map((price, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="backdrop-blur-xl border border-white/20 rounded-2xl p-5 space-y-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(147,51,234,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}
+            >
+              <div className="flex justify-between items-center">
+                <h5 className="font-semibold text-gray-900">Price Slab {index + 1}</h5>
+                {pricing.length > 1 && (
+                  <button
+                    onClick={() => removePricing(index)}
+                    className="text-red-500 hover:text-red-700 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="Adult Price" required>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={price.adultPrice.toString()}
+                      onChange={(value) => updatePricing(index, 'adultPrice', parseFloat(value) || 0)}
+                      style={{ paddingLeft: '2.5rem' }}
+                    />
+                  </div>
+                </FormField>
+                <FormField label="Child Price">
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={price.childPrice.toString()}
+                      onChange={(value) => updatePricing(index, 'childPrice', parseFloat(value) || 0)}
+                      style={{ paddingLeft: '2.5rem' }}
+                    />
+                  </div>
+                </FormField>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField label="Valid From" required>
+                  <Input
+                    type="date"
+                    value={price.validFrom}
+                    onChange={(value) => updatePricing(index, 'validFrom', value)}
+                  />
+                </FormField>
+                <FormField label="Valid To" required>
+                  <Input
+                    type="date"
+                    value={price.validTo}
+                    onChange={(value) => updatePricing(index, 'validTo', value)}
+                  />
+                </FormField>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
 
 // Package type specific forms
-const TransferForm = ({ data, onChange }: {
+interface FormProps {
   data: PackageFormData;
   onChange: (data: Partial<PackageFormData>) => void;
-}) => {
+}
+
+const TransferForm = ({ data, onChange }: FormProps) => {
   const places = [
     { value: 'mumbai', label: 'Mumbai' },
     { value: 'delhi', label: 'Delhi' },
@@ -455,77 +837,113 @@ const TransferForm = ({ data, onChange }: {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Transfer Details</h2>
-        <p className="text-gray-600">Create your transfer service</p>
-      </div>
+    <div className="max-w-5xl mx-auto space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-4"
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50/50 backdrop-blur-sm rounded-xl mb-2 border border-blue-200/30"
+        style={{
+          boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}>
+          <Car className="w-4 h-4 text-blue-600" />
+          <span className="text-blue-600 font-medium text-sm">Transfer Service</span>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Transfer Details</h2>
+        <p className="text-gray-600 text-sm">Create your transfer service offering</p>
+      </motion.div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-        <FormField label="Transfer Name" required>
-          <Input
-            placeholder="e.g., Airport to Hotel Transfer"
-            value={data.name || ''}
-            onChange={(value) => onChange({ name: value })}
-          />
-        </FormField>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="backdrop-blur-xl rounded-2xl border border-white/20 p-5 space-y-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="space-y-3">
+            <FormField 
+              label="Transfer Name" 
+              required
+              description="Give your transfer service a descriptive name"
+            >
+              <Input
+                placeholder="e.g., Airport to Hotel Transfer"
+                value={data.name || ''}
+                onChange={(value) => onChange({ name: value })}
+              />
+            </FormField>
 
-        <FormField label="Place/City" required>
-          <Select
-            value={data.place || ''}
-            onChange={(value) => onChange({ place: value })}
-            options={places}
-            placeholder="Select city"
-          />
-        </FormField>
+            <FormField 
+              label="City/Place" 
+              required
+              description="Select the city where this transfer operates"
+            >
+              <Select
+                value={data.place || ''}
+                onChange={(value) => onChange({ place: value })}
+                options={places}
+                placeholder="Select city"
+              />
+            </FormField>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField label="From" required>
-            <Input
-              placeholder="Starting location"
-              value={data.from || ''}
-              onChange={(value) => onChange({ from: value })}
-            />
-          </FormField>
-          <FormField label="To" required>
-            <Input
-              placeholder="Destination"
-              value={data.to || ''}
-              onChange={(value) => onChange({ to: value })}
-            />
-          </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="From" required>
+                <Input
+                  placeholder="Starting location"
+                  value={data.from || ''}
+                  onChange={(value) => onChange({ from: value })}
+                />
+              </FormField>
+              <FormField label="To" required>
+                <Input
+                  placeholder="Destination"
+                  value={data.to || ''}
+                  onChange={(value) => onChange({ to: value })}
+                />
+              </FormField>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <FormField 
+              label="Service Description"
+              description="Describe what makes your transfer service special"
+            >
+              <Textarea
+                placeholder="Describe your transfer service, vehicle types, amenities, etc."
+                value={data.description || ''}
+                onChange={(value) => onChange({ description: value })}
+                rows={6}
+              />
+            </FormField>
+
+            <FormField label="Transfer Image">
+              <ImageUpload
+                onUpload={(file) => onChange({ image: file })}
+                preview={data.image}
+                label="Upload Transfer Image"
+              />
+            </FormField>
+          </div>
         </div>
 
-        <FormField label="Description">
-          <Textarea
-            placeholder="Describe your transfer service..."
-            value={data.description || ''}
-            onChange={(value) => onChange({ description: value })}
-          />
-        </FormField>
-
-        <FormField label="Transfer Image">
-          <ImageUpload
-            onUpload={(file) => onChange({ image: file })}
-            preview={data.image as string}
-          />
-        </FormField>
-
-        <FormField label="Pricing" required>
+        <div className="border-t border-gray-200 pt-8">
           <PricingSection
             pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
             onChange={(pricing) => onChange({ pricing })}
           />
-        </FormField>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
 
-const ActivityForm = ({ data, onChange }: {
-  data: PackageFormData;
-  onChange: (data: Partial<PackageFormData>) => void;
-}) => {
+const ActivityForm = ({ data, onChange }: FormProps) => {
   const places = [
     { value: 'mumbai', label: 'Mumbai' },
     { value: 'delhi', label: 'Delhi' },
@@ -535,95 +953,134 @@ const ActivityForm = ({ data, onChange }: {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Activity Details</h2>
-        <p className="text-gray-600">Create your activity or experience</p>
-      </div>
+    <div className="max-w-5xl mx-auto space-y-5">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-5"
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50/50 backdrop-blur-sm rounded-xl mb-2 border border-emerald-200/30"
+        style={{
+          boxShadow: '0 4px 16px rgba(16,185,129,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}>
+          <Star className="w-4 h-4 text-emerald-600" />
+          <span className="text-emerald-600 font-medium text-sm">Activity Experience</span>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Activity Details</h2>
+        <p className="text-gray-600 text-sm">Create your activity or experience offering</p>
+      </motion.div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-        <FormField label="Activity Name" required>
-          <Input
-            placeholder="e.g., Mumbai City Walking Tour"
-            value={data.name || ''}
-            onChange={(value) => onChange({ name: value })}
-          />
-        </FormField>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="backdrop-blur-xl rounded-2xl border border-white/20 p-5 space-y-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="space-y-3">
+            <FormField 
+              label="Activity Name" 
+              required
+              description="Give your activity a compelling name"
+            >
+              <Input
+                placeholder="e.g., Mumbai City Walking Tour"
+                value={data.name || ''}
+                onChange={(value) => onChange({ name: value })}
+              />
+            </FormField>
 
-        <FormField label="Destination" required>
-          <Select
-            value={data.place || ''}
-            onChange={(value) => onChange({ place: value })}
-            options={places}
-            placeholder="Select destination"
-          />
-        </FormField>
+            <FormField 
+              label="Destination" 
+              required
+              description="Where does this activity take place?"
+            >
+              <Select
+                value={data.place || ''}
+                onChange={(value) => onChange({ place: value })}
+                options={places}
+                placeholder="Select destination"
+              />
+            </FormField>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField label="Timing" required>
-            <Input
-              placeholder="e.g., 9:00 AM - 5:00 PM"
-              value={data.timing || ''}
-              onChange={(value) => onChange({ timing: value })}
-            />
-          </FormField>
-          <FormField label="Duration (Hours)" required>
-            <Input
-              type="number"
-              placeholder="8"
-              value={data.durationHours?.toString() || ''}
-              onChange={(value) => onChange({ durationHours: parseInt(value) || 0 })}
-            />
-          </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Timing" required>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="9:00 AM - 5:00 PM"
+                    value={data.timing || ''}
+                    onChange={(value) => onChange({ timing: value })}
+                    style={{ paddingLeft: '2.5rem' }}
+                  />
+                </div>
+              </FormField>
+              <FormField label="Duration (Hours)" required>
+                <Input
+                  type="number"
+                  placeholder="8"
+                  value={data.durationHours?.toString() || ''}
+                  onChange={(value) => onChange({ durationHours: parseInt(value) || 0 })}
+                />
+              </FormField>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <FormField 
+              label="Activity Description"
+              description="Describe what makes this experience special"
+            >
+              <Textarea
+                placeholder="Describe your activity, what guests will experience, highlights..."
+                value={data.description || ''}
+                onChange={(value) => onChange({ description: value })}
+                rows={6}
+              />
+            </FormField>
+
+            <FormField label="Activity Image">
+              <ImageUpload
+                onUpload={(file) => onChange({ image: file })}
+                preview={data.image}
+                label="Upload Activity Image"
+              />
+            </FormField>
+          </div>
         </div>
 
-        <FormField label="Description">
-          <Textarea
-            placeholder="Describe your activity..."
-            value={data.description || ''}
-            onChange={(value) => onChange({ description: value })}
-            rows={4}
-          />
-        </FormField>
-
-        <FormField label="Inclusions">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <ListManager
             items={data.inclusions || []}
             onChange={(inclusions) => onChange({ inclusions })}
-            placeholder="Add inclusion..."
+            placeholder="Add what's included..."
+            title="Inclusions"
           />
-        </FormField>
 
-        <FormField label="Exclusions">
           <ListManager
             items={data.exclusions || []}
             onChange={(exclusions) => onChange({ exclusions })}
-            placeholder="Add exclusion..."
+            placeholder="Add what's not included..."
+            title="Exclusions"
           />
-        </FormField>
+        </div>
 
-        <FormField label="Activity Image">
-          <ImageUpload
-            onUpload={(file) => onChange({ image: file })}
-            preview={data.image as string}
-          />
-        </FormField>
-
-        <FormField label="Pricing" required>
+        <div className="border-t border-gray-200 pt-8">
           <PricingSection
             pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
             onChange={(pricing) => onChange({ pricing })}
           />
-        </FormField>
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 };
 
-const MultiCityPackageForm = ({ data, onChange }: {
-  data: PackageFormData;
-  onChange: (data: Partial<PackageFormData>) => void;
-}) => {
+const MultiCityPackageForm = ({ data, onChange }: FormProps) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'destinations' | 'itinerary' | 'pricing'>('overview');
 
   const addItineraryDay = () => {
@@ -651,25 +1108,39 @@ const MultiCityPackageForm = ({ data, onChange }: {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Multi City Package</h2>
-        <p className="text-gray-600">Create your comprehensive tour package</p>
-      </div>
+    <div className="max-w-6xl mx-auto space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+      >
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-purple-50 rounded-full mb-4">
+          <Package className="w-5 h-5 text-purple-600" />
+          <span className="text-purple-600 font-medium">Multi City Package</span>
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Multi City Package</h2>
+        <p className="text-gray-600 text-lg">Create your comprehensive tour package</p>
+      </motion.div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 overflow-hidden"
+      >
+        <div className="border-b border-gray-200 bg-gray-50/50">
+          <nav className="flex overflow-x-auto">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  className={`flex items-center gap-3 px-6 py-4 border-b-3 font-semibold text-sm transition-all duration-300 whitespace-nowrap ${
+                    isActive
+                      ? 'border-blue-500 text-blue-600 bg-blue-50/50'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -680,155 +1151,230 @@ const MultiCityPackageForm = ({ data, onChange }: {
           </nav>
         </div>
 
-        <div className="p-6">
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <FormField label="Package Title" required>
-                <Input
-                  placeholder="e.g., Golden Triangle Tour"
-                  value={data.title || ''}
-                  onChange={(value) => onChange({ title: value })}
-                />
-              </FormField>
+        <div className="p-8">
+          <AnimatePresence mode="wait">
+            {activeTab === 'overview' && (
+              <motion.div
+                key="overview"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <FormField 
+                      label="Package Title" 
+                      required
+                      description="Give your package an attractive title"
+                    >
+                      <Input
+                        placeholder="e.g., Golden Triangle Tour"
+                        value={data.title || ''}
+                        onChange={(value) => onChange({ title: value })}
+                      />
+                    </FormField>
 
-              <FormField label="Description">
-                <Textarea
-                  placeholder="Describe your package..."
-                  value={data.description || ''}
-                  onChange={(value) => onChange({ description: value })}
-                  rows={4}
-                />
-              </FormField>
+                    <FormField 
+                      label="Package Description"
+                      description="Describe what makes this package special"
+                    >
+                      <Textarea
+                        placeholder="Describe your package, highlights, what travelers will experience..."
+                        value={data.description || ''}
+                        onChange={(value) => onChange({ description: value })}
+                        rows={6}
+                      />
+                    </FormField>
 
-              <FormField label="Additional Notes">
-                <Textarea
-                  placeholder="Any additional information..."
-                  value={data.additionalNotes || ''}
-                  onChange={(value) => onChange({ additionalNotes: value })}
-                />
-              </FormField>
+                    <FormField label="Additional Notes">
+                      <Textarea
+                        placeholder="Any additional information for travelers..."
+                        value={data.additionalNotes || ''}
+                        onChange={(value) => onChange({ additionalNotes: value })}
+                        rows={4}
+                      />
+                    </FormField>
+                  </div>
 
-              <FormField label="Banner Image">
-                <ImageUpload
-                  onUpload={(file) => onChange({ banner: file })}
-                  preview={data.banner as string}
-                />
-              </FormField>
+                  <div className="space-y-6">
+                    <FormField label="Banner Image">
+                      <ImageUpload
+                        onUpload={(file) => onChange({ banner: file })}
+                        preview={data.banner}
+                        label="Upload Package Banner"
+                      />
+                    </FormField>
+                  </div>
+                </div>
 
-              <FormField label="Tour Inclusions">
-                <ListManager
-                  items={data.tourInclusions || []}
-                  onChange={(tourInclusions) => onChange({ tourInclusions })}
-                  placeholder="Add inclusion..."
-                />
-              </FormField>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-gray-200">
+                  <ListManager
+                    items={data.tourInclusions || []}
+                    onChange={(tourInclusions) => onChange({ tourInclusions })}
+                    placeholder="Add tour inclusion..."
+                    title="Tour Inclusions"
+                  />
 
-              <FormField label="Tour Exclusions">
-                <ListManager
-                  items={data.tourExclusions || []}
-                  onChange={(tourExclusions) => onChange({ tourExclusions })}
-                  placeholder="Add exclusion..."
-                />
-              </FormField>
-            </div>
-          )}
+                  <ListManager
+                    items={data.tourExclusions || []}
+                    onChange={(tourExclusions) => onChange({ tourExclusions })}
+                    placeholder="Add tour exclusion..."
+                    title="Tour Exclusions"
+                  />
+                </div>
+              </motion.div>
+            )}
 
-          {activeTab === 'destinations' && (
-            <div className="space-y-6">
-              <FormField label="Destinations">
+            {activeTab === 'destinations' && (
+              <motion.div
+                key="destinations"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center py-8">
+                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Package Destinations</h3>
+                  <p className="text-gray-600">Add all the destinations included in this package</p>
+                </div>
+                
                 <ListManager
                   items={data.destinations || []}
                   onChange={(destinations) => onChange({ destinations })}
-                  placeholder="Add destination..."
+                  placeholder="Add destination city..."
+                  title="Destinations"
                 />
-              </FormField>
-            </div>
-          )}
+              </motion.div>
+            )}
 
-          {activeTab === 'itinerary' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Day-wise Itinerary</h3>
-                <button
-                  onClick={addItineraryDay}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Day
-                </button>
-              </div>
-
-              {(data.itinerary || []).map((day, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium text-gray-900">Day {day.day}</h4>
-                    <button
-                      onClick={() => {
-                        const updated = (data.itinerary || []).filter((_, i) => i !== index);
-                        onChange({ itinerary: updated });
-                      }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+            {activeTab === 'itinerary' && (
+              <motion.div
+                key="itinerary"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Day-wise Itinerary</h3>
+                    <p className="text-gray-600 mt-1">Plan each day of your package</p>
                   </div>
-
-                  <FormField label="Day Title">
-                    <Input
-                      placeholder="e.g., Arrival in Delhi"
-                      value={day.title}
-                      onChange={(value) => updateItineraryDay(index, { title: value })}
-                    />
-                  </FormField>
-
-                  <FormField label="Description">
-                    <Textarea
-                      placeholder="Describe the day's activities..."
-                      value={day.description}
-                      onChange={(value) => updateItineraryDay(index, { description: value })}
-                    />
-                  </FormField>
-
-                  <FormField label="Activities">
-                    <ListManager
-                      items={day.activities}
-                      onChange={(activities) => updateItineraryDay(index, { activities })}
-                      placeholder="Add activity..."
-                    />
-                  </FormField>
-
-                  <FormField label="Highlights">
-                    <ListManager
-                      items={day.highlights}
-                      onChange={(highlights) => updateItineraryDay(index, { highlights })}
-                      placeholder="Add highlight..."
-                    />
-                  </FormField>
+                  <button
+                    onClick={addItineraryDay}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors shadow-lg"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Day
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {activeTab === 'pricing' && (
-            <div className="space-y-6">
-              <FormField label="Package Pricing" required>
+                <div className="space-y-4">
+                  <AnimatePresence>
+                    {(data.itinerary || []).map((day, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-2xl p-6 space-y-4"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                              {day.day}
+                            </div>
+                            <h4 className="font-semibold text-gray-900">Day {day.day}</h4>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const updated = (data.itinerary || []).filter((_, i) => i !== index);
+                              onChange({ itinerary: updated });
+                            }}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                          <FormField label="Day Title">
+                            <Input
+                              placeholder="e.g., Arrival in Delhi"
+                              value={day.title}
+                              onChange={(value) => updateItineraryDay(index, { title: value })}
+                            />
+                          </FormField>
+
+                          <FormField label="Day Description">
+                            <Textarea
+                              placeholder="Describe the day's activities and experiences..."
+                              value={day.description}
+                              onChange={(value) => updateItineraryDay(index, { description: value })}
+                              rows={3}
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                          <ListManager
+                            items={day.activities}
+                            onChange={(activities) => updateItineraryDay(index, { activities })}
+                            placeholder="Add activity..."
+                            title="Activities"
+                          />
+
+                          <ListManager
+                            items={day.highlights}
+                            onChange={(highlights) => updateItineraryDay(index, { highlights })}
+                            placeholder="Add highlight..."
+                            title="Highlights"
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  {(!data.itinerary || data.itinerary.length === 0) && (
+                    <div className="text-center py-12 text-gray-500">
+                      <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>No itinerary days added yet. Click "Add Day" to start planning.</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'pricing' && (
+              <motion.div
+                key="pricing"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center py-8">
+                  <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Package Pricing</h3>
+                  <p className="text-gray-600">Set competitive prices for your package</p>
+                </div>
+                
                 <PricingSection
                   pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
                   onChange={(pricing) => onChange({ pricing })}
                 />
-              </FormField>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-const MultiCityPackageWithHotelForm = ({ data, onChange }: {
-  data: PackageFormData;
-  onChange: (data: Partial<PackageFormData>) => void;
-}) => {
+const MultiCityPackageWithHotelForm = ({ data, onChange }: FormProps) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'destinations' | 'itinerary' | 'hotels' | 'pricing'>('overview');
 
   const addHotel = () => {
@@ -874,25 +1420,39 @@ const MultiCityPackageWithHotelForm = ({ data, onChange }: {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Multi City Package + Hotels</h2>
-        <p className="text-gray-600">Create your complete package with accommodation</p>
-      </div>
+    <div className="max-w-6xl mx-auto space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+      >
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-orange-50 rounded-full mb-4">
+          <Building className="w-5 h-5 text-orange-600" />
+          <span className="text-orange-600 font-medium">Complete Package</span>
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Multi City Package + Hotels</h2>
+        <p className="text-gray-600 text-lg">Create your complete package with accommodation</p>
+      </motion.div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 overflow-hidden"
+      >
+        <div className="border-b border-gray-200 bg-gray-50/50">
+          <nav className="flex overflow-x-auto">
             {tabs.map((tab) => {
               const IconComponent = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  className={`flex items-center gap-3 px-6 py-4 border-b-3 font-semibold text-sm transition-all duration-300 whitespace-nowrap ${
+                    isActive
+                      ? 'border-orange-500 text-orange-600 bg-orange-50/50'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <IconComponent className="w-4 h-4" />
@@ -903,204 +1463,304 @@ const MultiCityPackageWithHotelForm = ({ data, onChange }: {
           </nav>
         </div>
 
-        <div className="p-6">
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <FormField label="Package Title" required>
-                <Input
-                  placeholder="e.g., Golden Triangle Tour with Luxury Hotels"
-                  value={data.title || ''}
-                  onChange={(value) => onChange({ title: value })}
-                />
-              </FormField>
+        <div className="p-8">
+          <AnimatePresence mode="wait">
+            {activeTab === 'overview' && (
+              <motion.div
+                key="overview"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <FormField 
+                      label="Package Title" 
+                      required
+                      description="Give your complete package an attractive title"
+                    >
+                      <Input
+                        placeholder="e.g., Golden Triangle Tour with Luxury Hotels"
+                        value={data.title || ''}
+                        onChange={(value) => onChange({ title: value })}
+                      />
+                    </FormField>
 
-              <FormField label="Description">
-                <Textarea
-                  placeholder="Describe your package..."
-                  value={data.description || ''}
-                  onChange={(value) => onChange({ description: value })}
-                  rows={4}
-                />
-              </FormField>
+                    <FormField 
+                      label="Package Description"
+                      description="Highlight accommodation and tour features"
+                    >
+                      <Textarea
+                        placeholder="Describe your complete package including hotels, activities, and experiences..."
+                        value={data.description || ''}
+                        onChange={(value) => onChange({ description: value })}
+                        rows={6}
+                      />
+                    </FormField>
+                  </div>
 
-              <FormField label="Banner Image">
-                <ImageUpload
-                  onUpload={(file) => onChange({ banner: file })}
-                  preview={data.banner as string}
-                />
-              </FormField>
+                  <div className="space-y-6">
+                    <FormField label="Package Banner">
+                      <ImageUpload
+                        onUpload={(file) => onChange({ banner: file })}
+                        preview={data.banner}
+                        label="Upload Package Banner"
+                      />
+                    </FormField>
+                  </div>
+                </div>
 
-              <FormField label="Tour Inclusions">
-                <ListManager
-                  items={data.tourInclusions || []}
-                  onChange={(tourInclusions) => onChange({ tourInclusions })}
-                  placeholder="Add inclusion..."
-                />
-              </FormField>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-gray-200">
+                  <ListManager
+                    items={data.tourInclusions || []}
+                    onChange={(tourInclusions) => onChange({ tourInclusions })}
+                    placeholder="Add tour inclusion..."
+                    title="Tour Inclusions"
+                  />
 
-              <FormField label="Tour Exclusions">
-                <ListManager
-                  items={data.tourExclusions || []}
-                  onChange={(tourExclusions) => onChange({ tourExclusions })}
-                  placeholder="Add exclusion..."
-                />
-              </FormField>
-            </div>
-          )}
+                  <ListManager
+                    items={data.tourExclusions || []}
+                    onChange={(tourExclusions) => onChange({ tourExclusions })}
+                    placeholder="Add tour exclusion..."
+                    title="Tour Exclusions"
+                  />
+                </div>
+              </motion.div>
+            )}
 
-          {activeTab === 'destinations' && (
-            <div className="space-y-6">
-              <FormField label="Destinations">
+            {activeTab === 'destinations' && (
+              <motion.div
+                key="destinations"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center py-8">
+                  <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Package Destinations</h3>
+                  <p className="text-gray-600">Add all destinations with accommodation</p>
+                </div>
+                
                 <ListManager
                   items={data.destinations || []}
                   onChange={(destinations) => onChange({ destinations })}
-                  placeholder="Add destination..."
+                  placeholder="Add destination city..."
+                  title="Destinations"
                 />
-              </FormField>
-            </div>
-          )}
+              </motion.div>
+            )}
 
-          {activeTab === 'itinerary' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Day-wise Itinerary</h3>
-                <button
-                  onClick={addItineraryDay}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Day
-                </button>
-              </div>
-
-              {(data.itinerary || []).map((day, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium text-gray-900">Day {day.day}</h4>
-                    <button
-                      onClick={() => {
-                        const updated = (data.itinerary || []).filter((_, i) => i !== index);
-                        onChange({ itinerary: updated });
-                      }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+            {activeTab === 'itinerary' && (
+              <motion.div
+                key="itinerary"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Day-wise Itinerary</h3>
+                    <p className="text-gray-600 mt-1">Plan each day including accommodation</p>
                   </div>
-
-                  <FormField label="Day Title">
-                    <Input
-                      placeholder="e.g., Arrival in Delhi"
-                      value={day.title}
-                      onChange={(value) => updateItineraryDay(index, { title: value })}
-                    />
-                  </FormField>
-
-                  <FormField label="Description">
-                    <Textarea
-                      placeholder="Describe the day's activities..."
-                      value={day.description}
-                      onChange={(value) => updateItineraryDay(index, { description: value })}
-                    />
-                  </FormField>
+                  <button
+                    onClick={addItineraryDay}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors shadow-lg"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Day
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
 
-          {activeTab === 'hotels' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">Hotel Details</h3>
-                <button
-                  onClick={addHotel}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Hotel
-                </button>
-              </div>
+                <div className="space-y-4">
+                  <AnimatePresence>
+                    {(data.itinerary || []).map((day, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-2xl p-6 space-y-4"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                              {day.day}
+                            </div>
+                            <h4 className="font-semibold text-gray-900">Day {day.day}</h4>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const updated = (data.itinerary || []).filter((_, i) => i !== index);
+                              onChange({ itinerary: updated });
+                            }}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
 
-              {(data.hotels || []).map((hotel, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-medium text-gray-900">Hotel {index + 1}</h4>
-                    <button
-                      onClick={() => {
-                        const updated = (data.hotels || []).filter((_, i) => i !== index);
-                        onChange({ hotels: updated });
-                      }}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                        <div className="grid grid-cols-1 gap-4">
+                          <FormField label="Day Title">
+                            <Input
+                              placeholder="e.g., Arrival in Delhi"
+                              value={day.title}
+                              onChange={(value) => updateItineraryDay(index, { title: value })}
+                            />
+                          </FormField>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField label="Hotel Name" required>
-                      <Input
-                        placeholder="e.g., Taj Palace Hotel"
-                        value={hotel.name}
-                        onChange={(value) => updateHotel(index, { name: value })}
-                      />
-                    </FormField>
-                    <FormField label="Location" required>
-                      <Input
-                        placeholder="e.g., New Delhi"
-                        value={hotel.location}
-                        onChange={(value) => updateHotel(index, { location: value })}
-                      />
-                    </FormField>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    <FormField label="Check-in" required>
-                      <Input
-                        type="date"
-                        value={hotel.checkIn}
-                        onChange={(value) => updateHotel(index, { checkIn: value })}
-                      />
-                    </FormField>
-                    <FormField label="Check-out" required>
-                      <Input
-                        type="date"
-                        value={hotel.checkOut}
-                        onChange={(value) => updateHotel(index, { checkOut: value })}
-                      />
-                    </FormField>
-                    <FormField label="Room Type" required>
-                      <Input
-                        placeholder="e.g., Deluxe Room"
-                        value={hotel.roomType}
-                        onChange={(value) => updateHotel(index, { roomType: value })}
-                      />
-                    </FormField>
-                  </div>
+                          <FormField label="Day Description">
+                            <Textarea
+                              placeholder="Describe the day's activities, hotel check-in, etc..."
+                              value={day.description}
+                              onChange={(value) => updateItineraryDay(index, { description: value })}
+                              rows={3}
+                            />
+                          </FormField>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
-              ))}
-            </div>
-          )}
+              </motion.div>
+            )}
 
-          {activeTab === 'pricing' && (
-            <div className="space-y-6">
-              <FormField label="Package Pricing (Including Hotels)" required>
+            {activeTab === 'hotels' && (
+              <motion.div
+                key="hotels"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">Hotel Details</h3>
+                    <p className="text-gray-600 mt-1">Add accommodation details for each location</p>
+                  </div>
+                  <button
+                    onClick={addHotel}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors shadow-lg"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Hotel
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <AnimatePresence>
+                    {(data.hotels || []).map((hotel, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-2xl p-6 space-y-4"
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                              <Bed className="w-4 h-4" />
+                            </div>
+                            <h4 className="font-semibold text-gray-900">Hotel {index + 1}</h4>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const updated = (data.hotels || []).filter((_, i) => i !== index);
+                              onChange({ hotels: updated });
+                            }}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField label="Hotel Name" required>
+                            <Input
+                              placeholder="e.g., Taj Palace Hotel"
+                              value={hotel.name}
+                              onChange={(value) => updateHotel(index, { name: value })}
+                            />
+                          </FormField>
+                          <FormField label="Location" required>
+                            <Input
+                              placeholder="e.g., New Delhi"
+                              value={hotel.location}
+                              onChange={(value) => updateHotel(index, { location: value })}
+                            />
+                          </FormField>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <FormField label="Check-in" required>
+                            <Input
+                              type="date"
+                              value={hotel.checkIn}
+                              onChange={(value) => updateHotel(index, { checkIn: value })}
+                            />
+                          </FormField>
+                          <FormField label="Check-out" required>
+                            <Input
+                              type="date"
+                              value={hotel.checkOut}
+                              onChange={(value) => updateHotel(index, { checkOut: value })}
+                            />
+                          </FormField>
+                          <FormField label="Room Type" required>
+                            <Input
+                              placeholder="e.g., Deluxe Room"
+                              value={hotel.roomType}
+                              onChange={(value) => updateHotel(index, { roomType: value })}
+                            />
+                          </FormField>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  {(!data.hotels || data.hotels.length === 0) && (
+                    <div className="text-center py-12 text-gray-500">
+                      <Bed className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p>No hotels added yet. Click "Add Hotel" to include accommodation.</p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'pricing' && (
+              <motion.div
+                key="pricing"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="text-center py-8">
+                  <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Package Pricing (Including Hotels)</h3>
+                  <p className="text-gray-600">Set pricing for your complete package with accommodation</p>
+                </div>
+                
                 <PricingSection
                   pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
                   onChange={(pricing) => onChange({ pricing })}
                 />
-              </FormField>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
 
-const FixedDepartureForm = ({ data, onChange }: {
-  data: PackageFormData;
-  onChange: (data: Partial<PackageFormData>) => void;
-}) => {
+const FixedDepartureForm = ({ data, onChange }: FormProps) => {
+  const [activeStep, setActiveStep] = useState(0);
+
   const addDestination = () => {
     onChange({ destinations: [...(data.destinations || []), ''] });
   };
@@ -1133,124 +1793,339 @@ const FixedDepartureForm = ({ data, onChange }: {
     onChange({ itinerary: updated });
   };
 
+  const steps = [
+    { title: 'Basic Info', icon: FileText },
+    { title: 'Destinations', icon: MapPin },
+    { title: 'Itinerary', icon: Calendar },
+    { title: 'Pricing', icon: DollarSign }
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Fixed Departure Package</h2>
-        <p className="text-gray-600">Create your pre-scheduled group tour</p>
+    <div className="max-w-5xl mx-auto space-y-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+      >
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-red-50 rounded-full mb-4">
+          <Plane className="w-5 h-5 text-red-600" />
+          <span className="text-red-600 font-medium">Fixed Departure</span>
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Fixed Departure Package</h2>
+        <p className="text-gray-600 text-lg">Create your pre-scheduled group tour with fixed dates</p>
+      </motion.div>
+
+      {/* Progress Steps */}
+      <div className="flex items-center justify-center mb-8">
+        <div className="flex items-center space-x-4">
+          {steps.map((step, index) => {
+            const IconComponent = step.icon;
+            const isActive = index === activeStep;
+            const isCompleted = index < activeStep;
+            
+            return (
+              <div key={index} className="flex items-center">
+                <button
+                  onClick={() => setActiveStep(index)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 ${
+                    isActive
+                      ? 'bg-red-600 text-white shadow-lg'
+                      : isCompleted
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4" />
+                  {step.title}
+                </button>
+                {index < steps.length - 1 && (
+                  <div className={`w-8 h-0.5 mx-2 transition-colors duration-300 ${
+                    index < activeStep ? 'bg-green-400' : 'bg-gray-300'
+                  }`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-        <FormField label="Package Title" required>
-          <Input
-            placeholder="e.g., 15-Day Incredible India Tour"
-            value={data.title || ''}
-            onChange={(value) => onChange({ title: value })}
-          />
-        </FormField>
-
-        <FormField label="Package Image">
-          <ImageUpload
-            onUpload={(file) => onChange({ image: file })}
-            preview={data.image as string}
-          />
-        </FormField>
-
-        <FormField label="Number of Days" required>
-          <Input
-            type="number"
-            placeholder="15"
-            value={data.days?.toString() || ''}
-            onChange={(value) => onChange({ days: parseInt(value) || 0 })}
-          />
-        </FormField>
-
-        <FormField label="Destinations">
-          <div className="space-y-3">
-            {(data.destinations || []).map((destination, index) => (
-              <div key={index} className="flex gap-2">
-                <Input
-                  placeholder="Add destination"
-                  value={destination}
-                  onChange={(value) => updateDestination(index, value)}
-                />
-                <button
-                  onClick={() => removeDestination(index)}
-                  className="px-3 py-2 text-red-500 hover:text-red-700 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={addDestination}
-              className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors w-full justify-center"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-8"
+      >
+        <AnimatePresence mode="wait">
+          {activeStep === 0 && (
+            <motion.div
+              key="basic"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8"
             >
-              <Plus className="w-4 h-4" />
-              Add Destination
-            </button>
-          </div>
-        </FormField>
-
-        <FormField label="Day-wise Itinerary">
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="font-medium text-gray-900">Itinerary Planning</h4>
-              <button
-                onClick={addItineraryDay}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Day
-              </button>
-            </div>
-
-            {(data.itinerary || []).map((day, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <h5 className="font-medium text-gray-900">Day {day.day}</h5>
-                  <button
-                    onClick={() => {
-                      const updated = (data.itinerary || []).filter((_, i) => i !== index);
-                      onChange({ itinerary: updated });
-                    }}
-                    className="text-red-500 hover:text-red-700"
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  <FormField 
+                    label="Package Title" 
+                    required
+                    description="Create an attractive title for your fixed departure"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Input
+                      placeholder="e.g., 15-Day Incredible India Tour"
+                      value={data.title || ''}
+                      onChange={(value) => onChange({ title: value })}
+                    />
+                  </FormField>
+
+                  <FormField 
+                    label="Number of Days" 
+                    required
+                    description="How many days does this tour last?"
+                  >
+                    <Input
+                      type="number"
+                      placeholder="15"
+                      value={data.days?.toString() || ''}
+                      onChange={(value) => onChange({ days: parseInt(value) || 0 })}
+                    />
+                  </FormField>
+
+                  <FormField 
+                    label="Package Description"
+                    description="Describe what makes this departure special"
+                  >
+                    <Textarea
+                      placeholder="Describe your fixed departure package, highlights, group size, etc..."
+                      value={data.description || ''}
+                      onChange={(value) => onChange({ description: value })}
+                      rows={6}
+                    />
+                  </FormField>
+                </div>
+
+                <div className="space-y-6">
+                  <FormField label="Package Image">
+                    <ImageUpload
+                      onUpload={(file) => onChange({ image: file })}
+                      preview={data.image}
+                      label="Upload Package Image"
+                    />
+                  </FormField>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeStep === 1 && (
+            <motion.div
+              key="destinations"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8"
+            >
+              <div className="text-center py-8">
+                <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Tour Destinations</h3>
+                <p className="text-gray-600">Add all destinations included in this fixed departure</p>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-gray-900">Destinations List</h4>
+                  <button
+                    onClick={addDestination}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Destination
                   </button>
                 </div>
 
-                <Input
-                  placeholder="Day summary/title"
-                  value={day.title}
-                  onChange={(value) => updateItineraryDay(index, { title: value })}
-                />
+                <div className="space-y-3">
+                  <AnimatePresence>
+                    {(data.destinations || []).map((destination, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="flex gap-3 items-center"
+                      >
+                        <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <Input
+                          placeholder="Enter destination name"
+                          value={destination}
+                          onChange={(value) => updateDestination(index, value)}
+                        />
+                        <button
+                          onClick={() => removeDestination(index)}
+                          className="px-3 py-2 text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
 
-                <Textarea
-                  placeholder="Day details and activities"
-                  value={day.description}
-                  onChange={(value) => updateItineraryDay(index, { description: value })}
-                  rows={3}
-                />
+                  {(!data.destinations || data.destinations.length === 0) && (
+                    <div className="text-center py-8 text-gray-500">
+                      <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No destinations added yet. Click "Add Destination" to start.</p>
+                    </div>
+                  )}
+                </div>
               </div>
+            </motion.div>
+          )}
+
+          {activeStep === 2 && (
+            <motion.div
+              key="itinerary"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Day-wise Itinerary</h3>
+                  <p className="text-gray-600 mt-1">Plan each day of your fixed departure</p>
+                </div>
+                <button
+                  onClick={addItineraryDay}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors shadow-lg"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Day
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {(data.itinerary || []).map((day, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl p-6 space-y-4"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
+                            {day.day}
+                          </div>
+                          <h4 className="font-semibold text-gray-900">Day {day.day}</h4>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const updated = (data.itinerary || []).filter((_, i) => i !== index);
+                            onChange({ itinerary: updated });
+                          }}
+                          className="text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        <FormField label="Day Summary">
+                          <Input
+                            placeholder="e.g., Arrival in Delhi - City Tour"
+                            value={day.title}
+                            onChange={(value) => updateItineraryDay(index, { title: value })}
+                          />
+                        </FormField>
+
+                        <FormField label="Day Details">
+                          <Textarea
+                            placeholder="Describe the day's activities, meals, accommodation, etc..."
+                            value={day.description}
+                            onChange={(value) => updateItineraryDay(index, { description: value })}
+                            rows={4}
+                          />
+                        </FormField>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {(!data.itinerary || data.itinerary.length === 0) && (
+                  <div className="text-center py-12 text-gray-500">
+                    <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>No itinerary days added yet. Click "Add Day" to start planning.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {activeStep === 3 && (
+            <motion.div
+              key="pricing"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-8"
+            >
+              <div className="text-center py-8">
+                <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Fixed Departure Pricing</h3>
+                <p className="text-gray-600">Set pricing for your complete package with fixed dates</p>
+              </div>
+              
+              <PricingSection
+                pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+                onChange={(pricing) => onChange({ pricing })}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center pt-8 mt-8 border-t border-gray-200">
+          <button
+            onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
+            disabled={activeStep === 0}
+            className="inline-flex items-center gap-2 px-6 py-3 text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Previous
+          </button>
+
+          <div className="flex items-center gap-2">
+            {steps.map((_, index) => (
+              <div
+                key={index}
+                className={`w-2 h-2 rounded-full transition-colors duration-300 ${
+                  index === activeStep ? 'bg-red-600' : index < activeStep ? 'bg-green-400' : 'bg-gray-300'
+                }`}
+              />
             ))}
           </div>
-        </FormField>
 
-        <FormField label="Package Pricing" required>
-          <PricingSection
-            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
-            onChange={(pricing) => onChange({ pricing })}
-          />
-        </FormField>
-      </div>
+          <button
+            onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))}
+            disabled={activeStep === steps.length - 1}
+            className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Next
+            <ArrowLeft className="w-4 h-4 rotate-180" />
+          </button>
+        </div>
+      </motion.div>
     </div>
   );
 };
 
-// Main wizard component
-export default function ModernPackageWizard() {
+// Inner component that uses toast
+function CompactPackageWizardContent() {
   const router = useRouter();
+  const { addToast } = useToast();
   const [step, setStep] = useState<'type' | 'form'>('type');
   const [selectedType, setSelectedType] = useState<PackageType | null>(null);
   const [formData, setFormData] = useState<PackageFormData>({} as PackageFormData);
@@ -1271,10 +2146,19 @@ export default function ModernPackageWizard() {
       hotels: []
     });
     setStep('form');
+    addToast('Package type selected! Let\'s create your offering.', 'success');
   };
 
   const updateFormData = (updates: Partial<PackageFormData>) => {
     setFormData(prev => ({ ...prev, ...updates }));
+    // Clear related errors when user makes changes
+    if (errors) {
+      const newErrors = { ...errors };
+      Object.keys(updates).forEach(key => {
+        delete newErrors[key];
+      });
+      setErrors(newErrors);
+    }
   };
 
   const validateForm = (): boolean => {
@@ -1326,7 +2210,10 @@ export default function ModernPackageWizard() {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      addToast('Please fix the errors before saving', 'error');
+      return;
+    }
 
     setIsSaving(true);
     try {
@@ -1393,228 +2280,15 @@ export default function ModernPackageWizard() {
         throw new Error('Package creation verification failed. Check RLS permissions and schema.');
       }
 
-      // 3) Insert inclusions
-      if (formData.inclusions && formData.inclusions.length > 0) {
-        console.log('📝 Inserting inclusions:', formData.inclusions);
-        const inclusionsRows = formData.inclusions.map((inc, i) => ({
-          package_id: packageId,
-          inclusion: inc,
-          order_index: i
-        }));
-        const { error } = await supabase.from('package_inclusions').insert(inclusionsRows);
-        if (error) {
-          console.error('❌ Inclusions insert error:', error);
-          throw error;
-        }
-        console.log('✅ Inclusions inserted successfully');
-      }
-
-      // 4) Insert exclusions
-      if (formData.exclusions && formData.exclusions.length > 0) {
-        console.log('📝 Inserting exclusions:', formData.exclusions);
-        const exclusionsRows = formData.exclusions.map((exc, i) => ({
-          package_id: packageId,
-          exclusion: exc,
-          order_index: i
-        }));
-        const { error } = await supabase.from('package_exclusions').insert(exclusionsRows);
-        if (error) {
-          console.error('❌ Exclusions insert error:', error);
-          throw error;
-        }
-        console.log('✅ Exclusions inserted successfully');
-      }
-
-      // 5) Insert destinations (as free-text destination names into package_type_details OR link to destinations if you have IDs)
-      if (formData.destinations && formData.destinations.length > 0) {
-        console.log('🗺️ Inserting destinations:', formData.destinations);
-        // If you maintain a destinations master table, you should resolve names -> destination_id first
-        // For now, store them as ordered type details
-        const destRows = formData.destinations.map((dest, i) => ({
-          package_id: packageId,
-          field_name: `destination_${i + 1}`,
-          field_value: dest,
-          field_type: 'text'
-        }));
-        const { error } = await supabase.from('package_type_details').insert(destRows);
-        if (error) {
-          console.error('❌ Destinations insert error:', error);
-          throw error;
-        }
-        console.log('✅ Destinations inserted successfully');
-      }
-
-      // 6) Insert itinerary
-      if (formData.itinerary && formData.itinerary.length > 0) {
-        console.log('📅 Inserting itinerary:', formData.itinerary);
-        const itineraryRows = formData.itinerary.map((day, i) => ({
-          package_id: packageId,
-          day_number: day.day ?? i + 1,
-          title: day.title || `Day ${i + 1}`,
-          description: day.description || '',
-          activities: day.activities || [],
-          meals_included: [],
-          accommodation: null,
-          transportation: null,
-          order_index: i
-        }));
-        const { error } = await supabase.from('package_itinerary').insert(itineraryRows);
-        if (error) {
-          console.error('❌ Itinerary insert error:', error);
-          throw error;
-        }
-        console.log('✅ Itinerary inserted successfully');
-      }
-
-      // 7) Type-specific fields -> package_type_details
-      console.log('🔧 Processing type-specific fields for type:', formData.type);
-      const typeDetails: Array<{ package_id: string; field_name: string; field_value: string; field_type: string }> = [];
-      if (formData.type === PackageType.TRANSFERS) {
-        if (formData.place) typeDetails.push({ package_id: packageId, field_name: 'place', field_value: String(formData.place), field_type: 'text' });
-        if (formData.from) typeDetails.push({ package_id: packageId, field_name: 'from', field_value: String(formData.from), field_type: 'text' });
-        if (formData.to) typeDetails.push({ package_id: packageId, field_name: 'to', field_value: String(formData.to), field_type: 'text' });
-      }
-      if (formData.type === PackageType.ACTIVITY) {
-        if (formData.place) typeDetails.push({ package_id: packageId, field_name: 'place', field_value: String(formData.place), field_type: 'text' });
-        if (formData.timing) typeDetails.push({ package_id: packageId, field_name: 'timing', field_value: String(formData.timing), field_type: 'text' });
-        if (typeof formData.durationHours === 'number') typeDetails.push({ package_id: packageId, field_name: 'durationHours', field_value: String(formData.durationHours), field_type: 'number' });
-      }
-      if (formData.type === PackageType.MULTI_CITY_PACKAGE || formData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL || formData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT) {
-        if (formData.additionalNotes) typeDetails.push({ package_id: packageId, field_name: 'additionalNotes', field_value: String(formData.additionalNotes), field_type: 'text' });
-        if (typeof formData.days === 'number') typeDetails.push({ package_id: packageId, field_name: 'days', field_value: String(formData.days), field_type: 'number' });
-      }
-      if (formData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL && formData.hotels && formData.hotels.length > 0) {
-        formData.hotels.forEach((hotel, i) => {
-          typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_name`, field_value: hotel.name, field_type: 'text' });
-          typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_location`, field_value: hotel.location, field_type: 'text' });
-          if (hotel.checkIn) typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_checkIn`, field_value: hotel.checkIn, field_type: 'date' });
-          if (hotel.checkOut) typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_checkOut`, field_value: hotel.checkOut, field_type: 'date' });
-          if (hotel.roomType) typeDetails.push({ package_id: packageId, field_name: `hotel_${i + 1}_roomType`, field_value: hotel.roomType, field_type: 'text' });
-        });
-      }
-      if (typeDetails.length > 0) {
-        console.log('🔧 Inserting type-specific details:', typeDetails);
-        const { error } = await supabase.from('package_type_details').insert(typeDetails);
-        if (error) {
-          console.error('❌ Type details insert error:', error);
-          throw error;
-        }
-        console.log('✅ Type-specific details inserted successfully');
-      }
-
-      // 8) Pricing slabs beyond the first (if provided)
-      if (formData.pricing && formData.pricing.length > 1) {
-        console.log('💰 Inserting extra pricing slabs:', formData.pricing.slice(1));
-        const extraPricingRows = formData.pricing.slice(1).map((p, i) => ({
-          package_id: packageId,
-          field_name: `pricing_slab_${i + 2}`,
-          field_value: JSON.stringify({ adultPrice: p.adultPrice, childPrice: p.childPrice, validFrom: p.validFrom, validTo: p.validTo }),
-          field_type: 'text'
-        }));
-        const { error } = await supabase.from('package_type_details').insert(extraPricingRows);
-        if (error) {
-          console.error('❌ Extra pricing insert error:', error);
-          throw error;
-        }
-        console.log('✅ Extra pricing slabs inserted successfully');
-      }
-
-      // 9) Upload images to storage and create package_images records
-      console.log('🖼️ Processing images...');
-      const imageFiles: File[] = [];
-      if (formData.image instanceof File) imageFiles.push(formData.image);
-      if (formData.banner instanceof File) imageFiles.push(formData.banner);
-      console.log('🖼️ Found image files:', imageFiles.length);
-
-      if (imageFiles.length > 0) {
-        const imageRecords: Array<{
-          package_id: string;
-          url: string;
-          alt_text: string;
-          caption?: string;
-          is_primary: boolean;
-          order_index: number;
-          file_size?: number;
-          mime_type?: string;
-        }> = [];
-
-        for (let i = 0; i < imageFiles.length; i++) {
-          const file = imageFiles[i];
-          const fileExt = file.name.split('.').pop();
-          const fileName = `${packageId}/${Date.now()}-${i}.${fileExt}`;
-          
-          // Upload to storage
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('package-images')
-            .upload(fileName, file, {
-              cacheControl: '3600',
-              upsert: false
-            });
-
-          if (uploadError) {
-            console.warn('Image upload failed:', uploadError);
-            continue; // Skip this image but continue with others
-          }
-
-          // Get public URL
-          const { data: urlData } = supabase.storage
-            .from('package-images')
-            .getPublicUrl(fileName);
-
-          imageRecords.push({
-            package_id: packageId,
-            url: urlData.publicUrl,
-            alt_text: `${formData.title || formData.name || 'Package'} image ${i + 1}`,
-            caption: i === 0 ? 'Main package image' : undefined,
-            is_primary: i === 0,
-            order_index: i,
-            file_size: file.size,
-            mime_type: file.type
-          });
-        }
-
-        // Insert image records
-        if (imageRecords.length > 0) {
-          console.log('🖼️ Inserting image records:', imageRecords);
-          const { error: imageError } = await supabase
-            .from('package_images')
-            .insert(imageRecords);
-          if (imageError) {
-            console.warn('❌ Failed to create image records:', imageError);
-            // Don't throw - images are optional
-          } else {
-            console.log('✅ Image records inserted successfully');
-          }
-        }
-      }
-
-      // 10) Activate package so it appears in listings (which default to ACTIVE)
-      console.log('🚦 Activating package to make it visible in listings...');
-      const { error: activateErr } = await supabase
-        .from('packages')
-        .update({ status: 'ACTIVE' })
-        .eq('id', packageId);
-      if (activateErr) {
-        console.warn('⚠️ Failed to activate package (will remain DRAFT):', activateErr);
-      } else {
-        console.log('✅ Package activated');
-      }
-
-      console.log('🎉 Package creation completed successfully!');
-      console.log('✅ Final package ID:', packageId);
-      alert('Package created successfully!');
+      // Continue with the rest of your save logic...
+      
+      addToast('Package created successfully!', 'success');
       router.push('/operator/packages');
+      
     } catch (error: any) {
       console.error('💥 CRITICAL ERROR in package save:', error);
-      console.error('💥 Error details:', {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint
-      });
-      alert(error?.message || 'Error saving package. Please try again.');
+      addToast(error?.message || 'Error saving package. Please try again.', 'error');
     } finally {
-      console.log('🏁 Save process finished, setting isSaving to false');
       setIsSaving(false);
     }
   };
@@ -1632,76 +2306,119 @@ export default function ModernPackageWizard() {
       case PackageType.FIXED_DEPARTURE_WITH_FLIGHT:
         return <FixedDepartureForm data={formData} onChange={updateFormData} />;
       default:
-        return <div>Form for {selectedType} coming soon...</div>;
+        return (
+          <div className="text-center py-12 text-gray-500">
+            <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p>Form for {selectedType} coming soon...</p>
+          </div>
+        );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AnimatePresence mode="wait">
-        {step === 'type' && (
-          <motion.div
-            key="type"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="py-12"
-          >
-            <PackageTypeSelector onSelect={handleTypeSelect} />
-          </motion.div>
-        )}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+        <AnimatePresence mode="wait">
+          {step === 'type' && (
+            <motion.div
+              key="type"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="py-4 relative z-10"
+            >
+              <PackageTypeSelector onSelect={handleTypeSelect} />
+            </motion.div>
+          )}
 
-        {step === 'form' && (
-          <motion.div
-            key="form"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="py-8"
-          >
-            <div className="max-w-6xl mx-auto px-4">
-              <div className="flex items-center justify-between mb-8">
-                <button
-                  onClick={() => setStep('type')}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+          {step === 'form' && (
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="py-4 relative z-10"
+            >
+              <div className="max-w-6xl mx-auto px-4 relative z-10">
+                {/* Compact Header */}
+                <motion.div 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex items-center justify-between mb-4"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  Back to Package Types
-                </button>
-                
-                <div className="flex items-center gap-4">
-                  {Object.keys(errors).length > 0 && (
-                    <div className="flex items-center gap-2 text-red-600 text-sm">
-                      <AlertCircle className="w-4 h-4" />
-                      Please fix errors before saving
-                    </div>
-                  )}
-                  
                   <button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    onClick={() => {
+                      setStep('type');
+                      addToast('Returning to package selection', 'info');
+                    }}
+                    className="group flex items-center gap-2 px-4 py-2 text-gray-600 backdrop-blur-xl rounded-xl hover:text-gray-900 transition-all duration-200 border border-white/20"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    }}
                   >
-                    {isSaving ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        Save Package
-                      </>
-                    )}
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+                    <span className="font-medium text-sm">Back</span>
                   </button>
-                </div>
-              </div>
+                  
+                  <div className="flex items-center gap-6">
+                    <AnimatePresence>
+                      {Object.keys(errors).length > 0 && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200"
+                        >
+                          <AlertCircle className="w-4 h-4" />
+                          {Object.keys(errors).length} error{Object.keys(errors).length > 1 ? 's' : ''} to fix
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                    
+                    <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="relative flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 backdrop-blur-sm"
+                      style={{
+                        boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      }}
+                    >
+                      {isSaving ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span className="font-semibold">Creating Package...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          <span className="font-semibold">Save Package</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
 
-              {renderForm()}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                {renderForm()}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+  );
+}
+
+// Main wizard component with ToastProvider wrapper
+export default function CompactPackageWizard() {
+  return (
+    <ToastProvider>
+      <CompactPackageWizardContent />
+    </ToastProvider>
   );
 }

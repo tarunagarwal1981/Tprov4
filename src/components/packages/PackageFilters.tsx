@@ -121,14 +121,22 @@ export default function PackageFilters({ filters, onFiltersChange, onClose }: Pa
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full backdrop-blur-xl border border-white/20"
+    style={{
+      background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+      boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+    }}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center">
             <Filter className="w-5 h-5 mr-2" />
             Filters
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={onClose} className="backdrop-blur-sm border border-white/20"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+          }}>
             <X className="w-4 h-4" />
           </Button>
         </div>
@@ -313,17 +321,24 @@ export default function PackageFilters({ filters, onFiltersChange, onClose }: Pa
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-4 border-t border-gray-200 space-y-2">
+        <div className="pt-4 border-t border-white/20 space-y-2">
           <Button 
             onClick={applyFilters}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white backdrop-blur-sm"
+            style={{
+              boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+            }}
           >
             Apply Filters
           </Button>
           <Button 
             variant="outline" 
             onClick={clearFilters}
-            className="w-full"
+            className="w-full backdrop-blur-sm border border-white/20"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+            }}
           >
             Clear All
           </Button>

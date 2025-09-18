@@ -150,7 +150,20 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
   // Grid view
   if (viewMode === 'grid') {
     return (
-      <Card className="group hover:shadow-lg transition-all duration-200 overflow-hidden">
+      <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-xl border border-white/20"
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)',
+        transformStyle: 'preserve-3d'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'translateY(-8px) scale(1.02) rotateX(5deg) rotateY(2deg)';
+        e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'translateY(0) scale(1) rotateX(0deg) rotateY(0deg)';
+        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)';
+      }}>
         {/* Image */}
         <div className="relative h-36 bg-gray-200">
           {pkg.images && pkg.images.length > 0 && !imageError ? (
@@ -169,13 +182,23 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
           
           {/* Status Badge */}
           <div className="absolute top-3 left-3">
-            {getStatusBadge(pkg.status)}
+            <div className="backdrop-blur-sm rounded-xl px-2 py-1 border border-white/20"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+            }}>
+              {getStatusBadge(pkg.status)}
+            </div>
           </div>
 
           {/* Featured Badge */}
           {pkg.isFeatured && (
             <div className="absolute top-3 right-3">
-              <Badge className="bg-yellow-500 text-white">
+              <Badge className="backdrop-blur-sm border border-yellow-200/30"
+              style={{
+                background: 'linear-gradient(135deg, rgba(245,158,11,0.8) 0%, rgba(217,119,6,0.8) 100%)',
+                boxShadow: '0 4px 16px rgba(245,158,11,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
                 <Star className="w-3 h-3 mr-1" />
                 Featured
               </Badge>
@@ -186,7 +209,11 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
           <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="sm" className="h-8 w-8 p-0">
+                <Button variant="secondary" size="sm" className="h-8 w-8 p-0 backdrop-blur-sm border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                }}>
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>

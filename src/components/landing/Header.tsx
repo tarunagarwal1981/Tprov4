@@ -3,12 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { useSimpleAuth } from '@/context/SimpleAuthContext';
+import { useAuth } from '@/context/SupabaseAuthContext';
 import { UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 export function Header() {
-  const { state, signOut } = useSimpleAuth();
+  const { state, signOut } = useAuth();
 
   const handleLogout = () => {
     signOut();
