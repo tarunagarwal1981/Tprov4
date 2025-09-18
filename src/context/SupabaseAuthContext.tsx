@@ -260,7 +260,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [isInitialized]);
+  }, []);
 
   // ===== SIGN UP =====
   const signUp = async (

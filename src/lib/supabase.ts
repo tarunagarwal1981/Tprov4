@@ -7,7 +7,6 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOi
 // Singleton class to ensure only one instance
 class SupabaseClientSingleton {
   private static instance: any;
-  private static adminInstance: any;
   private static isInitialized = false;
 
   static getInstance() {
@@ -42,23 +41,6 @@ class SupabaseClientSingleton {
     }
     return SupabaseClientSingleton.instance;
   }
-
-  static getAdminInstance() {
-    if (!SupabaseClientSingleton.adminInstance) {
-      SupabaseClientSingleton.adminInstance = createClient(
-        supabaseUrl,
-        process.env.SUPABASE_SERVICE_ROLE_KEY || supabaseAnonKey,
-        {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: false
-          }
-        }
-      );
-    }
-    return SupabaseClientSingleton.adminInstance;
-  }
 }
 
 export const supabase = SupabaseClientSingleton.getInstance();
-export const supabaseAdmin = SupabaseClientSingleton.getAdminInstance();
