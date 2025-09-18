@@ -71,12 +71,23 @@ export function ProtectedRoute({
 
   // ===== REDIRECT LOGIC =====
   useEffect(() => {
+    console.log('🛡️ ProtectedRoute useEffect triggered with state:', {
+      isLoading: state.isLoading,
+      user: state.user ? { id: state.user.id, email: state.user.email, role: state.user.role } : null,
+      isClient,
+      pathname,
+      requiredRoles
+    });
+    
     // Don't redirect while loading or before client hydration
-    if (state.isLoading || !isClient) return;
+    if (state.isLoading || !isClient) {
+      console.log('⏳ ProtectedRoute: Skipping redirect - loading or not client-side');
+      return;
+    }
 
     // If not authenticated, redirect to login
     if (!state.user) {
-      console.log('🚫 Not authenticated, redirecting to login');
+      console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
       router.push(loginUrl);
       return;
@@ -84,13 +95,13 @@ export function ProtectedRoute({
 
     // If user is authenticated but no specific roles required, allow access
     if (!requiredRoles || requiredRoles.length === 0) {
-      console.log('✅ No role requirements, allowing access');
+      console.log('✅ ProtectedRoute: No role requirements, allowing access');
       return;
     }
 
     // Check if user has required role
     if (!requiredRoles.includes(state.user.role)) {
-      console.log('❌ User does not have required role, redirecting');
+      console.log('❌ ProtectedRoute: User does not have required role, redirecting');
       
       // If redirectTo is specified, use it
       if (redirectTo) {
@@ -101,16 +112,16 @@ export function ProtectedRoute({
       // Otherwise, redirect based on user's role
       const userDashboard = defaultRoleRedirects[state.user.role];
       if (userDashboard) {
-        console.log('🔄 Redirecting to user role dashboard:', userDashboard);
+        console.log('🔄 ProtectedRoute: Redirecting to user role dashboard:', userDashboard);
         router.push(userDashboard);
         return;
       }
 
       // Fallback to home page
-      console.log('🏠 Fallback redirect to home');
+      console.log('🏠 ProtectedRoute: Fallback redirect to home');
       router.push('/');
     } else {
-      console.log('✅ User has required role, allowing access');
+      console.log('✅ ProtectedRoute: User has required role, allowing access');
     }
   }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo, router]);
 

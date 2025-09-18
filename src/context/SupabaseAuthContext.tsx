@@ -36,52 +36,73 @@ const initialState: AuthState = {
 
 // ===== AUTH REDUCER =====
 function authReducer(state: AuthState, action: AuthAction): AuthState {
+  console.log('🔄 AuthReducer: Action dispatched:', action.type, action.payload ? 'with payload' : 'no payload');
+  console.log('🔄 AuthReducer: Current state before update:', { 
+    isLoading: state.isLoading, 
+    user: state.user ? { id: state.user.id, email: state.user.email, role: state.user.role } : null,
+    error: state.error 
+  });
+  
+  let newState: AuthState;
   switch (action.type) {
     case 'SET_LOADING':
-      return {
+      newState = {
         ...state,
         isLoading: action.payload,
       };
+      break;
 
     case 'SET_SESSION':
-      return {
+      newState = {
         ...state,
         session: action.payload.session,
         supabaseUser: action.payload.user,
         isAuthenticated: !!action.payload.session,
         isLoading: false,
       };
+      break;
 
     case 'SET_USER_PROFILE':
-      return {
+      newState = {
         ...state,
         user: action.payload,
         isLoading: false,
       };
+      break;
 
     case 'SET_ERROR':
-      return {
+      newState = {
         ...state,
         error: action.payload,
         isLoading: false,
       };
+      break;
 
     case 'CLEAR_ERROR':
-      return {
+      newState = {
         ...state,
         error: null,
       };
+      break;
 
     case 'LOGOUT':
-      return {
+      newState = {
         ...initialState,
         isLoading: false,
       };
+      break;
 
     default:
-      return state;
+      newState = state;
   }
-}
+  
+  console.log('✅ AuthReducer: New state after update:', { 
+    isLoading: newState.isLoading, 
+    user: newState.user ? { id: newState.user.id, email: newState.user.email, role: newState.user.role } : null,
+    error: newState.error 
+  });
+  
+  return newState;
 
 // ===== AUTH CONTEXT INTERFACE =====
 interface AuthContextType {
@@ -129,17 +150,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       // Only run on client side
       if (typeof window === 'undefined') {
+        console.log('🚫 loadUserProfile: Skipping server-side execution');
         return;
       }
 
-      console.log('🔍 Loading user profile for:', supabaseUser.email);
+      console.log('🔍 loadUserProfile: Starting for user:', {
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        created_at: supabaseUser.created_at
+      });
 
       // Get user role from the users table in Supabase
+      console.log('🔍 loadUserProfile: Querying database for user profile...');
       const { data: userProfile, error } = await supabase
         .from('users')
         .select('role, name, profile')
         .eq('id', supabaseUser.id)
         .single();
+
+      console.log('🔍 loadUserProfile: Database query result:', {
+        userProfile,
+        error: error ? { message: error.message, code: error.code } : null
+      });
 
       if (error) {
         console.error('❌ Error loading user profile from database:', error);
@@ -156,7 +188,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           lastLoginAt: new Date()
         };
         console.warn('⚠️ Using fallback user profile due to DB error:', fallbackUser);
+        console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with fallback user');
         dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
+        console.log('✅ loadUserProfile: Fallback user dispatched successfully');
         return;
       }
 
@@ -173,7 +207,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           isActive: true,
           lastLoginAt: new Date()
         };
+        console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with fallback user (no profile)');
         dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
+        console.log('✅ loadUserProfile: Fallback user dispatched successfully');
         return;
       }
 
@@ -193,10 +229,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       console.log('👤 User profile created:', user);
+      console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with database user');
       dispatch({ type: 'SET_USER_PROFILE', payload: user });
+      console.log('✅ loadUserProfile: Database user dispatched successfully');
 
     } catch (error) {
-      console.error('Error in loadUserProfile:', error);
+      console.error('❌ Error in loadUserProfile:', error);
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -208,7 +246,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isActive: true,
         lastLoginAt: new Date()
       };
+      console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with catch fallback user');
       dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
+      console.log('✅ loadUserProfile: Catch fallback user dispatched successfully');
     }
   }, []);
 
@@ -260,10 +300,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: Session | null) => {
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('🔐 Auth state changed:', event, session?.user?.id);
+        console.log('🔐 Session details:', { 
+          hasSession: !!session, 
+          userId: session?.user?.id, 
+          email: session?.user?.email 
+        });
         
-        if (!mounted || typeof window === 'undefined') return;
+        if (!mounted || typeof window === 'undefined') {
+          console.log('🚫 Auth state change ignored - not mounted or server-side');
+          return;
+        }
 
+        console.log('🔄 Dispatching SET_SESSION action');
         dispatch({ 
           type: 'SET_SESSION', 
           payload: { 
@@ -273,8 +322,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         });
 
         if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ SIGNED_IN event detected, calling loadUserProfile');
           await loadUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 SIGNED_OUT event detected, dispatching LOGOUT');
           dispatch({ type: 'LOGOUT' });
         }
       }
