@@ -65,7 +65,11 @@ const Toast = ({ message, type, onClose }: ToastProps) => {
       initial={{ opacity: 0, y: -50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -50, scale: 0.9 }}
-      className={`fixed top-4 right-4 z-50 max-w-md rounded-xl border shadow-lg backdrop-blur-sm ${colors[type]} p-4`}
+      className={`fixed top-4 right-4 z-50 max-w-md rounded-2xl border border-white/20 shadow-2xl backdrop-blur-xl bg-white/10 ${colors[type]} p-4`}
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+      }}
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
@@ -287,15 +291,15 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="max-w-6xl mx-auto px-4 py-4">
       {/* Compact Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
+        className="text-center mb-6"
       >
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Package</h1>
-        <p className="text-gray-600 max-w-xl mx-auto">Select the package type that best fits your offering</p>
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Create Package</h1>
+        <p className="text-gray-600 max-w-xl mx-auto text-sm">Select the package type that best fits your offering</p>
       </motion.div>
       
       {/* Compact Grid Layout */}
@@ -310,42 +314,63 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -2, scale: 1.02 }}
+              whileHover={{ 
+                y: -8, 
+                scale: 1.03,
+                rotateX: 5,
+                rotateY: 2,
+                transition: { duration: 0.3, ease: "easeOut" }
+              }}
               whileTap={{ scale: 0.98 }}
-              className={`group relative bg-white rounded-xl shadow-sm border transition-all duration-300 cursor-pointer overflow-hidden ${
+              className={`group relative backdrop-blur-xl rounded-2xl border border-white/20 transition-all duration-300 cursor-pointer overflow-hidden ${
                 isSelected 
                   ? getColorClasses(pkg.color, 'selected')
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
+                  : 'hover:border-white/30'
               }`}
+              style={{
+                background: isSelected 
+                  ? `linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)`
+                  : `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)`,
+                boxShadow: isSelected 
+                  ? '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.2)',
+                transformStyle: 'preserve-3d'
+              }}
               onClick={() => handleSelect(pkg.type)}
             >
-              <div className="p-6">
+              <div className="p-5">
                 {/* Compact Icon and Title */}
-                <div className="flex items-center gap-4 mb-4">
-                  <div className={`inline-flex p-3 rounded-lg transition-all duration-300 ${
-                    isSelected ? getColorClasses(pkg.color, 'bg') : 'bg-gray-50 group-hover:' + getColorClasses(pkg.color, 'bg')
-                  }`}>
-                    <IconComponent className={`w-5 h-5 transition-colors duration-300 ${
-                      isSelected ? getColorClasses(pkg.color, 'text') : 'text-gray-400 group-hover:' + getColorClasses(pkg.color, 'text')
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`inline-flex p-2.5 rounded-xl transition-all duration-300 backdrop-blur-sm ${
+                    isSelected ? getColorClasses(pkg.color, 'bg') : 'bg-white/20 group-hover:' + getColorClasses(pkg.color, 'bg')
+                  }`}
+                  style={{
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                  }}>
+                    <IconComponent className={`w-4 h-4 transition-colors duration-300 ${
+                      isSelected ? getColorClasses(pkg.color, 'text') : 'text-gray-500 group-hover:' + getColorClasses(pkg.color, 'text')
                     }`} />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">{pkg.title}</h3>
+                  <h3 className="text-base font-semibold text-gray-900">{pkg.title}</h3>
                   {isSelected && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className={`ml-auto p-1.5 rounded-full ${getColorClasses(pkg.color, 'bg')}`}
+                      className={`ml-auto p-1 rounded-full backdrop-blur-sm ${getColorClasses(pkg.color, 'bg')}`}
+                      style={{
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      }}
                     >
-                      <Check className={`w-3 h-3 ${getColorClasses(pkg.color, 'text')}`} />
+                      <Check className={`w-2.5 h-2.5 ${getColorClasses(pkg.color, 'text')}`} />
                     </motion.div>
                   )}
                 </div>
                 
                 {/* Compact Description */}
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">{pkg.description}</p>
+                <p className="text-xs text-gray-600 mb-3 leading-relaxed">{pkg.description}</p>
                 
                 {/* Compact Features */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {pkg.features.map((feature, featureIndex) => (
                     <motion.div 
                       key={featureIndex} 
@@ -354,7 +379,7 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: (index * 0.1) + (featureIndex * 0.05) }}
                     >
-                      <div className={`w-1.5 h-1.5 rounded-full mr-2 transition-colors duration-300 ${
+                      <div className={`w-1 h-1 rounded-full mr-2 transition-colors duration-300 ${
                         isSelected ? getColorClasses(pkg.color, 'text').replace('text-', 'bg-') : 'bg-gray-300'
                       }`} />
                       {feature}
@@ -421,9 +446,14 @@ const Input = ({ placeholder, value, onChange, type = "text", error, ...props }:
     placeholder={placeholder}
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-3 py-2 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white ${
-      error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm ${
+      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
     }`}
+    style={{
+      boxShadow: error 
+        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
     {...props}
   />
 );
@@ -442,9 +472,14 @@ const Textarea = ({ placeholder, value, onChange, rows = 3, error }: TextareaPro
     value={value}
     onChange={(e) => onChange(e.target.value)}
     rows={rows}
-    className={`w-full px-3 py-2 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white resize-none ${
-      error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm resize-none ${
+      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
     }`}
+    style={{
+      boxShadow: error 
+        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
   />
 );
 
@@ -460,9 +495,14 @@ const Select = ({ value, onChange, options, placeholder, error }: SelectProps) =
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-3 py-2 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white ${
-      error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm ${
+      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
     }`}
+    style={{
+      boxShadow: error 
+        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
+        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
   >
     {placeholder && <option value="">{placeholder}</option>}
     {options.map((option) => (
@@ -487,9 +527,17 @@ const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: ImageUploadP
 
   return (
     <div 
-      className={`relative border-3 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer group ${
-        dragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+      className={`relative border-2 border-dashed border-white/30 rounded-2xl p-6 text-center transition-all duration-300 cursor-pointer group backdrop-blur-sm ${
+        dragOver ? 'border-blue-400/50 bg-blue-50/20' : 'hover:border-white/50 hover:bg-white/10'
       }`}
+      style={{
+        background: dragOver 
+          ? 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)'
+          : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+        boxShadow: dragOver 
+          ? '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+      }}
       onDragOver={(e) => {
         e.preventDefault();
         setDragOver(true);
@@ -521,17 +569,20 @@ const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: ImageUploadP
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className={`inline-flex p-4 rounded-2xl transition-colors ${
-            dragOver ? 'bg-blue-100' : 'bg-gray-100 group-hover:bg-blue-50'
-          }`}>
-            <Upload className={`w-8 h-8 transition-colors ${
-              dragOver ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-500'
+        <div className="space-y-3">
+          <div className={`inline-flex p-3 rounded-xl transition-colors backdrop-blur-sm ${
+            dragOver ? 'bg-blue-100/30' : 'bg-white/20 group-hover:bg-blue-50/30'
+          }`}
+          style={{
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}>
+            <Upload className={`w-6 h-6 transition-colors ${
+              dragOver ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-500'
             }`} />
           </div>
           <div>
-            <p className="font-medium text-gray-700 mb-1">{label}</p>
-            <p className="text-sm text-gray-500">Drag & drop or click to browse</p>
+            <p className="font-medium text-gray-700 mb-1 text-sm">{label}</p>
+            <p className="text-xs text-gray-500">Drag & drop or click to browse</p>
             <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
           </div>
         </div>
@@ -575,7 +626,11 @@ const ListManager = ({ items, onChange, placeholder, title }: ListManagerProps) 
         {title && <h4 className="font-medium text-gray-900">{title}</h4>}
         <button
           onClick={() => setIsAdding(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 backdrop-blur-sm rounded-xl transition-colors border border-blue-200/30"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)',
+            boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
         >
           <Plus className="w-4 h-4" />
           Add {title || 'Item'}
@@ -598,7 +653,10 @@ const ListManager = ({ items, onChange, placeholder, title }: ListManagerProps) 
             />
             <button
               onClick={addItem}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-colors flex-shrink-0 backdrop-blur-sm"
+              style={{
+                boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -624,7 +682,11 @@ const ListManager = ({ items, onChange, placeholder, title }: ListManagerProps) 
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className="flex items-center justify-between bg-gradient-to-r from-gray-50 to-gray-100 px-4 py-3 rounded-lg group"
+                className="flex items-center justify-between backdrop-blur-sm px-4 py-3 rounded-xl group border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                }}
               >
                 <span className="text-sm text-gray-700 flex-1">{item}</span>
                 <button
@@ -671,7 +733,11 @@ const PricingSection = ({ pricing, onChange }: PricingSectionProps) => {
         <h4 className="font-semibold text-gray-900">Pricing Information</h4>
         <button
           onClick={addPricing}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 backdrop-blur-sm rounded-xl transition-colors border border-blue-200/30"
+          style={{
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)',
+            boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
         >
           <Plus className="w-4 h-4" />
           Add Price Slab
@@ -686,7 +752,11 @@ const PricingSection = ({ pricing, onChange }: PricingSectionProps) => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-6 space-y-4"
+              className="backdrop-blur-xl border border-white/20 rounded-2xl p-5 space-y-4"
+              style={{
+                background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(147,51,234,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}
             >
               <div className="flex justify-between items-center">
                 <h5 className="font-semibold text-gray-900">Price Slab {index + 1}</h5>
@@ -767,28 +837,35 @@ const TransferForm = ({ data, onChange }: FormProps) => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="max-w-5xl mx-auto space-y-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
+        className="text-center mb-4"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg mb-3">
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50/50 backdrop-blur-sm rounded-xl mb-2 border border-blue-200/30"
+        style={{
+          boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}>
           <Car className="w-4 h-4 text-blue-600" />
           <span className="text-blue-600 font-medium text-sm">Transfer Service</span>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Transfer Details</h2>
-        <p className="text-gray-600">Create your transfer service offering</p>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Transfer Details</h2>
+        <p className="text-gray-600 text-sm">Create your transfer service offering</p>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6"
+        className="backdrop-blur-xl rounded-2xl border border-white/20 p-5 space-y-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="space-y-3">
             <FormField 
               label="Transfer Name" 
               required
@@ -832,7 +909,7 @@ const TransferForm = ({ data, onChange }: FormProps) => {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <FormField 
               label="Service Description"
               description="Describe what makes your transfer service special"
@@ -876,28 +953,35 @@ const ActivityForm = ({ data, onChange }: FormProps) => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-5">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
+        className="text-center mb-5"
       >
-        <div className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-50 rounded-full mb-4">
-          <Star className="w-5 h-5 text-emerald-600" />
-          <span className="text-emerald-600 font-medium">Activity Experience</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50/50 backdrop-blur-sm rounded-xl mb-2 border border-emerald-200/30"
+        style={{
+          boxShadow: '0 4px 16px rgba(16,185,129,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}>
+          <Star className="w-4 h-4 text-emerald-600" />
+          <span className="text-emerald-600 font-medium text-sm">Activity Experience</span>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Activity Details</h2>
-        <p className="text-gray-600 text-lg">Create your activity or experience offering</p>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">Activity Details</h2>
+        <p className="text-gray-600 text-sm">Create your activity or experience offering</p>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-8 space-y-8"
+        className="backdrop-blur-xl rounded-2xl border border-white/20 p-5 space-y-5"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+          boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="space-y-3">
             <FormField 
               label="Activity Name" 
               required
@@ -946,7 +1030,7 @@ const ActivityForm = ({ data, onChange }: FormProps) => {
             </div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <FormField 
               label="Activity Description"
               description="Describe what makes this experience special"
@@ -2232,7 +2316,12 @@ function CompactPackageWizardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-indigo-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
         <AnimatePresence mode="wait">
           {step === 'type' && (
             <motion.div
@@ -2241,7 +2330,7 @@ function CompactPackageWizardContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="py-6"
+              className="py-4 relative z-10"
             >
               <PackageTypeSelector onSelect={handleTypeSelect} />
             </motion.div>
@@ -2254,21 +2343,25 @@ function CompactPackageWizardContent() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.3 }}
-              className="py-6"
+              className="py-4 relative z-10"
             >
-              <div className="max-w-6xl mx-auto px-4">
+              <div className="max-w-6xl mx-auto px-4 relative z-10">
                 {/* Compact Header */}
                 <motion.div 
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-between mb-6"
+                  className="flex items-center justify-between mb-4"
                 >
                   <button
                     onClick={() => {
                       setStep('type');
                       addToast('Returning to package selection', 'info');
                     }}
-                    className="group flex items-center gap-2 px-4 py-2 text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-200 shadow-sm border border-gray-200"
+                    className="group flex items-center gap-2 px-4 py-2 text-gray-600 backdrop-blur-xl rounded-xl hover:text-gray-900 transition-all duration-200 border border-white/20"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    }}
                   >
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
                     <span className="font-medium text-sm">Back</span>
@@ -2292,7 +2385,10 @@ function CompactPackageWizardContent() {
                     <button
                       onClick={handleSave}
                       disabled={isSaving}
-                      className="relative flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
+                      className="relative flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 backdrop-blur-sm"
+                      style={{
+                        boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      }}
                     >
                       {isSaving ? (
                         <>
