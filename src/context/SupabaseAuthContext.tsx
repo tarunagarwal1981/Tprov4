@@ -36,7 +36,7 @@ const initialState: AuthState = {
 
 // ===== AUTH REDUCER =====
 function authReducer(state: AuthState, action: AuthAction): AuthState {
-  console.log('🔄 AuthReducer: Action dispatched:', action.type, action.payload ? 'with payload' : 'no payload');
+  console.log('🔄 AuthReducer: Action dispatched:', action.type, 'payload' in action ? 'with payload' : 'no payload');
   console.log('🔄 AuthReducer: Current state before update:', { 
     isLoading: state.isLoading, 
     user: state.user ? { id: state.user.id, email: state.user.email, role: state.user.role } : null,
@@ -133,6 +133,8 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const renderCountRef = useRef(0);
+  const loadingProfileRef = useRef<Set<string>>(new Set()); // Track which users are being loaded
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Timeout for loading state
 
   // Circuit breaker to prevent infinite loops
   renderCountRef.current += 1;
@@ -157,6 +159,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
+      // Prevent multiple simultaneous loads of the same user
+      if (loadingProfileRef.current.has(supabaseUser.id)) {
+        console.log('⏳ loadUserProfile: Already loading profile for user:', supabaseUser.id);
+        return;
+      }
+
+      loadingProfileRef.current.add(supabaseUser.id);
       console.log('🔍 loadUserProfile: Starting for user:', {
         id: supabaseUser.id,
         email: supabaseUser.email,
@@ -184,7 +193,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           email: supabaseUser.email || '',
           name: supabaseUser.email?.split('@')[0] || 'User',
           role: UserRole.TRAVEL_AGENT,
-          profile: {},
+          profile: { firstName: '', lastName: '' },
           createdAt: new Date(supabaseUser.created_at),
           updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
           isActive: true,
@@ -204,7 +213,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           email: supabaseUser.email || '',
           name: supabaseUser.email?.split('@')[0] || 'User',
           role: UserRole.TRAVEL_AGENT,
-          profile: {},
+          profile: { firstName: '', lastName: '' },
           createdAt: new Date(supabaseUser.created_at),
           updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
           isActive: true,
@@ -243,7 +252,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: supabaseUser.email || '',
         name: supabaseUser.email?.split('@')[0] || 'User',
         role: UserRole.TRAVEL_AGENT,
-        profile: {},
+        profile: { firstName: '', lastName: '' },
         createdAt: new Date(supabaseUser.created_at),
         updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
         isActive: true,
@@ -252,6 +261,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log('🔄 loadUserProfile: Dispatching SET_USER_PROFILE with catch fallback user');
       dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
       console.log('✅ loadUserProfile: Catch fallback user dispatched successfully');
+    } finally {
+      // Always clean up the loading state
+      loadingProfileRef.current.delete(supabaseUser.id);
+      console.log('🧹 loadUserProfile: Cleaned up loading state for user:', supabaseUser.id);
     }
   }, []);
 
@@ -263,6 +276,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (typeof window === 'undefined') {
       return;
     }
+
+    // Set a timeout to prevent infinite loading
+    loadingTimeoutRef.current = setTimeout(() => {
+      if (mounted && state.isLoading) {
+        console.warn('⚠️ Auth loading timeout reached, forcing loading to false');
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    }, 10000); // 10 second timeout
 
     // Get initial session
     const getInitialSession = async () => {
@@ -315,6 +336,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return;
         }
 
+        // Prevent duplicate processing of the same session
+        const currentSessionId = state.session?.user?.id;
+        const newSessionId = session?.user?.id;
+        
+        if (event === 'SIGNED_IN' && currentSessionId === newSessionId) {
+          console.log('⏳ Auth state change ignored - same session already processed');
+          return;
+        }
+
         console.log('🔄 Dispatching SET_SESSION action');
         dispatch({ 
           type: 'SET_SESSION', 
@@ -336,6 +366,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     return () => {
       mounted = false;
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
       subscription.unsubscribe();
     };
   }, []);

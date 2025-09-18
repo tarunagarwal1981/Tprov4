@@ -124,7 +124,7 @@ export function ProtectedRoute({
     } else {
       console.log('✅ ProtectedRoute: User has required role, allowing access');
     }
-  }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo]);
+  }, [state.user?.id, state.isLoading, isClient, pathname]); // Simplified dependencies
 
   // Store previous dependencies to detect changes
   const currentDeps = {
@@ -138,11 +138,11 @@ export function ProtectedRoute({
   
   // Log what changed
   const changedDeps = Object.keys(currentDeps).filter(key => {
-    const changed = prevDepsRef.current[key] !== currentDeps[key];
+    const changed = prevDepsRef.current[key] !== (currentDeps as any)[key];
     if (changed) {
       console.log(`🔄 ProtectedRoute: Dependency changed - ${key}:`, {
         old: prevDepsRef.current[key],
-        new: currentDeps[key]
+        new: (currentDeps as any)[key]
       });
     }
     return changed;
