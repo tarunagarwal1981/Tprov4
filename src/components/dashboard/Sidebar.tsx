@@ -86,15 +86,24 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   return (
     <motion.aside
       className={cn(
-        'bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300',
+        'backdrop-blur-xl border-r border-white/20 flex flex-col h-full transition-all duration-300 relative overflow-hidden',
         isCollapsed ? 'w-16' : 'w-64'
       )}
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+      }}
       initial={false}
       animate={{ width: isCollapsed ? 64 : 256 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
     >
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 right-10 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-2xl animate-pulse" />
+        <div className="absolute bottom-20 left-10 w-24 h-24 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
       {/* Logo Section */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-white/20 relative z-10">
         <AnimatePresence>
           {!isCollapsed && (
             <motion.div
@@ -102,9 +111,12 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-3"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center backdrop-blur-sm"
+              style={{
+                boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
                 <Building2 className="w-5 h-5 text-white" />
               </div>
               <span className="text-lg font-bold text-gray-900">TravelPro</span>
@@ -112,20 +124,30 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           )}
         </AnimatePresence>
         
-        <button
+        <motion.button
           onClick={onToggle}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+          className="p-2 rounded-xl backdrop-blur-sm transition-all duration-200 border border-white/20"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+          }}
+          whileHover={{ 
+            scale: 1.05,
+            rotateY: 5,
+            transition: { duration: 0.2, ease: "easeOut" }
+          }}
+          whileTap={{ scale: 0.95 }}
         >
           {isCollapsed ? (
             <ChevronRight className="w-5 h-5 text-gray-600" />
           ) : (
             <ChevronLeft className="w-5 h-5 text-gray-600" />
           )}
-        </button>
+        </motion.button>
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 relative z-10">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           const Icon = item.icon;
@@ -134,13 +156,26 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <Link key={item.id} href={item.href}>
               <motion.div
                 className={cn(
-                  'flex items-center rounded-lg transition-all duration-200 group relative',
+                  'flex items-center rounded-xl transition-all duration-200 group relative backdrop-blur-sm border',
                   isCollapsed ? 'justify-center px-2 py-3' : 'px-3 py-2',
                   isActive
-                    ? 'bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200'
-                    : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'border-blue-200/50 text-blue-700'
+                    : 'border-white/20 text-gray-700 hover:border-white/30'
                 )}
-                whileHover={{ scale: 1.02 }}
+                style={{
+                  background: isActive 
+                    ? 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(147,51,234,0.1) 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                  boxShadow: isActive 
+                    ? '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                }}
+                whileHover={{ 
+                  scale: 1.03,
+                  y: -2,
+                  rotateX: 2,
+                  transition: { duration: 0.2, ease: "easeOut" }
+                }}
                 whileTap={{ scale: 0.98 }}
               >
                 <Icon className={cn(
@@ -163,7 +198,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                         <motion.span
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center"
+                          className="backdrop-blur-sm text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center border border-red-200/30"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(239,68,68,0.8) 0%, rgba(220,38,38,0.8) 100%)',
+                            boxShadow: '0 4px 16px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                          }}
                         >
                           {item.badge}
                         </motion.span>
@@ -174,7 +213,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
                 {/* Tooltip for collapsed state */}
                 {isCollapsed && (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                  <div className="absolute left-full ml-2 px-3 py-2 backdrop-blur-xl text-white text-xs rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 border border-white/20"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.6) 100%)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  }}>
                     {item.label}
                     {item.badge && ` (${item.badge})`}
                   </div>
@@ -186,7 +229,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-white/20 relative z-10">
         <AnimatePresence>
           {!isCollapsed && (
             <motion.div
@@ -194,9 +237,16 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.2 }}
-              className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50"
+              className="flex items-center space-x-3 p-3 rounded-xl backdrop-blur-sm border border-white/20"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+              }}
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center backdrop-blur-sm"
+              style={{
+                boxShadow: '0 4px 16px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
                 <span className="text-white text-sm font-medium">TO</span>
               </div>
               <div className="flex-1 min-w-0">
@@ -209,9 +259,19 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         
         {isCollapsed && (
           <div className="flex justify-center">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+            <motion.div 
+              className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-xl flex items-center justify-center backdrop-blur-sm"
+              style={{
+                boxShadow: '0 4px 16px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}
+              whileHover={{ 
+                scale: 1.1,
+                rotateY: 10,
+                transition: { duration: 0.2, ease: "easeOut" }
+              }}
+            >
               <span className="text-white text-sm font-medium">TO</span>
-            </div>
+            </motion.div>
           </div>
         )}
       </div>
