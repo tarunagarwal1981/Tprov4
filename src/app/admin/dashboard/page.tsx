@@ -2,6 +2,9 @@
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/lib/types';
+
+// Define roles outside component to prevent re-creation on every render
+const ADMIN_ROLES = [UserRole.ADMIN, UserRole.SUPER_ADMIN];
 import { useAuth } from '@/context/SupabaseAuthContext';
 
 function AdminDashboard() {
@@ -119,7 +122,7 @@ function AdminDashboard() {
 
 export default function AdminDashboardPage() {
   return (
-    <ProtectedRoute requiredRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+    <ProtectedRoute requiredRoles={ADMIN_ROLES}>
       <AdminDashboard />
     </ProtectedRoute>
   );

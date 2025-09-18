@@ -2,6 +2,9 @@
 
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/lib/types';
+
+// Define roles outside component to prevent re-creation on every render
+const AGENT_ROLES = [UserRole.TRAVEL_AGENT];
 import { useAuth } from '@/context/SupabaseAuthContext';
 
 function AgentDashboard() {
@@ -134,7 +137,7 @@ function AgentDashboard() {
 
 export default function AgentDashboardPage() {
   return (
-    <ProtectedRoute requiredRoles={[UserRole.TRAVEL_AGENT]}>
+    <ProtectedRoute requiredRoles={AGENT_ROLES}>
       <AgentDashboard />
     </ProtectedRoute>
   );

@@ -14,6 +14,9 @@ import {
 } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/lib/types';
+
+// Define roles outside component to prevent re-creation on every render
+const OPERATOR_ROLES = [UserRole.TOUR_OPERATOR];
 import { useAuth } from '@/context/SupabaseAuthContext';
 
 function OperatorDashboard() {
@@ -303,7 +306,7 @@ export default function OperatorDashboardPage() {
   console.log('📄 OperatorDashboardPage wrapper loaded');
   
   return (
-    <ProtectedRoute requiredRoles={[UserRole.TOUR_OPERATOR]}>
+    <ProtectedRoute requiredRoles={OPERATOR_ROLES}>
       <OperatorDashboard />
     </ProtectedRoute>
   );
