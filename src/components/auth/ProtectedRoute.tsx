@@ -62,68 +62,17 @@ export function ProtectedRoute({
     );
   }
 
+  // ALL useEffect HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   // Handle hydration - use a more robust approach
   useEffect(() => {
     console.log('🛡️ ProtectedRoute: setIsClient useEffect running');
     setIsClient(true);
   }, []);
 
-  // Store previous dependencies to detect changes
-  const currentDeps = {
-    user: state.user,
-    isLoading: state.isLoading,
-    isClient,
-    pathname,
-    requiredRoles,
-    redirectTo
-  };
-  
-  // Log what changed
-  const changedDeps = Object.keys(currentDeps).filter(key => {
-    const changed = prevDepsRef.current[key] !== currentDeps[key];
-    if (changed) {
-      console.log(`🔄 ProtectedRoute: Dependency changed - ${key}:`, {
-        old: prevDepsRef.current[key],
-        new: currentDeps[key]
-      });
-    }
-    return changed;
-  });
-  
-  prevDepsRef.current = currentDeps;
-
-  // Prevent hydration mismatch by not rendering until client-side
-  if (!isClient) {
-    console.log('🛡️ ProtectedRoute: Not client-side yet, showing hydration spinner');
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-  
-  console.log('🛡️ ProtectedRoute: Client-side confirmed, proceeding with logic');
-
-  console.log('🛡️ ProtectedRoute - Current state:', {
-    pathname,
-    user: state.user,
-    isLoading: state.isLoading,
-    requiredRoles,
-    isClient,
-  });
-
-  // ===== REDIRECT LOGIC =====
+  // ===== REDIRECT LOGIC USEEFFECT =====
   useEffect(() => {
     effectRunCountRef.current += 1;
     console.log(`🛡️ ProtectedRoute useEffect triggered (run #${effectRunCountRef.current})`);
-    console.log(`🛡️ Changed dependencies: [${changedDeps.join(', ')}]`);
-    console.log('🛡️ Current state:', {
-      isLoading: state.isLoading,
-      user: state.user ? { id: state.user.id, email: state.user.email, role: state.user.role } : null,
-      isClient,
-      pathname,
-      requiredRoles
-    });
     
     // Circuit breaker for useEffect
     if (effectRunCountRef.current > 10) {
@@ -176,6 +125,51 @@ export function ProtectedRoute({
       console.log('✅ ProtectedRoute: User has required role, allowing access');
     }
   }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo]);
+
+  // Store previous dependencies to detect changes
+  const currentDeps = {
+    user: state.user,
+    isLoading: state.isLoading,
+    isClient,
+    pathname,
+    requiredRoles,
+    redirectTo
+  };
+  
+  // Log what changed
+  const changedDeps = Object.keys(currentDeps).filter(key => {
+    const changed = prevDepsRef.current[key] !== currentDeps[key];
+    if (changed) {
+      console.log(`🔄 ProtectedRoute: Dependency changed - ${key}:`, {
+        old: prevDepsRef.current[key],
+        new: currentDeps[key]
+      });
+    }
+    return changed;
+  });
+  
+  prevDepsRef.current = currentDeps;
+
+  // Prevent hydration mismatch by not rendering until client-side
+  if (!isClient) {
+    console.log('🛡️ ProtectedRoute: Not client-side yet, showing hydration spinner');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  console.log('🛡️ ProtectedRoute: Client-side confirmed, proceeding with logic');
+
+  console.log('🛡️ ProtectedRoute - Current state:', {
+    pathname,
+    user: state.user,
+    isLoading: state.isLoading,
+    requiredRoles,
+    isClient,
+  });
+
 
   // ===== LOADING STATE =====
   if (state.isLoading) {
