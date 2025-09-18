@@ -29,22 +29,22 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   console.log('🛡️ ProtectedRoute: Component function called');
   
+  // ALL HOOKS MUST BE CALLED FIRST - Before any conditional returns
   const { state } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+  const renderCountRef = useRef(0);
+  const effectRunCountRef = useRef(0);
+  const prevDepsRef = useRef<any>({});
+  
   console.log('🛡️ ProtectedRoute: useAuth state:', {
     isLoading: state.isLoading,
     hasUser: !!state.user,
     userRole: state.user?.role
   });
-  
-  const router = useRouter();
   console.log('🛡️ ProtectedRoute: useRouter called');
-  
-  const pathname = usePathname();
   console.log('🛡️ ProtectedRoute: usePathname called, pathname:', pathname);
-  
-  const [isClient, setIsClient] = useState(false);
-  const renderCountRef = useRef(0);
-  const effectRunCountRef = useRef(0);
 
   // Circuit breaker to prevent infinite loops
   renderCountRef.current += 1;
@@ -68,28 +68,7 @@ export function ProtectedRoute({
     setIsClient(true);
   }, []);
 
-  // Prevent hydration mismatch by not rendering until client-side
-  if (!isClient) {
-    console.log('🛡️ ProtectedRoute: Not client-side yet, showing hydration spinner');
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-  
-  console.log('🛡️ ProtectedRoute: Client-side confirmed, proceeding with logic');
-
-  console.log('🛡️ ProtectedRoute - Current state:', {
-    pathname,
-    user: state.user,
-    isLoading: state.isLoading,
-    requiredRoles,
-    isClient,
-  });
-
   // Store previous dependencies to detect changes
-  const prevDepsRef = useRef<any>({});
   const currentDeps = {
     user: state.user,
     isLoading: state.isLoading,
@@ -112,6 +91,26 @@ export function ProtectedRoute({
   });
   
   prevDepsRef.current = currentDeps;
+
+  // Prevent hydration mismatch by not rendering until client-side
+  if (!isClient) {
+    console.log('🛡️ ProtectedRoute: Not client-side yet, showing hydration spinner');
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  console.log('🛡️ ProtectedRoute: Client-side confirmed, proceeding with logic');
+
+  console.log('🛡️ ProtectedRoute - Current state:', {
+    pathname,
+    user: state.user,
+    isLoading: state.isLoading,
+    requiredRoles,
+    isClient,
+  });
 
   // ===== REDIRECT LOGIC =====
   useEffect(() => {
