@@ -149,12 +149,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error) {
         console.error('❌ Error loading user profile from database:', error);
         dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
+        dispatch({ type: 'SET_LOADING', payload: false });
         return;
       }
 
       if (!userProfile) {
         console.error('❌ User profile not found in database');
         dispatch({ type: 'SET_ERROR', payload: 'User profile not found' });
+        dispatch({ type: 'SET_LOADING', payload: false });
         return;
       }
 
@@ -182,6 +184,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
       dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
