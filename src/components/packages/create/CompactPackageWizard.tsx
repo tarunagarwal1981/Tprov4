@@ -287,19 +287,19 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
-      <div className="text-center mb-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
-        >
-          <h1 className="text-4xl font-bold text-gray-900">Create New Package</h1>
-          <p className="text-gray-600 text-xl max-w-2xl mx-auto">Choose the type of package you want to create for your customers</p>
-        </motion.div>
-      </div>
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      {/* Compact Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center mb-8"
+      >
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Package</h1>
+        <p className="text-gray-600 max-w-xl mx-auto">Select the package type that best fits your offering</p>
+      </motion.div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Compact Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {packageTypes.map((pkg, index) => {
           const IconComponent = pkg.icon;
           const isSelected = selectedType === pkg.type;
@@ -310,37 +310,51 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ y: -4 }}
+              whileHover={{ y: -2, scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className={`group relative bg-white rounded-2xl shadow-sm border-2 transition-all duration-300 cursor-pointer overflow-hidden ${
+              className={`group relative bg-white rounded-xl shadow-sm border transition-all duration-300 cursor-pointer overflow-hidden ${
                 isSelected 
                   ? getColorClasses(pkg.color, 'selected')
-                  : 'border-gray-200 hover:border-gray-300 hover:shadow-lg'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
               }`}
               onClick={() => handleSelect(pkg.type)}
             >
-              <div className="p-8">
-                <div className={`inline-flex p-4 rounded-2xl mb-6 transition-all duration-300 ${
-                  isSelected ? getColorClasses(pkg.color, 'bg') : 'bg-gray-50 group-hover:' + getColorClasses(pkg.color, 'bg')
-                }`}>
-                  <IconComponent className={`w-7 h-7 transition-colors duration-300 ${
-                    isSelected ? getColorClasses(pkg.color, 'text') : 'text-gray-400 group-hover:' + getColorClasses(pkg.color, 'text')
-                  }`} />
+              <div className="p-6">
+                {/* Compact Icon and Title */}
+                <div className="flex items-center gap-4 mb-4">
+                  <div className={`inline-flex p-3 rounded-lg transition-all duration-300 ${
+                    isSelected ? getColorClasses(pkg.color, 'bg') : 'bg-gray-50 group-hover:' + getColorClasses(pkg.color, 'bg')
+                  }`}>
+                    <IconComponent className={`w-5 h-5 transition-colors duration-300 ${
+                      isSelected ? getColorClasses(pkg.color, 'text') : 'text-gray-400 group-hover:' + getColorClasses(pkg.color, 'text')
+                    }`} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">{pkg.title}</h3>
+                  {isSelected && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={`ml-auto p-1.5 rounded-full ${getColorClasses(pkg.color, 'bg')}`}
+                    >
+                      <Check className={`w-3 h-3 ${getColorClasses(pkg.color, 'text')}`} />
+                    </motion.div>
+                  )}
                 </div>
                 
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">{pkg.title}</h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">{pkg.description}</p>
+                {/* Compact Description */}
+                <p className="text-sm text-gray-600 mb-4 leading-relaxed">{pkg.description}</p>
                 
-                <div className="space-y-3">
+                {/* Compact Features */}
+                <div className="space-y-2">
                   {pkg.features.map((feature, featureIndex) => (
                     <motion.div 
                       key={featureIndex} 
-                      className="flex items-center text-sm text-gray-600"
+                      className="flex items-center text-xs text-gray-500"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: (index * 0.1) + (featureIndex * 0.05) }}
                     >
-                      <div className={`w-2 h-2 rounded-full mr-3 transition-colors duration-300 ${
+                      <div className={`w-1.5 h-1.5 rounded-full mr-2 transition-colors duration-300 ${
                         isSelected ? getColorClasses(pkg.color, 'text').replace('text-', 'bg-') : 'bg-gray-300'
                       }`} />
                       {feature}
@@ -348,18 +362,6 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
                   ))}
                 </div>
               </div>
-              
-              {isSelected && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="absolute top-4 right-4"
-                >
-                  <div className={`p-2 rounded-full ${getColorClasses(pkg.color, 'bg')}`}>
-                    <Check className={`w-4 h-4 ${getColorClasses(pkg.color, 'text')}`} />
-                  </div>
-                </motion.div>
-              )}
             </motion.div>
           );
         })}
@@ -378,13 +380,13 @@ interface FormFieldProps {
 }
 
 const FormField = ({ label, required = false, children, error, description }: FormFieldProps) => (
-  <div className="space-y-2">
-    <label className="flex items-center gap-1 text-sm font-semibold text-gray-700">
+  <div className="space-y-1.5">
+    <label className="flex items-center gap-1 text-sm font-medium text-gray-700">
       {label}
-      {required && <span className="text-red-500">*</span>}
+      {required && <span className="text-red-500 text-xs">*</span>}
     </label>
     {description && (
-      <p className="text-xs text-gray-500 -mt-1">{description}</p>
+      <p className="text-xs text-gray-500">{description}</p>
     )}
     {children}
     <AnimatePresence>
@@ -393,7 +395,7 @@ const FormField = ({ label, required = false, children, error, description }: Fo
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="flex items-center text-red-600 text-xs mt-1"
+          className="flex items-center text-red-600 text-xs"
         >
           <AlertCircle className="w-3 h-3 mr-1 flex-shrink-0" />
           {error}
@@ -419,8 +421,8 @@ const Input = ({ placeholder, value, onChange, type = "text", error, ...props }:
     placeholder={placeholder}
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-sm bg-white/50 backdrop-blur-sm ${
-      error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200'
+    className={`w-full px-3 py-2 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white ${
+      error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
     }`}
     {...props}
   />
@@ -440,8 +442,8 @@ const Textarea = ({ placeholder, value, onChange, rows = 3, error }: TextareaPro
     value={value}
     onChange={(e) => onChange(e.target.value)}
     rows={rows}
-    className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-sm resize-none bg-white/50 backdrop-blur-sm ${
-      error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200'
+    className={`w-full px-3 py-2 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white resize-none ${
+      error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
     }`}
   />
 );
@@ -458,8 +460,8 @@ const Select = ({ value, onChange, options, placeholder, error }: SelectProps) =
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-sm bg-white/50 backdrop-blur-sm ${
-      error ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200'
+    className={`w-full px-3 py-2 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white ${
+      error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
     }`}
   >
     {placeholder && <option value="">{placeholder}</option>}
@@ -765,28 +767,28 @@ const TransferForm = ({ data, onChange }: FormProps) => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-5xl mx-auto space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-8"
+        className="text-center mb-6"
       >
-        <div className="inline-flex items-center gap-3 px-6 py-3 bg-blue-50 rounded-full mb-4">
-          <Car className="w-5 h-5 text-blue-600" />
-          <span className="text-blue-600 font-medium">Transfer Service</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg mb-3">
+          <Car className="w-4 h-4 text-blue-600" />
+          <span className="text-blue-600 font-medium text-sm">Transfer Service</span>
         </div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Transfer Details</h2>
-        <p className="text-gray-600 text-lg">Create your transfer service offering</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">Transfer Details</h2>
+        <p className="text-gray-600">Create your transfer service offering</p>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-xl border border-gray-200 p-8 space-y-8"
+        className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6 space-y-6"
       >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
             <FormField 
               label="Transfer Name" 
               required
@@ -2230,7 +2232,7 @@ function CompactPackageWizardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/20 to-indigo-50/20">
         <AnimatePresence mode="wait">
           {step === 'type' && (
             <motion.div
@@ -2238,8 +2240,8 @@ function CompactPackageWizardContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="py-8"
+              transition={{ duration: 0.3 }}
+              className="py-6"
             >
               <PackageTypeSelector onSelect={handleTypeSelect} />
             </motion.div>
@@ -2251,25 +2253,25 @@ function CompactPackageWizardContent() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="py-8"
+              transition={{ duration: 0.3 }}
+              className="py-6"
             >
-              <div className="max-w-7xl mx-auto px-4">
-                {/* Enhanced Header */}
+              <div className="max-w-6xl mx-auto px-4">
+                {/* Compact Header */}
                 <motion.div 
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center justify-between mb-8"
+                  className="flex items-center justify-between mb-6"
                 >
                   <button
                     onClick={() => {
                       setStep('type');
                       addToast('Returning to package selection', 'info');
                     }}
-                    className="group flex items-center gap-3 px-6 py-3 text-gray-600 bg-white/70 backdrop-blur-sm rounded-xl hover:bg-white hover:text-gray-900 transition-all duration-300 shadow-sm border border-gray-200"
+                    className="group flex items-center gap-2 px-4 py-2 text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg hover:bg-white hover:text-gray-900 transition-all duration-200 shadow-sm border border-gray-200"
                   >
-                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
-                    <span className="font-medium">Back to Package Types</span>
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+                    <span className="font-medium text-sm">Back</span>
                   </button>
                   
                   <div className="flex items-center gap-6">
@@ -2290,7 +2292,7 @@ function CompactPackageWizardContent() {
                     <button
                       onClick={handleSave}
                       disabled={isSaving}
-                      className="relative flex items-center gap-3 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      className="relative flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg"
                     >
                       {isSaving ? (
                         <>
