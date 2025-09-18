@@ -32,6 +32,7 @@ export function ProtectedRoute({
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
   const renderCountRef = useRef(0);
+  const effectRunCountRef = useRef(0);
 
   // Circuit breaker to prevent infinite loops
   renderCountRef.current += 1;
@@ -71,13 +72,20 @@ export function ProtectedRoute({
 
   // ===== REDIRECT LOGIC =====
   useEffect(() => {
-    console.log('🛡️ ProtectedRoute useEffect triggered with state:', {
+    effectRunCountRef.current += 1;
+    console.log(`🛡️ ProtectedRoute useEffect triggered (run #${effectRunCountRef.current}) with state:`, {
       isLoading: state.isLoading,
       user: state.user ? { id: state.user.id, email: state.user.email, role: state.user.role } : null,
       isClient,
       pathname,
       requiredRoles
     });
+    
+    // Circuit breaker for useEffect
+    if (effectRunCountRef.current > 10) {
+      console.error('🚨 ProtectedRoute: useEffect running too many times, breaking');
+      return;
+    }
     
     // Don't redirect while loading or before client hydration
     if (state.isLoading || !isClient) {
@@ -123,7 +131,7 @@ export function ProtectedRoute({
     } else {
       console.log('✅ ProtectedRoute: User has required role, allowing access');
     }
-  }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo, router]);
+  }, [state.user, state.isLoading, isClient, pathname, requiredRoles, redirectTo]);
 
   // ===== LOADING STATE =====
   if (state.isLoading) {
