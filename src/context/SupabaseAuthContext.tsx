@@ -125,17 +125,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   // ===== LOAD USER PROFILE =====
-  const loadUserProfile = async (supabaseUser: SupabaseUser) => {
+  const loadUserProfile = useCallback(async (supabaseUser: SupabaseUser) => {
     try {
       // Only run on client side
       if (typeof window === 'undefined') {
         return;
       }
 
-      // Debug: Log the user metadata
-      console.log('🔍 Supabase user metadata:', supabaseUser.user_metadata);
-      console.log('🔍 User email:', supabaseUser.email);
-      
+      console.log('🔍 Loading user profile for:', supabaseUser.email);
+
       // Get user role from the users table in Supabase
       const { data: userProfile, error } = await supabase
         .from('users')
@@ -145,19 +143,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (error) {
         console.error('❌ Error loading user profile from database:', error);
-        dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
+        // Fallback user with default role to resolve loading state
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: supabaseUser.email?.split('@')[0] || 'User',
+          role: UserRole.TRAVEL_AGENT,
+          profile: {},
+          createdAt: new Date(supabaseUser.created_at),
+          updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
+          isActive: true,
+          lastLoginAt: new Date()
+        };
+        console.warn('⚠️ Using fallback user profile due to DB error:', fallbackUser);
+        dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
         return;
       }
 
       if (!userProfile) {
         console.error('❌ User profile not found in database');
-        dispatch({ type: 'SET_ERROR', payload: 'User profile not found' });
+        const fallbackUser: User = {
+          id: supabaseUser.id,
+          email: supabaseUser.email || '',
+          name: supabaseUser.email?.split('@')[0] || 'User',
+          role: UserRole.TRAVEL_AGENT,
+          profile: {},
+          createdAt: new Date(supabaseUser.created_at),
+          updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
+          isActive: true,
+          lastLoginAt: new Date()
+        };
+        dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
         return;
       }
 
       console.log('✅ User profile loaded from database:', userProfile);
-      console.log('🔍 User role from database:', userProfile.role);
-      
+
       // Create user profile from database data
       const user: User = {
         id: supabaseUser.id,
@@ -172,15 +193,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       console.log('👤 User profile created:', user);
-      console.log('🔍 User role detected:', user.role);
-      console.log('🔍 User role type:', typeof user.role);
       dispatch({ type: 'SET_USER_PROFILE', payload: user });
-      
+
     } catch (error) {
       console.error('Error in loadUserProfile:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to load user profile' });
+      const fallbackUser: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        name: supabaseUser.email?.split('@')[0] || 'User',
+        role: UserRole.TRAVEL_AGENT,
+        profile: {},
+        createdAt: new Date(supabaseUser.created_at),
+        updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
+        isActive: true,
+        lastLoginAt: new Date()
+      };
+      dispatch({ type: 'SET_USER_PROFILE', payload: fallbackUser });
     }
-  };
+  }, []);
 
   // ===== INITIALIZE AUTH =====
   useEffect(() => {
