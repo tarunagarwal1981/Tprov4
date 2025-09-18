@@ -71,7 +71,7 @@ export function ResetPasswordForm() {
       // Redirect to login if no tokens
       router.push('/auth/login');
     }
-  }, [searchParams, router]);
+  }, [searchParams]);
 
   // Handle form submission
   const onSubmit = async (data: ResetPasswordFormData) => {

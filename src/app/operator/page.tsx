@@ -23,7 +23,7 @@ export default function OperatorPage() {
       console.log('🔄 Redirecting to login');
       router.push('/auth/login');
     }
-  }, [state.user, state.isLoading, router]);
+  }, [state.user, state.isLoading]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">

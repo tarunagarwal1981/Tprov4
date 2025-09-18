@@ -83,7 +83,7 @@ export function LoginForm() {
         }
       }, 100);
     }
-  }, [state.isAuthenticated, state.user, state.isLoading, router]);
+  }, [state.isAuthenticated, state.user, state.isLoading]);
 
   const onSubmit = async (data: LoginFormData) => {
     try {

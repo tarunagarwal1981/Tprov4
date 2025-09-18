@@ -88,7 +88,7 @@ export function SimpleLoginForm() {
     } else {
       console.log('⏳ Not redirecting yet - user:', !!state.user, 'loading:', state.isLoading);
     }
-  }, [state.user, state.isLoading, router]);
+  }, [state.user, state.isLoading]);
 
   // ===== GET DASHBOARD URL =====
   const getDashboardUrl = (role: UserRole): string => {

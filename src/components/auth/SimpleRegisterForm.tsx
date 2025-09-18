@@ -54,7 +54,7 @@ export function SimpleRegisterForm() {
       console.log('🚀 Redirecting to dashboard:', dashboardUrl);
       router.replace(dashboardUrl);
     }
-  }, [state.user, state.isLoading, router]);
+  }, [state.user, state.isLoading]);
 
   // ===== GET DASHBOARD URL =====
   const getDashboardUrl = (role: UserRole): string => {

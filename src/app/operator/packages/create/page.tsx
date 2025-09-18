@@ -23,7 +23,7 @@ export default function CreatePackagePage() {
       router.push('/operator/dashboard');
       return;
     }
-  }, [state.user, state.isLoading, router]);
+  }, [state.user, state.isLoading]);
 
   // Show loading state
   if (state.isLoading) {

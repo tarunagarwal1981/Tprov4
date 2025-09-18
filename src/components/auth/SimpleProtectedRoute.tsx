@@ -81,7 +81,7 @@ export function SimpleProtectedRoute({
     } else {
       console.log('✅ User has required role, allowing access');
     }
-  }, [state.user, state.isLoading, requiredRoles, redirectTo, router, pathname]);
+  }, [state.user, state.isLoading, requiredRoles, redirectTo, pathname]);
 
   // ===== LOADING STATE =====
   if (state.isLoading) {
