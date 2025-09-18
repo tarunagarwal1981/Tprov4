@@ -27,15 +27,29 @@ export function ProtectedRoute({
   redirectTo,
   fallback,
 }: ProtectedRouteProps) {
+  console.log('🛡️ ProtectedRoute: Component function called');
+  
   const { state } = useAuth();
+  console.log('🛡️ ProtectedRoute: useAuth state:', {
+    isLoading: state.isLoading,
+    hasUser: !!state.user,
+    userRole: state.user?.role
+  });
+  
   const router = useRouter();
+  console.log('🛡️ ProtectedRoute: useRouter called');
+  
   const pathname = usePathname();
+  console.log('🛡️ ProtectedRoute: usePathname called, pathname:', pathname);
+  
   const [isClient, setIsClient] = useState(false);
   const renderCountRef = useRef(0);
   const effectRunCountRef = useRef(0);
 
   // Circuit breaker to prevent infinite loops
   renderCountRef.current += 1;
+  console.log(`🛡️ ProtectedRoute: Render count: ${renderCountRef.current}`);
+  
   if (renderCountRef.current > 50) {
     console.error('🚨 ProtectedRoute: Potential infinite render loop detected, breaking');
     return (
@@ -50,17 +64,21 @@ export function ProtectedRoute({
 
   // Handle hydration - use a more robust approach
   useEffect(() => {
+    console.log('🛡️ ProtectedRoute: setIsClient useEffect running');
     setIsClient(true);
   }, []);
 
   // Prevent hydration mismatch by not rendering until client-side
   if (!isClient) {
+    console.log('🛡️ ProtectedRoute: Not client-side yet, showing hydration spinner');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
+  
+  console.log('🛡️ ProtectedRoute: Client-side confirmed, proceeding with logic');
 
   console.log('🛡️ ProtectedRoute - Current state:', {
     pathname,
@@ -70,10 +88,37 @@ export function ProtectedRoute({
     isClient,
   });
 
+  // Store previous dependencies to detect changes
+  const prevDepsRef = useRef<any>({});
+  const currentDeps = {
+    user: state.user,
+    isLoading: state.isLoading,
+    isClient,
+    pathname,
+    requiredRoles,
+    redirectTo
+  };
+  
+  // Log what changed
+  const changedDeps = Object.keys(currentDeps).filter(key => {
+    const changed = prevDepsRef.current[key] !== currentDeps[key];
+    if (changed) {
+      console.log(`🔄 ProtectedRoute: Dependency changed - ${key}:`, {
+        old: prevDepsRef.current[key],
+        new: currentDeps[key]
+      });
+    }
+    return changed;
+  });
+  
+  prevDepsRef.current = currentDeps;
+
   // ===== REDIRECT LOGIC =====
   useEffect(() => {
     effectRunCountRef.current += 1;
-    console.log(`🛡️ ProtectedRoute useEffect triggered (run #${effectRunCountRef.current}) with state:`, {
+    console.log(`🛡️ ProtectedRoute useEffect triggered (run #${effectRunCountRef.current})`);
+    console.log(`🛡️ Changed dependencies: [${changedDeps.join(', ')}]`);
+    console.log('🛡️ Current state:', {
       isLoading: state.isLoading,
       user: state.user ? { id: state.user.id, email: state.user.email, role: state.user.role } : null,
       isClient,
@@ -169,6 +214,7 @@ export function ProtectedRoute({
   }
 
   // ===== RENDER CHILDREN =====
+  console.log('✅ ProtectedRoute: Rendering children');
   return <>{children}</>;
 }
 
