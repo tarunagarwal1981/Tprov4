@@ -72,11 +72,26 @@ export class PackageService {
   // Get packages with filtering and pagination (compatible with existing interface)
   async getPackages(params: PackageSearchParams = {}): Promise<ServiceResponse<PaginatedResponse<Package>>> {
     try {
+      // Get current user's tour operator ID if available
+      const { data: { user } } = await supabase.auth.getUser();
+      let tourOperatorId = null;
+      
+      if (user) {
+        const { data: tourOperator } = await supabase
+          .from('tour_operators')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        tourOperatorId = tourOperator?.id;
+      }
+
       const { data, error, count } = await PackageService.getPackages({
-        status: params.filters?.status || 'ACTIVE',
+        status: params.filters?.status || PackageStatus.ACTIVE,
         type: params.filters?.type,
         featured: params.filters?.featured,
         search: params.query,
+        tourOperatorId: tourOperatorId, // Pass the tour operator ID
         limit: params.limit || 12,
         offset: ((params.page || 1) - 1) * (params.limit || 12)
       });
@@ -182,7 +197,7 @@ export class PackageService {
     }
   }
 
-  // Get package statistics
+  // Get package statistics - simplified version
   async getPackageStats(): Promise<ServiceResponse<{
     totalPackages: number;
     activePackages: number;
@@ -190,10 +205,42 @@ export class PackageService {
     averageRating: number;
   }>> {
     try {
-      // Get all packages for stats
-      const { data: packages, error } = await PackageService.getPackages({ limit: 1000 });
+      console.log('🔄 PackageService: Getting package statistics...');
+      
+      // Get current user's tour operator ID if available
+      const { data: { user } } = await supabase.auth.getUser();
+      let tourOperatorId = null;
+      
+      if (user) {
+        const { data: tourOperator } = await supabase
+          .from('tour_operators')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        tourOperatorId = tourOperator?.id;
+        console.log('🏢 PackageService: Current tour operator ID:', tourOperatorId);
+      }
+      
+      // Direct query to packages table
+      let packagesQuery = supabase
+        .from('packages')
+        .select('id, title, status, pricing, rating');
+      
+      if (tourOperatorId) {
+        packagesQuery = packagesQuery.eq('tour_operator_id', tourOperatorId);
+      }
+      
+      const { data: packages, error } = await packagesQuery;
+      
+      console.log('📦 PackageService: Direct packages query result:', { 
+        count: packages?.length, 
+        error,
+        sample: packages?.[0] 
+      });
       
       if (error) {
+        console.error('❌ PackageService: Error fetching packages:', error);
         return { 
           data: { totalPackages: 0, activePackages: 0, totalRevenue: 0, averageRating: 0 }, 
           success: false, 
@@ -202,43 +249,42 @@ export class PackageService {
       }
 
       const totalPackages = packages?.length || 0;
-      const activePackages = packages?.filter(pkg => pkg.status === 'ACTIVE').length || 0;
+      const activePackages = packages?.filter((pkg: any) => pkg.status === 'ACTIVE').length || 0;
       
-      // Calculate total revenue from actual bookings if available
+      console.log('📊 PackageService: Basic stats calculated:', { totalPackages, activePackages });
+      
+      // Calculate total revenue from package pricing
       let totalRevenue = 0;
-      try {
-        const { data: bookings, error: bookingError } = await supabase
-          .from('bookings')
-          .select('pricing')
-          .eq('status', 'CONFIRMED');
-        
-        if (!bookingError && bookings) {
-          totalRevenue = bookings.reduce((sum, booking) => {
-            const pricing = booking.pricing as any;
-            return sum + (pricing?.totalAmount || pricing?.basePrice || 0);
-          }, 0);
-        }
-      } catch (bookingErr) {
-        // Fallback to mock calculation if bookings query fails
-        totalRevenue = packages?.reduce((sum, pkg) => {
-          const basePrice = (pkg.pricing as any)?.basePrice || 0;
-          return sum + basePrice * 5; // Assume 5 bookings per package
-        }, 0) || 0;
+      if (packages && packages.length > 0) {
+        totalRevenue = packages.reduce((sum: number, pkg: any) => {
+          const pricing = pkg.pricing as any;
+          // Try different pricing field names
+          const basePrice = pricing?.basePrice || pricing?.price || pricing?.adultPrice || pricing?.totalPrice || 0;
+          return sum + (Number(basePrice) || 0);
+        }, 0);
+        console.log('💰 PackageService: Revenue calculated from packages:', totalRevenue);
       }
       
       // Calculate average rating
-      const averageRating = packages?.reduce((sum, pkg) => sum + (pkg.rating || 0), 0) / totalPackages || 0;
+      const averageRating = packages && packages.length > 0 
+        ? packages.reduce((sum: number, pkg: any) => sum + (Number(pkg.rating) || 0), 0) / packages.length 
+        : 0;
+
+      const finalStats = {
+        totalPackages,
+        activePackages,
+        totalRevenue,
+        averageRating
+      };
+
+      console.log('✅ PackageService: Final stats calculated:', finalStats);
 
       return {
-        data: {
-          totalPackages,
-          activePackages,
-          totalRevenue,
-          averageRating
-        },
+        data: finalStats,
         success: true
       };
     } catch (error) {
+      console.error('❌ PackageService: Error in getPackageStats:', error);
       return { 
         data: { totalPackages: 0, activePackages: 0, totalRevenue: 0, averageRating: 0 }, 
         success: false, 
@@ -436,11 +482,11 @@ export class PackageService {
   }
 
   static async getFeaturedPackages(limit: number = 10): Promise<SupabaseListResponse<PackageWithDetails>> {
-    return this.getPackages({ featured: true, status: 'ACTIVE', limit })
+    return this.getPackages({ featured: true, status: PackageStatus.ACTIVE, limit })
   }
 
   static async searchPackages(searchTerm: string, limit: number = 20): Promise<SupabaseListResponse<PackageWithDetails>> {
-    return this.getPackages({ search: searchTerm, status: 'ACTIVE', limit })
+    return this.getPackages({ search: searchTerm, status: PackageStatus.ACTIVE, limit })
   }
 
   static convertToAppPackage(dbPackage: PackageWithDetails): Package {

@@ -99,12 +99,32 @@ export default function PackagesPage() {
   // Load stats
   const loadStats = useCallback(async () => {
     try {
+      console.log('🔄 Loading package stats...');
       const response = await packageService.getPackageStats();
+      console.log('📊 Package stats response:', response);
+      
       if (response.success) {
+        console.log('✅ Package stats loaded successfully:', response.data);
         setStats(response.data);
+      } else {
+        console.error('❌ Failed to load package stats:', response.error);
+        // Set fallback values
+        setStats({
+          totalPackages: 0,
+          activePackages: 0,
+          totalRevenue: 0,
+          averageRating: 0,
+        });
       }
     } catch (err) {
-      console.error('Error loading stats:', err);
+      console.error('❌ Error loading package stats:', err);
+      // Set fallback values
+      setStats({
+        totalPackages: 0,
+        activePackages: 0,
+        totalRevenue: 0,
+        averageRating: 0,
+      });
     }
   }, []);
 
