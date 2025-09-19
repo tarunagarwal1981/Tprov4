@@ -127,12 +127,19 @@ const Toast = ({ message, type, onClose }: ToastProps) => {
       initial={{ opacity: 0, y: -50, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -50, scale: 0.9 }}
-      className={`fixed top-4 right-4 z-50 max-w-md rounded-lg p-4 shadow-lg border ${
-        type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-        type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
-        type === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' :
-        'bg-blue-50 border-blue-200 text-blue-800'
+      className={`fixed top-4 right-4 z-50 max-w-md rounded-2xl p-4 border border-white/20 backdrop-blur-xl ${
+        type === 'success' ? 'text-green-800' :
+        type === 'error' ? 'text-red-800' :
+        type === 'warning' ? 'text-amber-800' :
+        'text-blue-800'
       }`}
+      style={{
+        background: type === 'success' ? 'linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(34,197,94,0.05) 100%)' :
+                   type === 'error' ? 'linear-gradient(135deg, rgba(239,68,68,0.1) 0%, rgba(239,68,68,0.05) 100%)' :
+                   type === 'warning' ? 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%)' :
+                   'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+      }}
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">
@@ -186,7 +193,10 @@ const Input = ({ placeholder, value, onChange, type = "text", ...props }: {
     placeholder={placeholder}
     value={value || ''}
     onChange={(e) => onChange(e.target.value)}
-    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm"
+    className="w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 hover:bg-white/20"
+    style={{
+      boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
     {...props}
   />
 );
@@ -202,7 +212,10 @@ const Textarea = ({ placeholder, value, onChange, rows = 3 }: {
     value={value || ''}
     onChange={(e) => onChange(e.target.value)}
     rows={rows}
-    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm resize-none"
+    className="w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 hover:bg-white/20 resize-none"
+    style={{
+      boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
   />
 );
 
@@ -215,7 +228,10 @@ const Select = ({ value, onChange, options, placeholder }: {
   <select
     value={value || ''}
     onChange={(e) => onChange(e.target.value)}
-    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm bg-white"
+    className="w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 hover:bg-white/20"
+    style={{
+      boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+    }}
   >
     {placeholder && <option value="" disabled>{placeholder}</option>}
     {options.map((option) => (
@@ -238,9 +254,17 @@ const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: {
 
   return (
     <div 
-      className={`relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all duration-300 cursor-pointer group ${
-        dragOver ? 'border-blue-400 bg-blue-50' : 'hover:border-gray-400 hover:bg-gray-50'
+      className={`relative border-2 border-dashed border-white/30 rounded-2xl p-6 text-center transition-all duration-300 cursor-pointer group backdrop-blur-sm ${
+        dragOver ? 'border-blue-400/50 bg-blue-50/20' : 'hover:border-white/50 hover:bg-white/10'
       }`}
+      style={{
+        background: dragOver 
+          ? 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)'
+          : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+        boxShadow: dragOver 
+          ? '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+      }}`
       onDragOver={(e) => {
         e.preventDefault();
         setDragOver(true);
@@ -273,9 +297,12 @@ const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className={`inline-flex p-3 rounded-lg transition-colors ${
-            dragOver ? 'bg-blue-100' : 'bg-gray-100 group-hover:bg-blue-50'
-          }`}>
+          <div className={`inline-flex p-3 rounded-xl transition-colors backdrop-blur-sm ${
+            dragOver ? 'bg-blue-100/30' : 'bg-white/20 group-hover:bg-blue-50/30'
+          }`}
+          style={{
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}>
             <Upload className={`w-6 h-6 transition-colors ${
               dragOver ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-500'
             }`} />
@@ -325,12 +352,18 @@ const ListManager = ({ items, onChange, placeholder }: {
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && addItem()}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+          className="flex-1 px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 hover:bg-white/20"
+          style={{
+            boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+          }}
         />
         <button
           type="button"
           onClick={addItem}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:scale-105 transition-all duration-200 backdrop-blur-sm"
+          style={{
+            boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
         >
           <Plus className="w-4 h-4" />
         </button>
@@ -339,12 +372,16 @@ const ListManager = ({ items, onChange, placeholder }: {
       {safeItems.length > 0 && (
         <div className="space-y-2">
           {safeItems.map((item, index) => (
-            <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-lg">
+            <div key={index} className="flex items-center justify-between backdrop-blur-sm px-4 py-3 rounded-xl group border border-white/20"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+            }}>
               <span className="text-sm text-gray-700">{item}</span>
               <button
                 type="button"
                 onClick={() => removeItem(index)}
-                className="text-red-500 hover:text-red-700 transition-colors"
+                className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all duration-200"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -382,7 +419,11 @@ const PricingSection = ({ pricing, onChange }: {
   return (
     <div className="space-y-4">
       {safePricing.map((price, index) => (
-        <div key={index} className="border border-gray-200 rounded-lg p-4 space-y-3">
+        <div key={index} className="backdrop-blur-xl border border-white/20 rounded-2xl p-5 space-y-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(147,51,234,0.05) 100%)',
+          boxShadow: '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        }}>
           <div className="flex justify-between items-center">
             <h4 className="font-medium text-gray-900">Price Slab {index + 1}</h4>
             {safePricing.length > 1 && (
@@ -446,7 +487,11 @@ const PricingSection = ({ pricing, onChange }: {
       <button
         type="button"
         onClick={addPricing}
-        className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors flex items-center justify-center gap-2"
+        className="w-full py-3 border-2 border-dashed border-white/30 rounded-2xl text-gray-600 hover:border-white/50 hover:text-gray-700 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 backdrop-blur-sm"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+        }}
       >
         <Plus className="w-4 h-4" />
         Add Another Price Slab
@@ -952,7 +997,14 @@ export default function ImprovedPackageEditPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/30 relative overflow-hidden">
+      {/* Enhanced animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/15 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-400/10 to-pink-400/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/8 to-cyan-400/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
+
       {/* Toast */}
       <AnimatePresence>
         {toast && (
@@ -965,13 +1017,19 @@ export default function ImprovedPackageEditPage() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="backdrop-blur-xl bg-white/80 border-b border-white/20 relative z-10" style={{
+        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+      }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
               <button
                 onClick={handleBack}
-                className="flex items-center gap-2 px-3 py-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 text-gray-600 hover:text-gray-900 backdrop-blur-sm rounded-xl transition-all duration-200 border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                }}
               >
                 <ArrowLeft className="w-4 h-4" />
                 Back
@@ -984,7 +1042,11 @@ export default function ImprovedPackageEditPage() {
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleView}
-                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 text-gray-700 backdrop-blur-sm rounded-xl hover:scale-105 transition-all duration-200 border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                }}
               >
                 <Eye className="w-4 h-4" />
                 View Package
@@ -992,7 +1054,10 @@ export default function ImprovedPackageEditPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:scale-105 disabled:opacity-50 disabled:scale-100 transition-all duration-200 backdrop-blur-sm"
+                style={{
+                  boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                }}
               >
                 {saving ? (
                   <>
@@ -1011,14 +1076,18 @@ export default function ImprovedPackageEditPage() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-xl shadow-sm border border-gray-200"
+          className="backdrop-blur-xl rounded-2xl border border-white/20"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+          }}
         >
           {/* Tabs */}
-          <div className="border-b border-gray-200">
+          <div className="border-b border-white/20">
             <nav className="flex space-x-8 px-6">
               {tabs.map((tab) => {
                 const IconComponent = tab.icon;
@@ -1027,10 +1096,10 @@ export default function ImprovedPackageEditPage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as 'basic' | 'details' | 'itinerary' | 'pricing')}
                     className={cn(
-                      "flex items-center gap-2 py-4 px-2 border-b-2 font-medium text-sm transition-colors",
+                      "flex items-center gap-2 py-4 px-4 border-b-3 font-medium text-sm transition-all duration-300 rounded-t-xl",
                       activeTab === tab.id
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700"
+                        ? "border-blue-500 text-blue-600 bg-blue-50/30 backdrop-blur-sm"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:bg-white/20"
                     )}
                   >
                     <IconComponent className="w-4 h-4" />
