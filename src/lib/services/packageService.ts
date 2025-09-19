@@ -31,13 +31,11 @@ export interface PackageFilters {
   type?: PackageType;
   status?: PackageStatus;
   difficulty?: string;
-  priceRange?: {
-    min: number;
-    max: number;
-  };
-  destinations?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  destination?: string;
   tags?: string[];
-  featured?: boolean;
+  isFeatured?: boolean;
 }
 
 export interface PackageSearchParams {
@@ -59,7 +57,7 @@ export class PackageService {
         return { data: null as any, success: false, error: error.message || 'Failed to create package' };
       }
       
-      return { data, success: true, message: 'Package created successfully' };
+      return { data: data!, success: true, message: 'Package created successfully' };
     } catch (error) {
       return { 
         data: null as any, 
@@ -72,11 +70,30 @@ export class PackageService {
   // Get packages with filtering and pagination (compatible with existing interface)
   async getPackages(params: PackageSearchParams = {}): Promise<ServiceResponse<PaginatedResponse<Package>>> {
     try {
+      // Get current user's tour operator ID if available
+      const { data: { user } } = await supabase.auth.getUser();
+      let tourOperatorId = null;
+      
+      if (user) {
+        const { data: tourOperator } = await supabase
+          .from('tour_operators')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        tourOperatorId = tourOperator?.id;
+      }
+
       const { data, error, count } = await PackageService.getPackages({
-        status: params.filters?.status || 'ACTIVE',
+        status: params.filters?.status, // Don't default to ACTIVE - show all packages including drafts
         type: params.filters?.type,
-        featured: params.filters?.featured,
+        featured: params.filters?.isFeatured,
         search: params.query,
+        tourOperatorId: tourOperatorId, // Pass the tour operator ID
+        destinations: params.filters?.destination ? [params.filters.destination] : undefined,
+        tags: params.filters?.tags,
+        minPrice: params.filters?.minPrice,
+        maxPrice: params.filters?.maxPrice,
         limit: params.limit || 12,
         offset: ((params.page || 1) - 1) * (params.limit || 12)
       });
@@ -152,7 +169,7 @@ export class PackageService {
         return { data: null as any, success: false, error: 'Package not found' };
       }
 
-      const packageData = PackageService.convertToAppPackage(data);
+      const packageData = PackageService.convertToAppPackage(data as any);
       return { data: packageData, success: true, message: 'Package updated successfully' };
     } catch (error) {
       return { 
@@ -182,7 +199,7 @@ export class PackageService {
     }
   }
 
-  // Get package statistics
+  // Get package statistics - simplified version
   async getPackageStats(): Promise<ServiceResponse<{
     totalPackages: number;
     activePackages: number;
@@ -190,10 +207,42 @@ export class PackageService {
     averageRating: number;
   }>> {
     try {
-      // Get all packages for stats
-      const { data: packages, error } = await PackageService.getPackages({ limit: 1000 });
+      console.log('🔄 PackageService: Getting package statistics...');
+      
+      // Get current user's tour operator ID if available
+      const { data: { user } } = await supabase.auth.getUser();
+      let tourOperatorId = null;
+      
+      if (user) {
+        const { data: tourOperator } = await supabase
+          .from('tour_operators')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+        
+        tourOperatorId = tourOperator?.id;
+        console.log('🏢 PackageService: Current tour operator ID:', tourOperatorId);
+      }
+      
+      // Direct query to packages table
+      let packagesQuery = supabase
+        .from('packages')
+        .select('id, title, status, pricing, rating');
+      
+      if (tourOperatorId) {
+        packagesQuery = packagesQuery.eq('tour_operator_id', tourOperatorId);
+      }
+      
+      const { data: packages, error } = await packagesQuery;
+      
+      console.log('📦 PackageService: Direct packages query result:', { 
+        count: packages?.length, 
+        error,
+        sample: packages?.[0] 
+      });
       
       if (error) {
+        console.error('❌ PackageService: Error fetching packages:', error);
         return { 
           data: { totalPackages: 0, activePackages: 0, totalRevenue: 0, averageRating: 0 }, 
           success: false, 
@@ -202,27 +251,42 @@ export class PackageService {
       }
 
       const totalPackages = packages?.length || 0;
-      const activePackages = packages?.filter(pkg => pkg.status === 'ACTIVE').length || 0;
+      const activePackages = packages?.filter((pkg: any) => pkg.status === 'ACTIVE').length || 0;
       
-      // Calculate total revenue (mock calculation - you'd need booking data for real revenue)
-      const totalRevenue = packages?.reduce((sum, pkg) => {
-        const basePrice = (pkg.pricing as any)?.basePrice || 0;
-        return sum + basePrice * 10; // Mock: assume 10 bookings per package
-      }, 0) || 0;
+      console.log('📊 PackageService: Basic stats calculated:', { totalPackages, activePackages });
+      
+      // Calculate total revenue from package pricing
+      let totalRevenue = 0;
+      if (packages && packages.length > 0) {
+        totalRevenue = packages.reduce((sum: number, pkg: any) => {
+          const pricing = pkg.pricing as any;
+          // Try different pricing field names
+          const basePrice = pricing?.basePrice || pricing?.price || pricing?.adultPrice || pricing?.totalPrice || 0;
+          return sum + (Number(basePrice) || 0);
+        }, 0);
+        console.log('💰 PackageService: Revenue calculated from packages:', totalRevenue);
+      }
       
       // Calculate average rating
-      const averageRating = packages?.reduce((sum, pkg) => sum + (pkg.rating || 0), 0) / totalPackages || 0;
+      const averageRating = packages && packages.length > 0 
+        ? packages.reduce((sum: number, pkg: any) => sum + (Number(pkg.rating) || 0), 0) / packages.length 
+        : 0;
+
+      const finalStats = {
+        totalPackages,
+        activePackages,
+        totalRevenue,
+        averageRating
+      };
+
+      console.log('✅ PackageService: Final stats calculated:', finalStats);
 
       return {
-        data: {
-          totalPackages,
-          activePackages,
-          totalRevenue,
-          averageRating
-        },
+        data: finalStats,
         success: true
       };
     } catch (error) {
+      console.error('❌ PackageService: Error in getPackageStats:', error);
       return { 
         data: { totalPackages: 0, activePackages: 0, totalRevenue: 0, averageRating: 0 }, 
         success: false, 
@@ -322,6 +386,8 @@ export class PackageService {
     search?: string
     destinations?: string[]
     tags?: string[]
+    minPrice?: number
+    maxPrice?: number
   } = {}): Promise<SupabaseListResponse<PackageWithDetails>> {
     try {
       let query = supabase
@@ -363,6 +429,15 @@ export class PackageService {
       
       if (options.tags && options.tags.length > 0) {
         query = query.overlaps('tags', options.tags)
+      }
+
+      // Apply price filtering
+      if (options.minPrice !== undefined) {
+        query = query.gte('adult_price', options.minPrice)
+      }
+      
+      if (options.maxPrice !== undefined) {
+        query = query.lte('adult_price', options.maxPrice)
       }
 
       // Apply pagination
@@ -420,11 +495,11 @@ export class PackageService {
   }
 
   static async getFeaturedPackages(limit: number = 10): Promise<SupabaseListResponse<PackageWithDetails>> {
-    return this.getPackages({ featured: true, status: 'ACTIVE', limit })
+    return this.getPackages({ featured: true, status: PackageStatus.ACTIVE, limit })
   }
 
   static async searchPackages(searchTerm: string, limit: number = 20): Promise<SupabaseListResponse<PackageWithDetails>> {
-    return this.getPackages({ search: searchTerm, status: 'ACTIVE', limit })
+    return this.getPackages({ search: searchTerm, status: PackageStatus.ACTIVE, limit })
   }
 
   static convertToAppPackage(dbPackage: PackageWithDetails): Package {
@@ -463,7 +538,12 @@ export class PackageService {
       inclusions: [],
       exclusions: [],
       termsAndConditions: [],
-      cancellationPolicy: { refundable: true, refundPercentage: 0, processingDays: 0, conditions: [] },
+      cancellationPolicy: { 
+        freeCancellationDays: 0, 
+        cancellationFees: [], 
+        refundPolicy: { refundable: true, refundPercentage: 0, processingDays: 0, conditions: [] }, 
+        forceMajeurePolicy: '' 
+      },
       images: imageUrls,
       destinations: [],
       duration: { days: Number(durationDays) || 1, nights: Math.max((Number(durationDays) || 1) - 1, 0), totalHours: Number(durationHours) || 0 },
@@ -483,7 +563,7 @@ export class PackageService {
       tour_operator_id: appPackage.tourOperatorId!,
       title: appPackage.title!,
       description: appPackage.description!,
-      type: appPackage.type!,
+      type: appPackage.type! as any,
       status: appPackage.status || 'DRAFT',
       pricing: appPackage.pricing as any,
       itinerary: appPackage.itinerary as any,

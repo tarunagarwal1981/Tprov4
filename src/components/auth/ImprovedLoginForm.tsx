@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useImprovedAuth } from '@/context/ImprovedAuthContext';
+import { useLoading } from '@/context/LoadingContext';
 import { UserRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
+import { LoadingSpinner, ErrorDisplay } from '@/context/LoadingContext';
 import { 
   Eye, 
   EyeOff, 
@@ -23,11 +25,12 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  ArrowLeft
+  ArrowLeft,
+  RefreshCw
 } from 'lucide-react';
 import Link from 'next/link';
 
-// Form validation schemas
+// ===== FORM VALIDATION SCHEMAS =====
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
@@ -41,14 +44,21 @@ const forgotPasswordSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
-export function ModernLoginForm() {
-  const { signIn, resetPassword, state, clearError } = useImprovedAuth();
+// ===== IMPROVED LOGIN FORM =====
+export function ImprovedLoginForm() {
+  const { signIn, resetPassword, state: authState, clearError } = useImprovedAuth();
+  const { state: loadingState, clearError: clearLoadingError } = useLoading();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
+  // Local state
   const [showPassword, setShowPassword] = useState(false);
-  const [isRedirecting, setIsRedirecting] = useState(false);
   const [currentView, setCurrentView] = useState<'login' | 'forgot-password' | 'success'>('login');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectAttempted, setRedirectAttempted] = useState(false);
 
+  // Form handling
   const {
     register,
     handleSubmit,
@@ -76,25 +86,17 @@ export function ModernLoginForm() {
     },
   });
 
-  // Clear errors when component mounts
-  useEffect(() => {
-    clearError();
-  }, [clearError]);
-
-  // Redirect after successful login - Fixed to prevent loops
-  useEffect(() => {
-    if (state.user && !state.isLoading && !isRedirecting) {
-      const dashboardUrl = getDashboardUrl(state.user.role);
-      setIsRedirecting(true);
-      
-      // Use router.push for smooth navigation instead of window.location.replace
-      // This prevents page refreshes and multiple redirects
-      router.push(dashboardUrl);
+  // ===== GET REDIRECT URL =====
+  const getRedirectUrl = useCallback(() => {
+    const redirectParam = searchParams.get('redirect');
+    if (redirectParam) {
+      return decodeURIComponent(redirectParam);
     }
-  }, [state.user, state.isLoading, isRedirecting, router]);
+    return null;
+  }, [searchParams]);
 
-  // Helper function to get dashboard URL based on user role
-  const getDashboardUrl = (role: UserRole): string => {
+  // ===== GET DASHBOARD URL =====
+  const getDashboardUrl = useCallback((role: UserRole): string => {
     switch (role) {
       case UserRole.ADMIN:
       case UserRole.SUPER_ADMIN:
@@ -106,33 +108,63 @@ export function ModernLoginForm() {
       default:
         return '/';
     }
-  };
+  }, []);
 
-  // Handle login form submission - Fixed to prevent multiple submissions
-  const onSubmit = async (data: LoginFormData) => {
-    // Prevent multiple submissions
-    if (isSubmitting || state.isLoading || isRedirecting) {
-      return;
+  // ===== HANDLE SUCCESSFUL LOGIN =====
+  const handleLoginSuccess = useCallback(() => {
+    if (redirectAttempted) return;
+    
+    setRedirectAttempted(true);
+    setIsRedirecting(true);
+    
+    const redirectUrl = getRedirectUrl();
+    const targetUrl = redirectUrl || getDashboardUrl(authState.user!.role);
+    
+    console.log('🎉 Login successful, redirecting to:', targetUrl);
+    
+    // Use router.push for smooth navigation instead of window.location.replace
+    router.push(targetUrl);
+  }, [authState.user, getRedirectUrl, getDashboardUrl, redirectAttempted, router]);
+
+  // ===== EFFECT: HANDLE AUTH STATE CHANGES =====
+  useEffect(() => {
+    if (authState.isAuthenticated && authState.user && !authState.isLoading && !isRedirecting) {
+      handleLoginSuccess();
     }
+  }, [authState.isAuthenticated, authState.user, authState.isLoading, isRedirecting, handleLoginSuccess]);
 
+  // ===== EFFECT: CLEAR ERRORS ON MOUNT =====
+  useEffect(() => {
+    clearError();
+    clearLoadingError();
+  }, [clearError, clearLoadingError]);
+
+  // ===== EFFECT: RESET REDIRECT STATE ON VIEW CHANGE =====
+  useEffect(() => {
+    if (currentView === 'login') {
+      setRedirectAttempted(false);
+      setIsRedirecting(false);
+    }
+  }, [currentView]);
+
+  // ===== HANDLE LOGIN FORM SUBMISSION =====
+  const onSubmit = async (data: LoginFormData) => {
     try {
+      setRedirectAttempted(false); // Reset redirect state
+      
       const result = await signIn(data.email, data.password);
       
       if (!result.success) {
         setError('root', { message: result.error || 'Login failed' });
-        // Reset redirect state on error
-        setIsRedirecting(false);
       }
       // Success is handled by the auth state change effect
     } catch (error) {
       console.error('Login error:', error);
       setError('root', { message: 'An unexpected error occurred' });
-      // Reset redirect state on error
-      setIsRedirecting(false);
     }
   };
 
-  // Handle forgot password form submission
+  // ===== HANDLE FORGOT PASSWORD SUBMISSION =====
   const onForgotPasswordSubmit = async (data: ForgotPasswordFormData) => {
     try {
       const result = await resetPassword(data.email);
@@ -149,7 +181,15 @@ export function ModernLoginForm() {
     }
   };
 
-  // Show redirecting state
+  // ===== HANDLE RETRY =====
+  const handleRetry = useCallback(() => {
+    setRedirectAttempted(false);
+    setIsRedirecting(false);
+    clearError();
+    clearLoadingError();
+  }, [clearError, clearLoadingError]);
+
+  // ===== RENDER REDIRECTING STATE =====
   if (isRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50">
@@ -165,11 +205,15 @@ export function ModernLoginForm() {
             </div>
           </div>
           <p className="mt-4 text-lg font-medium text-gray-700">Redirecting to dashboard...</p>
+          <p className="mt-2 text-sm text-gray-500">
+            Taking you to {getRedirectUrl() ? 'your requested page' : 'your dashboard'}
+          </p>
         </motion.div>
       </div>
     );
   }
 
+  // ===== RENDER MAIN FORM =====
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full">
@@ -201,6 +245,18 @@ export function ModernLoginForm() {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
+                  {/* Global Error Display */}
+                  {(authState.error || loadingState.error) && (
+                    <ErrorDisplay
+                      error={authState.error || loadingState.error || 'An error occurred'}
+                      onRetry={handleRetry}
+                      onDismiss={() => {
+                        clearError();
+                        clearLoadingError();
+                      }}
+                    />
+                  )}
+
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     {/* Email Field */}
                     <div className="space-y-2">
@@ -277,7 +333,7 @@ export function ModernLoginForm() {
                       </button>
                     </div>
 
-                    {/* Error Message */}
+                    {/* Form Error Message */}
                     {errors.root && (
                       <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
@@ -285,16 +341,16 @@ export function ModernLoginForm() {
                       </Alert>
                     )}
 
-                    {/* Submit Button - Fixed to prevent multiple clicks */}
+                    {/* Submit Button */}
                     <Button
                       type="submit"
-                      disabled={isSubmitting || state.isLoading || isRedirecting}
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      disabled={isSubmitting || authState.isLoading || loadingState.isLoading}
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
                     >
-                      {isSubmitting || state.isLoading || isRedirecting ? (
+                      {isSubmitting || authState.isLoading || loadingState.isLoading ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          {isRedirecting ? 'Redirecting...' : 'Signing in...'}
+                          Signing in...
                         </>
                       ) : (
                         <>

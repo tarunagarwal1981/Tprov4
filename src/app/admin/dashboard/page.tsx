@@ -5,10 +5,10 @@ import { UserRole } from '@/lib/types';
 
 // Define roles outside component to prevent re-creation on every render
 const ADMIN_ROLES = [UserRole.ADMIN, UserRole.SUPER_ADMIN];
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 
 function AdminDashboard() {
-  const { state } = useAuth();
+  const { state } = useImprovedAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">

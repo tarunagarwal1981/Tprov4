@@ -38,20 +38,33 @@ import {
 } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/lib/types';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { RecentBookings } from '@/components/dashboard/RecentBookings';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import { TopPackages } from '@/components/dashboard/TopPackages';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { dashboardService } from '@/lib/services/dashboardService';
+import { DashboardStats } from '@/lib/mockData';
 
 // Define roles outside component to prevent re-creation on every render
 const OPERATOR_ROLES = [UserRole.TOUR_OPERATOR];
 
 function OperatorDashboard() {
-  const { state } = useAuth();
+  const { state } = useImprovedAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState('7d');
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats>({
+    totalPackages: 0,
+    activeBookings: 0,
+    totalAgents: 0,
+    totalRevenue: 0,
+    monthlyRevenue: 0,
+    monthlyGrowth: 0,
+    averageRating: 0,
+    totalCustomers: 0,
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   
   console.log('🏢 OperatorDashboard component loaded:', {
     user: state.user,
@@ -60,16 +73,34 @@ function OperatorDashboard() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await loadDashboardStats();
     setIsRefreshing(false);
   };
+
+  const loadDashboardStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      const response = await dashboardService.getRealDashboardStats();
+      if (response.success) {
+        setDashboardStats(response.data);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard stats:', error);
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
+
+  // Load stats on component mount
+  useEffect(() => {
+    loadDashboardStats();
+  }, []);
 
   const stats = [
     {
       title: 'Total Packages',
-      value: '24',
-      change: '+12%',
+      value: isLoadingStats ? '-' : dashboardStats.totalPackages.toString(),
+      change: isLoadingStats ? '-' : `+${dashboardStats.monthlyGrowth.toFixed(1)}%`,
       changeType: 'positive' as const,
       icon: Package,
       color: 'blue' as const,
@@ -78,8 +109,8 @@ function OperatorDashboard() {
     },
     {
       title: 'Active Bookings',
-      value: '156',
-      change: '+8%',
+      value: isLoadingStats ? '-' : dashboardStats.activeBookings.toString(),
+      change: isLoadingStats ? '-' : `+${dashboardStats.monthlyGrowth.toFixed(1)}%`,
       changeType: 'positive' as const,
       icon: Calendar,
       color: 'green' as const,
@@ -88,8 +119,8 @@ function OperatorDashboard() {
     },
     {
       title: 'Travel Agents',
-      value: '42',
-      change: '+5%',
+      value: isLoadingStats ? '-' : dashboardStats.totalAgents.toString(),
+      change: isLoadingStats ? '-' : `+${dashboardStats.monthlyGrowth.toFixed(1)}%`,
       changeType: 'positive' as const,
       icon: Users,
       color: 'purple' as const,
@@ -98,8 +129,8 @@ function OperatorDashboard() {
     },
     {
       title: 'Revenue',
-      value: '$24,580',
-      change: '+15%',
+      value: isLoadingStats ? '-' : `$${dashboardStats.totalRevenue.toLocaleString()}`,
+      change: isLoadingStats ? '-' : `+${dashboardStats.monthlyGrowth.toFixed(1)}%`,
       changeType: 'positive' as const,
       icon: DollarSign,
       color: 'orange' as const,

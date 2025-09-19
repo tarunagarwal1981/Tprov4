@@ -14,6 +14,7 @@ import {
 import { dashboardService } from '@/lib/services';
 import { ActivityFeedItem } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
+import { useLoadingState } from '@/hooks';
 
 interface RecentActivityProps {
   className?: string;
@@ -118,24 +119,24 @@ function ActivityItem({ activity, index }: ActivityItemProps) {
 
 export function RecentActivity({ className }: RecentActivityProps) {
   const [activities, setActivities] = useState<ActivityFeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(8000, true);
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        setLoading(true);
+        startLoading();
+        clearError();
         const response = await dashboardService.getRecentActivity(5);
         
         if (response.success) {
           setActivities(response.data);
+          stopLoading();
         } else {
           setError(response.error || 'Failed to fetch recent activity');
         }
       } catch (err) {
-        setError('An error occurred while fetching recent activity');
-      } finally {
-        setLoading(false);
+        console.error('Error fetching activities:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching recent activity');
       }
     };
 

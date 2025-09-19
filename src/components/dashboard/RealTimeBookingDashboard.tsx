@@ -21,6 +21,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLoadingState } from '@/hooks';
 
 interface RealTimeBookingDashboardProps {
   userRole: 'ADMIN' | 'TOUR_OPERATOR' | 'TRAVEL_AGENT';
@@ -35,7 +36,7 @@ export function RealTimeBookingDashboard({
 }: RealTimeBookingDashboardProps) {
   const [bookings, setBookings] = useState<BookingWithDetails[]>([]);
   const [packages, setPackages] = useState<PackageWithDetails[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(10000, true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // Load initial data
@@ -90,7 +91,8 @@ export function RealTimeBookingDashboard({
 
   const loadData = async () => {
     try {
-      setIsLoading(true);
+      startLoading();
+      clearError();
 
       // Load bookings based on user role
       let bookingsResponse;
@@ -134,10 +136,10 @@ export function RealTimeBookingDashboard({
       }
 
       setLastUpdated(new Date());
+      stopLoading();
     } catch (error) {
       console.error('Error loading data:', error);
-    } finally {
-      setIsLoading(false);
+      setError(error instanceof Error ? error.message : 'Failed to load dashboard data');
     }
   };
 

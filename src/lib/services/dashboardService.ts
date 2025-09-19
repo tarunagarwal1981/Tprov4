@@ -12,6 +12,11 @@ import {
   Booking,
   TravelAgent
 } from '../mockData';
+import { supabase } from '../supabase';
+import { PackageService } from './packageService';
+
+// Re-export types for external use
+export type { DashboardStats, RevenueData, ActivityFeedItem, Notification, Booking, TravelAgent };
 
 // Service response interfaces
 export interface ServiceResponse<T> {
@@ -140,6 +145,83 @@ export class DashboardService {
         data: this.stats,
         success: false,
         error: 'Failed to fetch dashboard statistics'
+      };
+    }
+  }
+
+  // Get real dashboard statistics from database
+  async getRealDashboardStats(): Promise<ServiceResponse<DashboardStats>> {
+    try {
+      // Get package statistics
+      const packageService = new PackageService();
+      const packageStatsResponse = await packageService.getPackageStats();
+      
+      if (!packageStatsResponse.success) {
+        throw new Error(packageStatsResponse.error || 'Failed to fetch package stats');
+      }
+
+      const packageStats = packageStatsResponse.data;
+
+      // Get booking statistics
+      const { data: bookings, error: bookingError } = await supabase
+        .from('bookings')
+        .select('status, pricing, created_at');
+
+      if (bookingError) {
+        console.warn('Failed to fetch bookings:', bookingError);
+      }
+
+      // Calculate booking stats
+      const totalBookings = bookings?.length || 0;
+      const confirmedBookings = bookings?.filter(b => b.status === 'CONFIRMED').length || 0;
+      const pendingBookings = bookings?.filter(b => b.status === 'PENDING').length || 0;
+      
+      // Calculate revenue from confirmed bookings
+      const totalRevenue = bookings?.filter(b => b.status === 'CONFIRMED').reduce((sum, booking) => {
+        const pricing = booking.pricing as any;
+        return sum + (pricing?.totalAmount || pricing?.basePrice || 0);
+      }, 0) || 0;
+
+      // Get user statistics (travel agents)
+      const { data: users, error: userError } = await supabase
+        .from('users')
+        .select('role, is_active')
+        .eq('role', 'TRAVEL_AGENT');
+
+      if (userError) {
+        console.warn('Failed to fetch users:', userError);
+      }
+
+      const totalAgents = users?.length || 0;
+      const activeAgents = users?.filter(u => u.is_active).length || 0;
+
+      // Calculate growth percentages (mock for now - would need historical data)
+      const revenueGrowth = 15.2; // Mock value - would calculate from historical data
+      const bookingGrowth = 8.5; // Mock value
+      const customerGrowth = 12.3; // Mock value
+      const agentGrowth = 5.7; // Mock value
+
+      const realStats: DashboardStats = {
+        totalPackages: packageStats.totalPackages,
+        activeBookings: confirmedBookings,
+        totalRevenue: totalRevenue,
+        totalAgents: totalAgents,
+        monthlyRevenue: Math.floor(totalRevenue / 12), // Mock monthly calculation
+        monthlyGrowth: 15.2, // Mock growth percentage
+        averageRating: packageStats.averageRating,
+        totalCustomers: Math.floor(totalBookings * 1.2), // Mock customer calculation
+      };
+
+      return {
+        data: realStats,
+        success: true
+      };
+    } catch (error) {
+      console.error('Error fetching real dashboard stats:', error);
+      return {
+        data: this.stats, // Fallback to mock stats
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch dashboard statistics'
       };
     }
   }

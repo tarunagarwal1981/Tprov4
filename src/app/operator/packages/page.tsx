@@ -21,7 +21,7 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce, useLoadingState } from '@/hooks';
 
 const packageService = new PackageService();
 
@@ -39,12 +39,13 @@ const sortOptions = [
 
 export default function PackagesPage() {
   const [packages, setPackages] = useState<Package[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(30000, true);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [filters, setFilters] = useState<PackageFiltersType>({});
+  const [filters, setFilters] = useState<PackageFiltersType>({
+    status: PackageStatus.DRAFT // Default to showing draft packages
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -65,8 +66,8 @@ export default function PackagesPage() {
   // Load packages
   const loadPackages = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      startLoading();
+      clearError();
 
       const searchParams: PackageSearchParams = {
         query: debouncedSearchQuery || undefined,
@@ -87,26 +88,45 @@ export default function PackagesPage() {
           total: response.data.total,
           totalPages: response.data.totalPages,
         });
+        stopLoading(); // Explicitly stop loading on success
       } else {
         setError(response.error || 'Failed to load packages');
       }
     } catch (err) {
-      setError('An unexpected error occurred');
       console.error('Error loading packages:', err);
-    } finally {
-      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Failed to load packages');
     }
-  }, [debouncedSearchQuery, filters, sortBy, pagination.page, pagination.limit]);
+  }, [debouncedSearchQuery, filters, sortBy, pagination.page, pagination.limit, startLoading, stopLoading, setError, clearError]);
 
   // Load stats
   const loadStats = useCallback(async () => {
     try {
+      console.log('🔄 Loading package stats...');
       const response = await packageService.getPackageStats();
+      console.log('📊 Package stats response:', response);
+      
       if (response.success) {
+        console.log('✅ Package stats loaded successfully:', response.data);
         setStats(response.data);
+      } else {
+        console.error('❌ Failed to load package stats:', response.error);
+        // Set fallback values
+        setStats({
+          totalPackages: 0,
+          activePackages: 0,
+          totalRevenue: 0,
+          averageRating: 0,
+        });
       }
     } catch (err) {
-      console.error('Error loading stats:', err);
+      console.error('❌ Error loading package stats:', err);
+      // Set fallback values
+      setStats({
+        totalPackages: 0,
+        activePackages: 0,
+        totalRevenue: 0,
+        averageRating: 0,
+      });
     }
   }, []);
 
@@ -223,7 +243,9 @@ export default function PackagesPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Total Packages</p>
-                    <p className="text-xl font-semibold text-gray-900">{stats.totalPackages}</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {stats.totalPackages > 0 ? stats.totalPackages : '0'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -244,7 +266,9 @@ export default function PackagesPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Active Packages</p>
-                    <p className="text-xl font-semibold text-gray-900">{stats.activePackages}</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {stats.activePackages > 0 ? stats.activePackages : '0'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -266,7 +290,7 @@ export default function PackagesPage() {
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Total Revenue</p>
                     <p className="text-xl font-semibold text-gray-900">
-                      ${stats.totalRevenue.toLocaleString()}
+                      ${stats.totalRevenue > 0 ? stats.totalRevenue.toLocaleString() : '0'}
                     </p>
                   </div>
                 </div>
@@ -289,7 +313,7 @@ export default function PackagesPage() {
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Avg Rating</p>
                     <p className="text-xl font-semibold text-gray-900">
-                      {stats.averageRating.toFixed(1)}
+                      {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'}
                     </p>
                   </div>
                 </div>
@@ -314,6 +338,34 @@ export default function PackagesPage() {
 
             {/* Controls */}
             <div className="flex items-center gap-3">
+              {/* Status Filter */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">Status:</label>
+                <select
+                  value={filters.status || 'ALL'}
+                  onChange={(e) => {
+                    const newFilters = { ...filters };
+                    if (e.target.value === 'ALL') {
+                      delete newFilters.status;
+                    } else {
+                      newFilters.status = e.target.value as PackageStatus;
+                    }
+                    handleFiltersChange(newFilters);
+                  }}
+                  className="border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 backdrop-blur-sm bg-white/10"
+                  style={{
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  }}
+                >
+                  <option value="ALL">All Packages</option>
+                  <option value={PackageStatus.DRAFT}>Draft</option>
+                  <option value={PackageStatus.ACTIVE}>Active</option>
+                  <option value={PackageStatus.INACTIVE}>Inactive</option>
+                  <option value={PackageStatus.SUSPENDED}>Suspended</option>
+                  <option value={PackageStatus.ARCHIVED}>Archived</option>
+                </select>
+              </div>
+
               {/* Sort */}
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-700">Sort by:</label>
