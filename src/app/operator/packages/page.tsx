@@ -39,7 +39,7 @@ const sortOptions = [
 
 export default function PackagesPage() {
   const [packages, setPackages] = useState<Package[]>([]);
-  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(10000, true);
+  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(30000, true);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -86,6 +86,7 @@ export default function PackagesPage() {
           total: response.data.total,
           totalPages: response.data.totalPages,
         });
+        stopLoading(); // Explicitly stop loading on success
       } else {
         setError(response.error || 'Failed to load packages');
       }
@@ -93,7 +94,7 @@ export default function PackagesPage() {
       console.error('Error loading packages:', err);
       setError(err instanceof Error ? err.message : 'Failed to load packages');
     }
-  }, [debouncedSearchQuery, filters, sortBy, pagination.page, pagination.limit]);
+  }, [debouncedSearchQuery, filters, sortBy, pagination.page, pagination.limit, startLoading, stopLoading, setError, clearError]);
 
   // Load stats
   const loadStats = useCallback(async () => {
@@ -220,7 +221,9 @@ export default function PackagesPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Total Packages</p>
-                    <p className="text-xl font-semibold text-gray-900">{stats.totalPackages}</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {stats.totalPackages > 0 ? stats.totalPackages : '0'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -241,7 +244,9 @@ export default function PackagesPage() {
                   </div>
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Active Packages</p>
-                    <p className="text-xl font-semibold text-gray-900">{stats.activePackages}</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {stats.activePackages > 0 ? stats.activePackages : '0'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -263,7 +268,7 @@ export default function PackagesPage() {
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Total Revenue</p>
                     <p className="text-xl font-semibold text-gray-900">
-                      ${stats.totalRevenue.toLocaleString()}
+                      ${stats.totalRevenue > 0 ? stats.totalRevenue.toLocaleString() : '0'}
                     </p>
                   </div>
                 </div>
@@ -286,7 +291,7 @@ export default function PackagesPage() {
                   <div className="ml-3">
                     <p className="text-xs font-medium text-gray-500">Avg Rating</p>
                     <p className="text-xl font-semibold text-gray-900">
-                      {stats.averageRating.toFixed(1)}
+                      {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'}
                     </p>
                   </div>
                 </div>

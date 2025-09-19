@@ -204,11 +204,27 @@ export class PackageService {
       const totalPackages = packages?.length || 0;
       const activePackages = packages?.filter(pkg => pkg.status === 'ACTIVE').length || 0;
       
-      // Calculate total revenue (mock calculation - you'd need booking data for real revenue)
-      const totalRevenue = packages?.reduce((sum, pkg) => {
-        const basePrice = (pkg.pricing as any)?.basePrice || 0;
-        return sum + basePrice * 10; // Mock: assume 10 bookings per package
-      }, 0) || 0;
+      // Calculate total revenue from actual bookings if available
+      let totalRevenue = 0;
+      try {
+        const { data: bookings, error: bookingError } = await supabase
+          .from('bookings')
+          .select('pricing')
+          .eq('status', 'CONFIRMED');
+        
+        if (!bookingError && bookings) {
+          totalRevenue = bookings.reduce((sum, booking) => {
+            const pricing = booking.pricing as any;
+            return sum + (pricing?.totalAmount || pricing?.basePrice || 0);
+          }, 0);
+        }
+      } catch (bookingErr) {
+        // Fallback to mock calculation if bookings query fails
+        totalRevenue = packages?.reduce((sum, pkg) => {
+          const basePrice = (pkg.pricing as any)?.basePrice || 0;
+          return sum + basePrice * 5; // Assume 5 bookings per package
+        }, 0) || 0;
+      }
       
       // Calculate average rating
       const averageRating = packages?.reduce((sum, pkg) => sum + (pkg.rating || 0), 0) / totalPackages || 0;
