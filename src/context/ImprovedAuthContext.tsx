@@ -250,8 +250,13 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
       try {
         console.log('🚀 Initializing authentication...');
         
-        // Get initial session
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Get initial session with timeout
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Session initialization timeout')), 10000)
+        );
+        
+        const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
         
         if (error) {
           console.error('❌ Error getting session:', error);
@@ -288,20 +293,25 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
 
     initializeAuth();
 
-    // Listen for auth changes
+    // Listen for auth changes with improved duplicate prevention
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: string, session: Session | null) => {
-        console.log('🔐 Auth state changed:', event);
+        console.log('🔐 Auth state changed:', event, session?.user?.id);
         
         if (!initializationRef.current) return;
 
         // Update activity
         dispatch({ type: 'UPDATE_ACTIVITY' });
 
+        // Prevent duplicate processing of the same session
+        const currentSessionId = state.session?.user?.id;
+        const newSessionId = session?.user?.id;
+
         // Handle different events
         switch (event) {
           case 'SIGNED_IN':
-            if (session?.user && !state.user) {
+            if (session?.user && (!state.user || currentSessionId !== newSessionId)) {
+              console.log('✅ Processing SIGNED_IN event');
               dispatch({ 
                 type: 'INITIALIZE', 
                 payload: { 
@@ -313,10 +323,13 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
               if (userProfile) {
                 dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
               }
+            } else {
+              console.log('⏭️ Skipping SIGNED_IN - already processed or no session');
             }
             break;
 
           case 'SIGNED_OUT':
+            console.log('🚪 Processing SIGNED_OUT event');
             dispatch({ type: 'LOGOUT' });
             // Clear profile cache on logout
             profileCacheRef.current.clear();
@@ -324,16 +337,20 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
 
           case 'TOKEN_REFRESHED':
             if (session?.user && !state.user) {
+              console.log('🔄 Processing TOKEN_REFRESHED event');
               // Only load profile if we don't have it yet
               const userProfile = await loadUserProfile(session.user);
               if (userProfile) {
                 dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
               }
+            } else {
+              console.log('⏭️ Skipping TOKEN_REFRESHED - user already loaded');
             }
             break;
 
           case 'USER_UPDATED':
             if (session?.user) {
+              console.log('👤 Processing USER_UPDATED event');
               dispatch({ 
                 type: 'INITIALIZE', 
                 payload: { 

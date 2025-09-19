@@ -81,16 +81,17 @@ export function ModernLoginForm() {
     clearError();
   }, [clearError]);
 
-  // Redirect after successful login
+  // Redirect after successful login - Fixed to prevent loops
   useEffect(() => {
-    if (state.user && !state.isLoading) {
+    if (state.user && !state.isLoading && !isRedirecting) {
       const dashboardUrl = getDashboardUrl(state.user.role);
       setIsRedirecting(true);
       
-      // Use window.location.replace for immediate redirect without history
-      window.location.replace(dashboardUrl);
+      // Use router.push for smooth navigation instead of window.location.replace
+      // This prevents page refreshes and multiple redirects
+      router.push(dashboardUrl);
     }
-  }, [state.user, state.isLoading]);
+  }, [state.user, state.isLoading, isRedirecting, router]);
 
   // Helper function to get dashboard URL based on user role
   const getDashboardUrl = (role: UserRole): string => {
@@ -107,17 +108,27 @@ export function ModernLoginForm() {
     }
   };
 
-  // Handle login form submission
+  // Handle login form submission - Fixed to prevent multiple submissions
   const onSubmit = async (data: LoginFormData) => {
+    // Prevent multiple submissions
+    if (isSubmitting || state.isLoading || isRedirecting) {
+      return;
+    }
+
     try {
       const result = await signIn(data.email, data.password);
       
       if (!result.success) {
         setError('root', { message: result.error || 'Login failed' });
+        // Reset redirect state on error
+        setIsRedirecting(false);
       }
+      // Success is handled by the auth state change effect
     } catch (error) {
       console.error('Login error:', error);
       setError('root', { message: 'An unexpected error occurred' });
+      // Reset redirect state on error
+      setIsRedirecting(false);
     }
   };
 
@@ -274,16 +285,16 @@ export function ModernLoginForm() {
                       </Alert>
                     )}
 
-                    {/* Submit Button */}
+                    {/* Submit Button - Fixed to prevent multiple clicks */}
                     <Button
                       type="submit"
-                      disabled={isSubmitting || state.isLoading}
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
+                      disabled={isSubmitting || state.isLoading || isRedirecting}
+                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                     >
-                      {isSubmitting || state.isLoading ? (
+                      {isSubmitting || state.isLoading || isRedirecting ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                          Signing in...
+                          {isRedirecting ? 'Redirecting...' : 'Signing in...'}
                         </>
                       ) : (
                         <>
