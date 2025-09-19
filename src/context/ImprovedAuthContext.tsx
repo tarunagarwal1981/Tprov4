@@ -142,13 +142,20 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
       // Prevent multiple simultaneous loads
       if (loadingProfileRef.current.has(supabaseUser.id)) {
         console.log('⏳ Profile already loading for user:', supabaseUser.id);
-        return null;
+        // Wait for existing load to complete with a shorter timeout
+        let waitCount = 0;
+        while (loadingProfileRef.current.has(supabaseUser.id) && waitCount < 50) {
+          await new Promise(resolve => setTimeout(resolve, 100)); // Wait 100ms
+          waitCount++;
+        }
+        // Return cached profile if available after wait
+        return profileCacheRef.current.get(supabaseUser.id) || null;
       }
 
       loadingProfileRef.current.add(supabaseUser.id);
       console.log('🔍 Loading profile for user:', supabaseUser.id);
 
-      // Improved timeout handling with retry logic
+      // Shorter timeout for better UX
       const queryPromise = supabase
         .from('users')
         .select('role, name, profile')
@@ -156,7 +163,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         .single();
       
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout')), 30000) // Increased to 30 seconds
+        setTimeout(() => reject(new Error('Profile loading timeout')), 8000) // Reduced to 8 seconds
       );
       
       const { data: userProfile, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -175,14 +182,14 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
           isActive: true,
           lastLoginAt: new Date()
         };
-        console.warn('⚠️ Using fallback user profile');
+        console.warn('⚠️ Using fallback user profile due to error');
         // Cache the fallback profile
         profileCacheRef.current.set(supabaseUser.id, fallbackUser);
         return fallbackUser;
       }
 
       if (!userProfile) {
-        console.error('❌ User profile not found');
+        console.error('❌ User profile not found in database');
         const fallbackUser: User = {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
@@ -194,6 +201,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
           isActive: true,
           lastLoginAt: new Date()
         };
+        console.warn('⚠️ Using fallback user profile - no data found');
         // Cache the fallback profile
         profileCacheRef.current.set(supabaseUser.id, fallbackUser);
         return fallbackUser;
@@ -212,7 +220,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         lastLoginAt: new Date()
       };
 
-      console.log('✅ User profile loaded successfully');
+      console.log('✅ User profile loaded successfully from database');
       
       // Cache the profile
       profileCacheRef.current.set(supabaseUser.id, user);
@@ -220,8 +228,8 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
       return user;
 
     } catch (error) {
-      console.error('❌ Error in loadUserProfile:', error);
-      // Return fallback user on any error
+      console.error('❌ Critical error in loadUserProfile:', error);
+      // Always return fallback user on any error to prevent loading loops
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -233,11 +241,14 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         isActive: true,
         lastLoginAt: new Date()
       };
+      console.warn('⚠️ Using fallback user profile due to critical error');
       // Cache the fallback profile
       profileCacheRef.current.set(supabaseUser.id, fallbackUser);
       return fallbackUser;
     } finally {
+      // Always cleanup loading state
       loadingProfileRef.current.delete(supabaseUser.id);
+      console.log('🧹 Cleaned up loading state for user:', supabaseUser.id);
     }
   }, []);
 
@@ -246,7 +257,6 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
     if (initializationRef.current) return;
     initializationRef.current = true;
 
-
     const initializeAuth = async () => {
       try {
         console.log('🚀 Initializing authentication...');
@@ -254,15 +264,23 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         // Get initial session with longer timeout and better error handling
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Session initialization timeout')), 30000) // Increased to 30 seconds
+          setTimeout(() => reject(new Error('Session initialization timeout')), 10000) // Reduced to 10 seconds
         );
         
         const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
         
         if (error) {
           console.error('❌ Error getting session:', error);
-          // Don't set error state immediately, try to continue with null session
-          console.log('⚠️ Continuing with no session due to error');
+          // Initialize with no session and clear loading
+          dispatch({ 
+            type: 'INITIALIZE', 
+            payload: { 
+              session: null, 
+              user: null 
+            } 
+          });
+          console.log('⚠️ Initialized with no session due to error');
+          return;
         }
 
         console.log('📋 Initial session:', session ? 'Found' : 'None');
@@ -279,14 +297,23 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         // Load user profile if session exists
         if (session?.user) {
           try {
+            console.log('🔄 Loading user profile during initialization...');
             const userProfile = await loadUserProfile(session.user);
             if (userProfile) {
               dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+              console.log('✅ User profile loaded during initialization');
+            } else {
+              console.warn('⚠️ No user profile returned, setting loading to false');
+              dispatch({ type: 'SET_LOADING', payload: false });
             }
           } catch (profileError) {
             console.error('❌ Error loading profile during init:', profileError);
-            // Continue without profile - let auth state change handler retry
+            // Force loading to false to prevent infinite loading
+            dispatch({ type: 'SET_LOADING', payload: false });
           }
+        } else {
+          // No session, loading should already be false from INITIALIZE action
+          console.log('✅ No session, initialization complete');
         }
 
         console.log('✅ Authentication initialized successfully');
@@ -338,10 +365,15 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
                 const userProfile = await loadUserProfile(session.user);
                 if (userProfile) {
                   dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+                  console.log('✅ User profile set after SIGNED_IN');
+                } else {
+                  console.warn('⚠️ No user profile returned in SIGNED_IN, forcing loading to false');
+                  dispatch({ type: 'SET_LOADING', payload: false });
                 }
               } catch (error) {
                 console.error('❌ Error loading profile in SIGNED_IN:', error);
-                // Don't fail the entire auth process, continue with session
+                // Force loading to false to prevent infinite loading
+                dispatch({ type: 'SET_LOADING', payload: false });
               }
             } else {
               console.log('⏭️ Skipping SIGNED_IN - already processed or no session');
@@ -363,10 +395,15 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
                 const userProfile = await loadUserProfile(session.user);
                 if (userProfile) {
                   dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+                  console.log('✅ User profile set after TOKEN_REFRESHED');
+                } else {
+                  console.warn('⚠️ No user profile returned in TOKEN_REFRESHED, forcing loading to false');
+                  dispatch({ type: 'SET_LOADING', payload: false });
                 }
               } catch (error) {
                 console.error('❌ Error loading profile in TOKEN_REFRESHED:', error);
-                // Continue without failing
+                // Force loading to false to prevent infinite loading
+                dispatch({ type: 'SET_LOADING', payload: false });
               }
             } else {
               console.log('⏭️ Skipping TOKEN_REFRESHED - user already loaded');
@@ -385,6 +422,18 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
               });
               // Clear cache for this user to force reload
               profileCacheRef.current.delete(session.user.id);
+              // Load fresh profile
+              try {
+                const userProfile = await loadUserProfile(session.user);
+                if (userProfile) {
+                  dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+                } else {
+                  dispatch({ type: 'SET_LOADING', payload: false });
+                }
+              } catch (error) {
+                console.error('❌ Error loading profile in USER_UPDATED:', error);
+                dispatch({ type: 'SET_LOADING', payload: false });
+              }
             }
             break;
 
@@ -396,10 +445,15 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
                 const userProfile = await loadUserProfile(session.user);
                 if (userProfile) {
                   dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+                  console.log('✅ User profile set after INITIAL_SESSION');
+                } else {
+                  console.warn('⚠️ No user profile returned in INITIAL_SESSION, forcing loading to false');
+                  dispatch({ type: 'SET_LOADING', payload: false });
                 }
               } catch (error) {
                 console.error('❌ Error loading profile in INITIAL_SESSION:', error);
-                // Continue without failing
+                // Force loading to false to prevent infinite loading
+                dispatch({ type: 'SET_LOADING', payload: false });
               }
             }
             break;

@@ -43,15 +43,30 @@ export function ImprovedProtectedRoute({
   const [isClient, setIsClient] = useState(false);
   const [hasRedirected, setHasRedirected] = useState(false);
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const [forceNoLoading, setForceNoLoading] = useState(false);
   
   // Refs for preventing infinite loops
   const redirectAttemptedRef = useRef(false);
   const lastAuthStateRef = useRef<string>('');
   const effectRunCountRef = useRef(0);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // ===== CLIENT-SIDE HYDRATION =====
   useEffect(() => {
     setIsClient(true);
+    
+    // Set a safety timeout to prevent infinite loading
+    loadingTimeoutRef.current = setTimeout(() => {
+      console.warn('🚨 ProtectedRoute: Loading timeout reached, forcing no loading state');
+      setForceNoLoading(true);
+    }, 15000); // 15 second timeout
+    
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
   }, []);
 
   // ===== AUTH STATE TRACKING =====
@@ -128,9 +143,19 @@ export function ImprovedProtectedRoute({
     }
 
     // Case 1.5: Authenticated but user profile still loading
-    if (authState.isAuthenticated && !authState.user && authState.isLoading) {
+    if (authState.isAuthenticated && !authState.user && authState.isLoading && !forceNoLoading) {
       console.log('⏳ ProtectedRoute: User profile loading, waiting...');
       return;
+    }
+
+    // Case 1.5.1: Force exit loading state if timeout reached
+    if (forceNoLoading) {
+      console.warn('🚨 ProtectedRoute: Forced exit from loading state due to timeout');
+      // Clear the loading timeout
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
     }
 
     // Case 1.6: Authenticated but no user profile (error case)
@@ -206,8 +231,8 @@ export function ImprovedProtectedRoute({
     );
   }
 
-  // Show loading while auth is initializing
-  if (!authState.isInitialized || authState.isLoading) {
+  // Show loading while auth is initializing (unless forced to exit)
+  if ((!authState.isInitialized || authState.isLoading) && !forceNoLoading) {
     return loadingComponent || (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading..." />
@@ -259,8 +284,8 @@ export function ImprovedProtectedRoute({
     );
   }
 
-  // Show loading if user profile is still loading
-  if (authState.isAuthenticated && !authState.user && authState.isLoading) {
+  // Show loading if user profile is still loading (unless forced to exit)
+  if (authState.isAuthenticated && !authState.user && authState.isLoading && !forceNoLoading) {
     return loadingComponent || (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="lg" text="Loading user profile..." />
