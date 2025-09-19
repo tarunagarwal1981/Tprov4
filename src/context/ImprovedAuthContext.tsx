@@ -127,10 +127,18 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
   const loadingProfileRef = useRef<Set<string>>(new Set());
   const initializationRef = useRef<boolean>(false);
   const sessionRefreshTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const profileCacheRef = useRef<Map<string, User>>(new Map()); // Add profile caching
 
   // ===== LOAD USER PROFILE WITH IMPROVED ERROR HANDLING =====
   const loadUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User | null> => {
     try {
+      // Check cache first
+      const cachedProfile = profileCacheRef.current.get(supabaseUser.id);
+      if (cachedProfile) {
+        console.log('📋 Using cached profile for user:', supabaseUser.id);
+        return cachedProfile;
+      }
+
       // Prevent multiple simultaneous loads
       if (loadingProfileRef.current.has(supabaseUser.id)) {
         console.log('⏳ Profile already loading for user:', supabaseUser.id);
@@ -148,7 +156,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         .single();
       
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout')), 10000) // Increased timeout
+        setTimeout(() => reject(new Error('Profile loading timeout')), 15000) // Increased to 15 seconds
       );
       
       const { data: userProfile, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -168,6 +176,8 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
           lastLoginAt: new Date()
         };
         console.warn('⚠️ Using fallback user profile');
+        // Cache the fallback profile
+        profileCacheRef.current.set(supabaseUser.id, fallbackUser);
         return fallbackUser;
       }
 
@@ -184,6 +194,8 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
           isActive: true,
           lastLoginAt: new Date()
         };
+        // Cache the fallback profile
+        profileCacheRef.current.set(supabaseUser.id, fallbackUser);
         return fallbackUser;
       }
 
@@ -201,6 +213,10 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
       };
 
       console.log('✅ User profile loaded successfully');
+      
+      // Cache the profile
+      profileCacheRef.current.set(supabaseUser.id, user);
+      
       return user;
 
     } catch (error) {
@@ -217,6 +233,8 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         isActive: true,
         lastLoginAt: new Date()
       };
+      // Cache the fallback profile
+      profileCacheRef.current.set(supabaseUser.id, fallbackUser);
       return fallbackUser;
     } finally {
       loadingProfileRef.current.delete(supabaseUser.id);
@@ -283,7 +301,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         // Handle different events
         switch (event) {
           case 'SIGNED_IN':
-            if (session?.user) {
+            if (session?.user && !state.user) {
               dispatch({ 
                 type: 'INITIALIZE', 
                 payload: { 
@@ -300,6 +318,8 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
 
           case 'SIGNED_OUT':
             dispatch({ type: 'LOGOUT' });
+            // Clear profile cache on logout
+            profileCacheRef.current.clear();
             break;
 
           case 'TOKEN_REFRESHED':
@@ -321,6 +341,8 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
                   user: session.user 
                 } 
               });
+              // Clear cache for this user to force reload
+              profileCacheRef.current.delete(session.user.id);
             }
             break;
         }

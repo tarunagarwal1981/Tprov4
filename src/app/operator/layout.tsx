@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { withAuth } from '@/components/auth/ProtectedRoute';
+import { withImprovedAuth } from '@/components/auth/ImprovedProtectedRoute';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { UserRole } from '@/lib/types';
 
@@ -21,7 +21,7 @@ function OperatorLayoutContent({ children }: OperatorLayoutProps) {
 }
 
 // Wrap with role-based protection
-const OperatorLayout = withAuth(OperatorLayoutContent, {
+const OperatorLayout = withImprovedAuth(OperatorLayoutContent, {
   requiredRoles: OPERATOR_LAYOUT_ROLES
 });
 

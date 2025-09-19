@@ -39,7 +39,7 @@ const sortOptions = [
 
 export default function PackagesPage() {
   const [packages, setPackages] = useState<Package[]>([]);
-  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(15000, true);
+  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(10000, true);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
