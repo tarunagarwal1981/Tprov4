@@ -38,7 +38,7 @@ import {
 } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserRole } from '@/lib/types';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 import { StatsCard } from '@/components/dashboard/StatsCard';
 import { RecentBookings } from '@/components/dashboard/RecentBookings';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
@@ -49,7 +49,7 @@ import { QuickActions } from '@/components/dashboard/QuickActions';
 const OPERATOR_ROLES = [UserRole.TOUR_OPERATOR];
 
 function OperatorDashboard() {
-  const { state } = useAuth();
+  const { state } = useImprovedAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = useState('7d');
   

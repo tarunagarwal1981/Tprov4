@@ -2,7 +2,7 @@
 
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 import { UserRole } from '@/lib/types';
 
 // ===== INTERFACES =====
@@ -30,7 +30,7 @@ export function ProtectedRoute({
   console.log('🛡️ ProtectedRoute: Component function called');
   
   // ALL HOOKS MUST BE CALLED FIRST - Before any conditional returns
-  const { state } = useAuth();
+  const { state } = useImprovedAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);

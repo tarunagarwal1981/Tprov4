@@ -5,10 +5,10 @@ import { UserRole } from '@/lib/types';
 
 // Define roles outside component to prevent re-creation on every render
 const AGENT_ROLES = [UserRole.TRAVEL_AGENT];
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 
 function AgentDashboard() {
-  const { state } = useAuth();
+  const { state } = useImprovedAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">

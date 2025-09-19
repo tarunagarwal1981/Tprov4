@@ -15,7 +15,7 @@ import {
   Home,
   Building2
 } from 'lucide-react';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
@@ -27,7 +27,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const { state, signOut } = useAuth();
+  const { state, signOut } = useImprovedAuth();
   const router = useRouter();
 
   const handleLogout = () => {

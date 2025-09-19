@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 import { UserRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,7 +66,7 @@ type CompanyInfoData = z.infer<typeof companyInfoSchema>;
 interface FormData extends BasicInfoData, RoleSelectionData, CompanyInfoData {}
 
 export function ModernRegisterForm() {
-  const { signUp, state, clearError } = useAuth();
+  const { signUp, state, clearError } = useImprovedAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(1);

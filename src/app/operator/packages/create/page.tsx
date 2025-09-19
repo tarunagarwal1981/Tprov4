@@ -3,12 +3,12 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CompactPackageWizard from '@/components/packages/create/CompactPackageWizard';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 import { UserRole } from '@/lib/types';
 
 export default function CreatePackagePage() {
   const router = useRouter();
-  const { state } = useAuth();
+  const { state } = useImprovedAuth();
 
   // Check authentication and authorization
   useEffect(() => {

@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/SupabaseAuthContext';
+import { useImprovedAuth } from '@/context/ImprovedAuthContext';
 
 export default function OperatorPage() {
-  const { state } = useAuth();
+  const { state } = useImprovedAuth();
   const router = useRouter();
 
   useEffect(() => {
