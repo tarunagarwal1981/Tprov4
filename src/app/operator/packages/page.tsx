@@ -43,7 +43,9 @@ export default function PackagesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-  const [filters, setFilters] = useState<PackageFiltersType>({});
+  const [filters, setFilters] = useState<PackageFiltersType>({
+    status: PackageStatus.DRAFT // Default to showing draft packages
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -336,6 +338,34 @@ export default function PackagesPage() {
 
             {/* Controls */}
             <div className="flex items-center gap-3">
+              {/* Status Filter */}
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">Status:</label>
+                <select
+                  value={filters.status || 'ALL'}
+                  onChange={(e) => {
+                    const newFilters = { ...filters };
+                    if (e.target.value === 'ALL') {
+                      delete newFilters.status;
+                    } else {
+                      newFilters.status = e.target.value as PackageStatus;
+                    }
+                    handleFiltersChange(newFilters);
+                  }}
+                  className="border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 backdrop-blur-sm bg-white/10"
+                  style={{
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  }}
+                >
+                  <option value="ALL">All Packages</option>
+                  <option value={PackageStatus.DRAFT}>Draft</option>
+                  <option value={PackageStatus.ACTIVE}>Active</option>
+                  <option value={PackageStatus.INACTIVE}>Inactive</option>
+                  <option value={PackageStatus.SUSPENDED}>Suspended</option>
+                  <option value={PackageStatus.ARCHIVED}>Archived</option>
+                </select>
+              </div>
+
               {/* Sort */}
               <div className="flex items-center gap-2">
                 <label className="text-sm font-medium text-gray-700">Sort by:</label>

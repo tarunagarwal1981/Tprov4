@@ -31,13 +31,11 @@ export interface PackageFilters {
   type?: PackageType;
   status?: PackageStatus;
   difficulty?: string;
-  priceRange?: {
-    min: number;
-    max: number;
-  };
-  destinations?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  destination?: string;
   tags?: string[];
-  featured?: boolean;
+  isFeatured?: boolean;
 }
 
 export interface PackageSearchParams {
@@ -59,7 +57,7 @@ export class PackageService {
         return { data: null as any, success: false, error: error.message || 'Failed to create package' };
       }
       
-      return { data, success: true, message: 'Package created successfully' };
+      return { data: data!, success: true, message: 'Package created successfully' };
     } catch (error) {
       return { 
         data: null as any, 
@@ -87,11 +85,15 @@ export class PackageService {
       }
 
       const { data, error, count } = await PackageService.getPackages({
-        status: params.filters?.status || PackageStatus.ACTIVE,
+        status: params.filters?.status, // Don't default to ACTIVE - show all packages including drafts
         type: params.filters?.type,
-        featured: params.filters?.featured,
+        featured: params.filters?.isFeatured,
         search: params.query,
         tourOperatorId: tourOperatorId, // Pass the tour operator ID
+        destinations: params.filters?.destination ? [params.filters.destination] : undefined,
+        tags: params.filters?.tags,
+        minPrice: params.filters?.minPrice,
+        maxPrice: params.filters?.maxPrice,
         limit: params.limit || 12,
         offset: ((params.page || 1) - 1) * (params.limit || 12)
       });
@@ -167,7 +169,7 @@ export class PackageService {
         return { data: null as any, success: false, error: 'Package not found' };
       }
 
-      const packageData = PackageService.convertToAppPackage(data);
+      const packageData = PackageService.convertToAppPackage(data as any);
       return { data: packageData, success: true, message: 'Package updated successfully' };
     } catch (error) {
       return { 
@@ -384,6 +386,8 @@ export class PackageService {
     search?: string
     destinations?: string[]
     tags?: string[]
+    minPrice?: number
+    maxPrice?: number
   } = {}): Promise<SupabaseListResponse<PackageWithDetails>> {
     try {
       let query = supabase
@@ -425,6 +429,15 @@ export class PackageService {
       
       if (options.tags && options.tags.length > 0) {
         query = query.overlaps('tags', options.tags)
+      }
+
+      // Apply price filtering
+      if (options.minPrice !== undefined) {
+        query = query.gte('adult_price', options.minPrice)
+      }
+      
+      if (options.maxPrice !== undefined) {
+        query = query.lte('adult_price', options.maxPrice)
       }
 
       // Apply pagination
@@ -525,7 +538,12 @@ export class PackageService {
       inclusions: [],
       exclusions: [],
       termsAndConditions: [],
-      cancellationPolicy: { refundable: true, refundPercentage: 0, processingDays: 0, conditions: [] },
+      cancellationPolicy: { 
+        freeCancellationDays: 0, 
+        cancellationFees: [], 
+        refundPolicy: { refundable: true, refundPercentage: 0, processingDays: 0, conditions: [] }, 
+        forceMajeurePolicy: '' 
+      },
       images: imageUrls,
       destinations: [],
       duration: { days: Number(durationDays) || 1, nights: Math.max((Number(durationDays) || 1) - 1, 0), totalHours: Number(durationHours) || 0 },
@@ -545,7 +563,7 @@ export class PackageService {
       tour_operator_id: appPackage.tourOperatorId!,
       title: appPackage.title!,
       description: appPackage.description!,
-      type: appPackage.type!,
+      type: appPackage.type! as any,
       status: appPackage.status || 'DRAFT',
       pricing: appPackage.pricing as any,
       itinerary: appPackage.itinerary as any,
