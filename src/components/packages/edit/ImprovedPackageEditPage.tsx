@@ -17,7 +17,8 @@ import {
   Package,
   Calendar,
   DollarSign,
-  CheckCircle
+  CheckCircle,
+  Upload
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -56,6 +57,7 @@ interface PackageFormData {
   place?: string;
   description?: string;
   status?: string;
+  image?: File | string;
 
   // Transfer specific
   from?: string;
@@ -223,6 +225,77 @@ const Select = ({ value, onChange, options, placeholder }: {
     ))}
   </select>
 );
+
+const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: {
+  onUpload: (file: File) => void;
+  preview?: string | File;
+  label?: string;
+}) => {
+  const [dragOver, setDragOver] = useState(false);
+  
+  const previewUrl = typeof preview === 'string' ? preview : 
+                     preview instanceof File ? URL.createObjectURL(preview) : '';
+
+  return (
+    <div 
+      className={`relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center transition-all duration-300 cursor-pointer group ${
+        dragOver ? 'border-blue-400 bg-blue-50' : 'hover:border-gray-400 hover:bg-gray-50'
+      }`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+          onUpload(file);
+        }
+      }}
+    >
+      {previewUrl ? (
+        <div className="relative">
+          <img src={previewUrl} alt="Preview" className="max-h-40 mx-auto rounded-lg shadow-md" />
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              // Handle remove logic here if needed
+            }}
+            className="absolute -top-2 -right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 shadow-lg transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <div className={`inline-flex p-3 rounded-lg transition-colors ${
+            dragOver ? 'bg-blue-100' : 'bg-gray-100 group-hover:bg-blue-50'
+          }`}>
+            <Upload className={`w-6 h-6 transition-colors ${
+              dragOver ? 'text-blue-600' : 'text-gray-500 group-hover:text-blue-500'
+            }`} />
+          </div>
+          <div>
+            <p className="font-medium text-gray-700 mb-1 text-sm">{label}</p>
+            <p className="text-xs text-gray-500">Drag & drop or click to browse</p>
+            <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 10MB</p>
+          </div>
+        </div>
+      )}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => e.target.files?.[0] && onUpload(e.target.files[0])}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
+    </div>
+  );
+};
 
 const ListManager = ({ items, onChange, placeholder }: {
   items: string[];
@@ -554,6 +627,70 @@ const HotelsManager = ({ hotels, onChange }: {
         <Plus className="w-4 h-4" />
         Add Hotel
       </button>
+    </div>
+  );
+};
+
+// Destinations Manager Component
+const DestinationsManager = ({ destinations, onChange }: {
+  destinations: string[];
+  onChange: (destinations: string[]) => void;
+}) => {
+  const safeDestinations = ensureArray(destinations);
+
+  const addDestination = () => {
+    onChange([...safeDestinations, '']);
+  };
+
+  const updateDestination = (index: number, value: string) => {
+    const updated = [...safeDestinations];
+    updated[index] = value;
+    onChange(updated);
+  };
+
+  const removeDestination = (index: number) => {
+    onChange(safeDestinations.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="font-medium text-gray-900">Destinations</h4>
+        <button
+          type="button"
+          onClick={addDestination}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Add Destination
+        </button>
+      </div>
+
+      {safeDestinations.map((destination, index) => (
+        <div key={index} className="flex gap-3 items-center">
+          <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
+            {index + 1}
+          </div>
+          <Input
+            placeholder="Enter destination name"
+            value={destination}
+            onChange={(value) => updateDestination(index, value)}
+          />
+          <button
+            type="button"
+            onClick={() => removeDestination(index)}
+            className="text-red-500 hover:text-red-700 transition-colors flex-shrink-0"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+
+      {safeDestinations.length === 0 && (
+        <div className="text-center py-8 text-gray-500 border-2 border-dashed border-gray-300 rounded-lg">
+          <p>No destinations added yet. Click "Add Destination" to start.</p>
+        </div>
+      )}
     </div>
   );
 };
@@ -953,42 +1090,74 @@ export default function ImprovedPackageEditPage() {
                   </div>
 
                   {packageData.type === PackageType.TRANSFERS && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField label="From Location" required>
-                        <Input
-                          placeholder="Starting location"
-                          value={packageData.from || ''}
-                          onChange={(value) => updatePackageData({ from: value })}
+                    <>
+                      <FormField label="Place/Destination" required>
+                        <Select
+                          value={packageData.place || ''}
+                          onChange={(value) => updatePackageData({ place: value })}
+                          options={[
+                            { value: 'mumbai', label: 'Mumbai' },
+                            { value: 'delhi', label: 'Delhi' },
+                            { value: 'bangalore', label: 'Bangalore' },
+                            { value: 'goa', label: 'Goa' },
+                            { value: 'kerala', label: 'Kerala' }
+                          ]}
+                          placeholder="Select destination"
                         />
                       </FormField>
-                      <FormField label="To Location" required>
-                        <Input
-                          placeholder="Destination"
-                          value={packageData.to || ''}
-                          onChange={(value) => updatePackageData({ to: value })}
-                        />
-                      </FormField>
-                    </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField label="From Location" required>
+                          <Input
+                            placeholder="Starting location"
+                            value={packageData.from || ''}
+                            onChange={(value) => updatePackageData({ from: value })}
+                          />
+                        </FormField>
+                        <FormField label="To Location" required>
+                          <Input
+                            placeholder="Destination"
+                            value={packageData.to || ''}
+                            onChange={(value) => updatePackageData({ to: value })}
+                          />
+                        </FormField>
+                      </div>
+                    </>
                   )}
 
                   {packageData.type === PackageType.ACTIVITY && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField label="Timing" required>
-                        <Input
-                          placeholder="e.g., Morning, Afternoon"
-                          value={packageData.timing || ''}
-                          onChange={(value) => updatePackageData({ timing: value })}
+                    <>
+                      <FormField label="Place/Destination" required>
+                        <Select
+                          value={packageData.place || ''}
+                          onChange={(value) => updatePackageData({ place: value })}
+                          options={[
+                            { value: 'mumbai', label: 'Mumbai' },
+                            { value: 'delhi', label: 'Delhi' },
+                            { value: 'bangalore', label: 'Bangalore' },
+                            { value: 'goa', label: 'Goa' },
+                            { value: 'kerala', label: 'Kerala' }
+                          ]}
+                          placeholder="Select destination"
                         />
                       </FormField>
-                      <FormField label="Duration (Hours)">
-                        <Input
-                          type="number"
-                          placeholder="e.g., 4"
-                          value={packageData.durationHours || 0}
-                          onChange={(value) => updatePackageData({ durationHours: parseInt(value) || 0 })}
-                        />
-                      </FormField>
-                    </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField label="Timing" required>
+                          <Input
+                            placeholder="e.g., 9:00 AM - 5:00 PM"
+                            value={packageData.timing || ''}
+                            onChange={(value) => updatePackageData({ timing: value })}
+                          />
+                        </FormField>
+                        <FormField label="Duration (Hours)" required>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 8"
+                            value={packageData.durationHours || 0}
+                            onChange={(value) => updatePackageData({ durationHours: parseInt(value) || 0 })}
+                          />
+                        </FormField>
+                      </div>
+                    </>
                   )}
 
                   {(packageData.type === PackageType.MULTI_CITY_PACKAGE || 
@@ -1013,6 +1182,14 @@ export default function ImprovedPackageEditPage() {
                       </FormField>
                     </div>
                   )}
+
+                  <FormField label="Package Image">
+                    <ImageUpload
+                      onUpload={(file) => updatePackageData({ image: file })}
+                      preview={packageData.image}
+                      label="Upload Package Image"
+                    />
+                  </FormField>
 
                   <FormField label="Additional Notes">
                     <Textarea
@@ -1047,6 +1224,17 @@ export default function ImprovedPackageEditPage() {
                       placeholder="Add an exclusion (e.g., Meals not specified)"
                     />
                   </FormField>
+
+                  {(packageData.type === PackageType.MULTI_CITY_PACKAGE || 
+                    packageData.type === PackageType.MULTI_CITY_PACKAGE_WITH_HOTEL ||
+                    packageData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT) && (
+                    <FormField label="Destinations">
+                      <DestinationsManager
+                        destinations={packageData.destinations || []}
+                        onChange={(items) => updatePackageData({ destinations: items })}
+                      />
+                    </FormField>
+                  )}
 
                   {packageData.type !== PackageType.ACTIVITY && (
                     <>
