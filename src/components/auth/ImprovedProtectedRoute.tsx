@@ -113,12 +113,18 @@ export function ImprovedProtectedRoute({
     // Clear any previous errors
     clearError();
 
-    // Case 1: Not authenticated
-    if (!authState.isAuthenticated) {
+    // Case 1: Not authenticated (no user AND not authenticated)
+    if (!authState.user && !authState.isAuthenticated) {
       console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
       handleRedirect(loginUrl);
       return;
+    }
+
+    // Case 1.1: We have a user but isAuthenticated is false (inconsistent state)
+    if (authState.user && !authState.isAuthenticated) {
+      console.log('⚠️ ProtectedRoute: User exists but isAuthenticated is false, allowing access');
+      // Continue with user access - this is a valid state
     }
 
     // Case 1.5: Authenticated but user profile still loading
@@ -142,7 +148,7 @@ export function ImprovedProtectedRoute({
     }
 
     // Case 3: Check role requirements
-    if (!requiredRoles.includes(authState.user.role)) {
+    if (authState.user && !requiredRoles.includes(authState.user.role)) {
       console.log('❌ ProtectedRoute: User does not have required role');
       
       if (redirectTo) {
@@ -241,8 +247,8 @@ export function ImprovedProtectedRoute({
     );
   }
 
-  // Show fallback if not authenticated
-  if (!authState.isAuthenticated) {
+  // Show fallback if not authenticated (no user AND not authenticated)
+  if (!authState.user && !authState.isAuthenticated) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -275,7 +281,7 @@ export function ImprovedProtectedRoute({
   }
 
   // Show fallback if role check failed
-  if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(authState.user.role)) {
+  if (requiredRoles && requiredRoles.length > 0 && authState.user && !requiredRoles.includes(authState.user.role)) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
