@@ -174,11 +174,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Get user role from the users table in Supabase
       console.log('🔍 loadUserProfile: Querying database for user profile...');
-      const { data: userProfile, error } = await supabase
+      
+      // Add timeout to prevent hanging
+      const queryPromise = supabase
         .from('users')
         .select('role, name, profile')
         .eq('id', supabaseUser.id)
         .single();
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database query timeout')), 3000)
+      );
+      
+      const { data: userProfile, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       console.log('🔍 loadUserProfile: Database query result:', {
         userProfile,
@@ -192,7 +200,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
           name: supabaseUser.email?.split('@')[0] || 'User',
-          role: UserRole.TRAVEL_AGENT,
+          role: UserRole.TOUR_OPERATOR,
           profile: { firstName: '', lastName: '' },
           createdAt: new Date(supabaseUser.created_at),
           updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
@@ -212,7 +220,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
           name: supabaseUser.email?.split('@')[0] || 'User',
-          role: UserRole.TRAVEL_AGENT,
+          role: UserRole.TOUR_OPERATOR,
           profile: { firstName: '', lastName: '' },
           createdAt: new Date(supabaseUser.created_at),
           updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
@@ -251,7 +259,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
         name: supabaseUser.email?.split('@')[0] || 'User',
-        role: UserRole.TRAVEL_AGENT,
+        role: UserRole.TOUR_OPERATOR,
         profile: { firstName: '', lastName: '' },
         createdAt: new Date(supabaseUser.created_at),
         updatedAt: new Date(supabaseUser.updated_at || supabaseUser.created_at),
@@ -350,8 +358,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const currentSessionId = state.session?.user?.id;
         const newSessionId = session?.user?.id;
         
-        if (event === 'SIGNED_IN' && currentSessionId === newSessionId) {
-          console.log('⏳ Auth state change ignored - same session already processed');
+        if (event === 'SIGNED_IN' && currentSessionId === newSessionId && state.user) {
+          console.log('⏳ Auth state change ignored - same session already processed and user loaded');
           return;
         }
 
