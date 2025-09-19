@@ -114,8 +114,22 @@ export function ImprovedProtectedRoute({
     clearError();
 
     // Case 1: Not authenticated
-    if (!authState.isAuthenticated || !authState.user) {
+    if (!authState.isAuthenticated) {
       console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login');
+      const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+      handleRedirect(loginUrl);
+      return;
+    }
+
+    // Case 1.5: Authenticated but user profile still loading
+    if (authState.isAuthenticated && !authState.user && authState.isLoading) {
+      console.log('⏳ ProtectedRoute: User profile loading, waiting...');
+      return;
+    }
+
+    // Case 1.6: Authenticated but no user profile (error case)
+    if (authState.isAuthenticated && !authState.user && !authState.isLoading) {
+      console.log('❌ ProtectedRoute: Authenticated but no user profile, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
       handleRedirect(loginUrl);
       return;
@@ -228,12 +242,33 @@ export function ImprovedProtectedRoute({
   }
 
   // Show fallback if not authenticated
-  if (!authState.isAuthenticated || !authState.user) {
+  if (!authState.isAuthenticated) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">Authentication Required</h2>
           <p className="text-gray-600">Please log in to access this page.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading if user profile is still loading
+  if (authState.isAuthenticated && !authState.user && authState.isLoading) {
+    return loadingComponent || (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size="lg" text="Loading user profile..." />
+      </div>
+    );
+  }
+
+  // Show fallback if authenticated but no user profile (error case)
+  if (authState.isAuthenticated && !authState.user && !authState.isLoading) {
+    return fallback || (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Profile Error</h2>
+          <p className="text-gray-600">Unable to load user profile. Please try logging in again.</p>
         </div>
       </div>
     );
