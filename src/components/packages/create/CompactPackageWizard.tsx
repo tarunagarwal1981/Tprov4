@@ -322,18 +322,18 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
                 transition: { duration: 0.3, ease: "easeOut" }
               }}
               whileTap={{ scale: 0.98 }}
-              className={`group relative backdrop-blur-xl rounded-2xl border border-white/20 transition-all duration-300 cursor-pointer overflow-hidden ${
+              className={`group relative backdrop-blur-xl rounded-3xl border border-white/30 transition-all duration-300 cursor-pointer overflow-hidden ${
                 isSelected 
                   ? getColorClasses(pkg.color, 'selected')
-                  : 'hover:border-white/30'
+                  : 'hover:border-white/50 hover:shadow-2xl'
               }`}
               style={{
                 background: isSelected 
-                  ? `linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.1) 100%)`
-                  : `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)`,
+                  ? `linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.2) 100%)`
+                  : `linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.1) 100%)`,
                 boxShadow: isSelected 
-                  ? '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
-                  : '0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.2)',
+                  ? '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)'
+                  : '0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(0,0,0,0.07), inset 0 1px 2px rgba(255,255,255,0.6)',
                 transformStyle: 'preserve-3d'
               }}
               onClick={() => handleSelect(pkg.type)}
@@ -341,11 +341,12 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
               <div className="p-5">
                 {/* Compact Icon and Title */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={`inline-flex p-2.5 rounded-xl transition-all duration-300 backdrop-blur-sm ${
-                    isSelected ? getColorClasses(pkg.color, 'bg') : 'bg-white/20 group-hover:' + getColorClasses(pkg.color, 'bg')
+                  <div className={`inline-flex p-3 rounded-2xl transition-all duration-300 backdrop-blur-md ${
+                    isSelected ? getColorClasses(pkg.color, 'bg') : 'bg-white/50 group-hover:' + getColorClasses(pkg.color, 'bg')
                   }`}
                   style={{
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.7)',
+                    transform: 'translateZ(10px)'
                   }}>
                     <IconComponent className={`w-4 h-4 transition-colors duration-300 ${
                       isSelected ? getColorClasses(pkg.color, 'text') : 'text-gray-500 group-hover:' + getColorClasses(pkg.color, 'text')
@@ -446,13 +447,13 @@ const Input = ({ placeholder, value, onChange, type = "text", error, ...props }:
     placeholder={placeholder}
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm ${
-      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
+    className={`w-full px-4 py-3 text-sm border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md ${
+      error ? 'border-red-300/70 bg-red-50/30' : 'bg-white/30 hover:bg-white/50 focus:bg-white/60'
     }`}
     style={{
       boxShadow: error 
-        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
-        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+        ? '0 8px 25px rgba(239,68,68,0.15), inset 0 2px 4px rgba(255,255,255,0.3)'
+        : '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
     }}
     {...props}
   />
@@ -472,13 +473,13 @@ const Textarea = ({ placeholder, value, onChange, rows = 3, error }: TextareaPro
     value={value}
     onChange={(e) => onChange(e.target.value)}
     rows={rows}
-    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm resize-none ${
-      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
+    className={`w-full px-4 py-3 text-sm border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md resize-none ${
+      error ? 'border-red-300/70 bg-red-50/30' : 'bg-white/30 hover:bg-white/50 focus:bg-white/60'
     }`}
     style={{
       boxShadow: error 
-        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
-        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+        ? '0 8px 25px rgba(239,68,68,0.15), inset 0 2px 4px rgba(255,255,255,0.3)'
+        : '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
     }}
   />
 );
@@ -495,13 +496,13 @@ const Select = ({ value, onChange, options, placeholder, error }: SelectProps) =
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm ${
-      error ? 'border-red-300/50 bg-red-50/20' : 'bg-white/10 hover:bg-white/20'
+    className={`w-full px-4 py-3 text-sm border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md ${
+      error ? 'border-red-300/70 bg-red-50/30' : 'bg-white/30 hover:bg-white/50 focus:bg-white/60'
     }`}
     style={{
       boxShadow: error 
-        ? '0 4px 16px rgba(239,68,68,0.1), inset 0 1px 0 rgba(255,255,255,0.1)'
-        : '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+        ? '0 8px 25px rgba(239,68,68,0.15), inset 0 2px 4px rgba(255,255,255,0.3)'
+        : '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
     }}
   >
     {placeholder && <option value="">{placeholder}</option>}
@@ -2320,12 +2321,14 @@ function CompactPackageWizardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/30 relative overflow-hidden">
-      {/* Enhanced animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 relative overflow-hidden">
+      {/* Bright animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/20 to-purple-400/15 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-400/15 to-pink-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-emerald-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/40 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-pink-500/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-emerald-400/25 to-cyan-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-20 left-1/4 w-64 h-64 bg-gradient-to-br from-yellow-300/20 to-orange-400/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-20 right-1/4 w-72 h-72 bg-gradient-to-br from-green-400/20 to-teal-500/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }} />
       </div>
         <AnimatePresence mode="wait">
           {step === 'type' && (

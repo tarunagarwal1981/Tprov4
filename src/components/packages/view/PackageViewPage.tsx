@@ -128,20 +128,20 @@ const InfoCard = ({ title, children, icon: Icon, className = '' }: {
   icon: React.ElementType;
   className?: string;
 }) => (
-  <div className={cn("backdrop-blur-xl rounded-2xl border border-white/20 p-6", className)}
+  <div className={cn("backdrop-blur-xl rounded-3xl border border-white/40 p-7", className)}
   style={{
-    background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
-    boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+    background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+    boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
   }}>
-    <div className="flex items-center gap-3 mb-4">
-      <div className="p-2.5 backdrop-blur-sm rounded-xl border border-white/20"
+    <div className="flex items-center gap-4 mb-5">
+      <div className="p-3 backdrop-blur-md rounded-2xl border border-white/50"
       style={{
-        background: 'linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(59,130,246,0.05) 100%)',
-        boxShadow: '0 4px 16px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        background: 'linear-gradient(135deg, rgba(59,130,246,0.3) 0%, rgba(59,130,246,0.1) 100%)',
+        boxShadow: '0 8px 25px rgba(59,130,246,0.2), inset 0 2px 4px rgba(255,255,255,0.6)'
       }}>
         <Icon className="w-5 h-5 text-blue-600" />
       </div>
-      <h3 className="font-semibold text-gray-900">{title}</h3>
+      <h3 className="font-semibold text-gray-900 text-lg">{title}</h3>
     </div>
     {children}
   </div>
@@ -351,17 +351,19 @@ export default function ImprovedPackageViewPage() {
   const pricingSlabs = ensureArray(safeJsonParse(packageData.pricing_slabs, []));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/30 relative overflow-hidden">
-      {/* Enhanced animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 relative overflow-hidden">
+      {/* Bright animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/15 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-400/10 to-pink-400/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/8 to-cyan-400/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/40 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-pink-500/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/25 to-cyan-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-300/20 to-orange-400/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-gradient-to-br from-violet-400/15 to-fuchsia-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
       </div>
 
       {/* Header */}
-      <div className="backdrop-blur-xl bg-white/80 border-b border-white/20 relative z-10" style={{
-        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+      <div className="backdrop-blur-xl bg-white/90 border-b border-white/40 relative z-10" style={{
+        boxShadow: '0 15px 40px rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.8)'
       }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
@@ -567,10 +569,10 @@ export default function ImprovedPackageViewPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+            <div className="backdrop-blur-xl rounded-3xl border border-white/40 p-7"
             style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+              boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
             }}>
               <h3 className="font-semibold text-gray-900 mb-4">Package Overview</h3>
               <div className="space-y-4">
@@ -628,10 +630,10 @@ export default function ImprovedPackageViewPage() {
 
             {/* Pricing Details */}
             {pricingSlabs.length > 0 ? (
-              <div className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+              <div className="backdrop-blur-xl rounded-3xl border border-white/40 p-7"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
               }}>
                 <h3 className="font-semibold text-gray-900 mb-4">Pricing Tiers</h3>
                 <div className="space-y-4">
@@ -667,10 +669,10 @@ export default function ImprovedPackageViewPage() {
                 </div>
               </div>
             ) : (
-              <div className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+              <div className="backdrop-blur-xl rounded-3xl border border-white/40 p-7"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
               }}>
                 <h3 className="font-semibold text-gray-900 mb-4">Pricing</h3>
                 <div className="space-y-3">
@@ -699,10 +701,10 @@ export default function ImprovedPackageViewPage() {
             )}
 
             {/* Package Metadata */}
-            <div className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+            <div className="backdrop-blur-xl rounded-3xl border border-white/40 p-7"
             style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+              boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
             }}>
               <h3 className="font-semibold text-gray-900 mb-4">Package Info</h3>
               <div className="space-y-3 text-sm">
@@ -728,10 +730,10 @@ export default function ImprovedPackageViewPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+            <div className="backdrop-blur-xl rounded-3xl border border-white/40 p-7"
             style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+              boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
             }}>
               <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-2">

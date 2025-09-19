@@ -193,9 +193,9 @@ const Input = ({ placeholder, value, onChange, type = "text", ...props }: {
     placeholder={placeholder}
     value={value || ''}
     onChange={(e) => onChange(e.target.value)}
-    className="w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 hover:bg-white/20"
+    className="w-full px-4 py-3 text-sm border border-white/50 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-400/80 backdrop-blur-md bg-white/40 hover:bg-white/60 focus:bg-white/70"
     style={{
-      boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+      boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.5)'
     }}
     {...props}
   />
@@ -212,9 +212,9 @@ const Textarea = ({ placeholder, value, onChange, rows = 3 }: {
     value={value || ''}
     onChange={(e) => onChange(e.target.value)}
     rows={rows}
-    className="w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 hover:bg-white/20 resize-none"
+    className="w-full px-4 py-3 text-sm border border-white/50 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-400/80 backdrop-blur-md bg-white/40 hover:bg-white/60 focus:bg-white/70 resize-none"
     style={{
-      boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+      boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.5)'
     }}
   />
 );
@@ -228,9 +228,9 @@ const Select = ({ value, onChange, options, placeholder }: {
   <select
     value={value || ''}
     onChange={(e) => onChange(e.target.value)}
-    className="w-full px-3 py-2.5 text-sm border border-white/20 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 backdrop-blur-sm bg-white/10 hover:bg-white/20"
+    className="w-full px-4 py-3 text-sm border border-white/50 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/60 focus:border-blue-400/80 backdrop-blur-md bg-white/40 hover:bg-white/60 focus:bg-white/70"
     style={{
-      boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+      boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.5)'
     }}
   >
     {placeholder && <option value="" disabled>{placeholder}</option>}
@@ -997,12 +997,13 @@ export default function ImprovedPackageEditPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-purple-50/30 relative overflow-hidden">
-      {/* Enhanced animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 relative overflow-hidden">
+      {/* Bright animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/15 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-400/10 to-pink-400/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/8 to-cyan-400/8 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/35 to-purple-500/25 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/25 to-pink-500/35 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-300/15 to-orange-400/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
       </div>
 
       {/* Toast */}
@@ -1017,8 +1018,8 @@ export default function ImprovedPackageEditPage() {
       </AnimatePresence>
 
       {/* Header */}
-      <div className="backdrop-blur-xl bg-white/80 border-b border-white/20 relative z-10" style={{
-        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+      <div className="backdrop-blur-xl bg-white/90 border-b border-white/40 relative z-10" style={{
+        boxShadow: '0 15px 40px rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.8)'
       }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
@@ -1080,10 +1081,10 @@ export default function ImprovedPackageEditPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="backdrop-blur-xl rounded-2xl border border-white/20"
+          className="backdrop-blur-xl rounded-3xl border border-white/40"
           style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 100%)',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.3)'
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.2) 100%)',
+            boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)'
           }}
         >
           {/* Tabs */}
