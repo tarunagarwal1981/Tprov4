@@ -18,9 +18,9 @@ import {
   FileText,
   Package,
   Plane,
+  CheckCircle,
   Car,
   Building,
-  CheckCircle,
   AlertCircle,
   Trash2,
   Bed,
@@ -371,7 +371,7 @@ const PackageTypeSelector = ({ onSelect }: { onSelect: (type: PackageType) => vo
                 
                 {/* Compact Features */}
                 <div className="space-y-1.5">
-                  {pkg.features.map((feature, featureIndex) => (
+                  {(pkg.features || []).map((feature, featureIndex) => (
                     <motion.div 
                       key={featureIndex} 
                       className="flex items-center text-xs text-gray-500"
@@ -712,19 +712,19 @@ interface PricingSectionProps {
 const PricingSection = ({ pricing, onChange }: PricingSectionProps) => {
   const addPricing = () => {
     onChange([
-      ...pricing,
+      ...(pricing || []),
       { adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }
     ]);
   };
 
   const updatePricing = (index: number, field: keyof PricingInfo, value: any) => {
-    const updated = [...pricing];
+    const updated = [...(pricing || [])];
     updated[index] = { ...updated[index], [field]: value };
     onChange(updated);
   };
 
   const removePricing = (index: number) => {
-    onChange(pricing.filter((_, i) => i !== index));
+    onChange((pricing || []).filter((_, i) => i !== index));
   };
 
   return (
@@ -746,7 +746,7 @@ const PricingSection = ({ pricing, onChange }: PricingSectionProps) => {
 
       <div className="space-y-4">
         <AnimatePresence>
-          {pricing.map((price, index) => (
+          {(pricing || []).map((price, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
@@ -2209,7 +2209,7 @@ function CompactPackageWizardContent() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = async () => {
+  const handleSave = async (status: 'DRAFT' | 'ACTIVE' = 'DRAFT') => {
     if (!validateForm()) {
       addToast('Please fix the errors before saving', 'error');
       return;
@@ -2219,6 +2219,7 @@ function CompactPackageWizardContent() {
     try {
       console.log('🚀 Starting package save process...');
       console.log('📋 Form data:', formData);
+      console.log('📝 Package status:', status);
 
       // 1) Get current user and tour_operator_id
       console.log('🔐 Getting current user...');
@@ -2248,7 +2249,7 @@ function CompactPackageWizardContent() {
         child_price: formData.pricing?.[0]?.childPrice ?? 0,
         duration_days: formData.days ?? 1,
         duration_hours: formData.durationHours ?? 0,
-        status: 'DRAFT'
+        status: status
       } as const;
       console.log('📦 Main insert data:', mainInsert);
 
@@ -2282,7 +2283,10 @@ function CompactPackageWizardContent() {
 
       // Continue with the rest of your save logic...
       
-      addToast('Package created successfully!', 'success');
+      const successMessage = status === 'ACTIVE' 
+        ? 'Package created and published successfully!' 
+        : 'Package saved as draft successfully!';
+      addToast(successMessage, 'success');
       router.push('/operator/packages');
       
     } catch (error: any) {
@@ -2382,26 +2386,51 @@ function CompactPackageWizardContent() {
                       )}
                     </AnimatePresence>
                     
-                    <button
-                      onClick={handleSave}
-                      disabled={isSaving}
-                      className="relative flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 backdrop-blur-sm"
-                      style={{
-                        boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
-                      }}
-                    >
-                      {isSaving ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span className="font-semibold">Creating Package...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          <span className="font-semibold">Save Package</span>
-                        </>
-                      )}
-                    </button>
+                    <div className="flex gap-3">
+                      {/* Save Draft Button */}
+                      <button
+                        onClick={() => handleSave('DRAFT')}
+                        disabled={isSaving}
+                        className="relative flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 backdrop-blur-sm"
+                        style={{
+                          boxShadow: '0 8px 32px rgba(75,85,99,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                        }}
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span className="font-semibold">Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            <span className="font-semibold">Save Draft</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Submit/Publish Button */}
+                      <button
+                        onClick={() => handleSave('ACTIVE')}
+                        disabled={isSaving}
+                        className="relative flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 backdrop-blur-sm"
+                        style={{
+                          boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                        }}
+                      >
+                        {isSaving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span className="font-semibold">Publishing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            <span className="font-semibold">Submit & Publish</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
 
