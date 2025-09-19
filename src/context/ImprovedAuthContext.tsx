@@ -246,19 +246,6 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
     if (initializationRef.current) return;
     initializationRef.current = true;
 
-    // Set a fallback timeout to ensure initialization completes
-    const fallbackTimeout = setTimeout(() => {
-      if (!state.isInitialized) {
-        console.warn('⚠️ Auth initialization timeout, forcing completion');
-        dispatch({ 
-          type: 'INITIALIZE', 
-          payload: { 
-            session: null, 
-            user: null 
-          } 
-        });
-      }
-    }, 35000); // 35 seconds fallback
 
     const initializeAuth = async () => {
       try {
@@ -425,7 +412,6 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
       if (sessionRefreshTimeoutRef.current) {
         clearTimeout(sessionRefreshTimeoutRef.current);
       }
-      clearTimeout(fallbackTimeout);
     };
   }, []);
 

@@ -94,14 +94,20 @@ export function ProtectedRoute({
       return;
     }
 
-    // If not authenticated, redirect to login
-    if (!state.user) {
+    // If not authenticated (no user AND not authenticated), redirect to login
+    if (!state.user && !state.isAuthenticated) {
       console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
       redirectAttemptedRef.current = true;
       setHasRedirected(true);
       router.push(loginUrl);
       return;
+    }
+
+    // If we have a user but not authenticated flag, that's still valid
+    if (state.user && !state.isAuthenticated) {
+      console.log('⚠️ ProtectedRoute: User exists but isAuthenticated is false, allowing access');
+      // Continue with user access
     }
 
     // If user is authenticated but no specific roles required, allow access
@@ -111,7 +117,7 @@ export function ProtectedRoute({
     }
 
     // Check if user has required role
-    if (!requiredRoles.includes(state.user.role)) {
+    if (state.user && !requiredRoles.includes(state.user.role)) {
       console.log('❌ ProtectedRoute: User does not have required role, redirecting');
       
       // If redirectTo is specified, use it
@@ -197,7 +203,7 @@ export function ProtectedRoute({
   }
 
   // ===== NOT AUTHENTICATED =====
-  if (!state.user) {
+  if (!state.user && !state.isAuthenticated) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -209,7 +215,7 @@ export function ProtectedRoute({
   }
 
   // ===== ROLE CHECK =====
-  if (requiredRoles && requiredRoles.length > 0 && !requiredRoles.includes(state.user.role)) {
+  if (requiredRoles && requiredRoles.length > 0 && state.user && !requiredRoles.includes(state.user.role)) {
     return fallback || (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
