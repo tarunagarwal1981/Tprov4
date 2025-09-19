@@ -13,6 +13,7 @@ import {
 import { StatsCard } from './StatsCard';
 import { dashboardService } from '@/lib/services';
 import { cn } from '@/lib/utils';
+import { useLoadingState } from '@/hooks';
 
 interface StatsGridProps {
   className?: string;
@@ -27,13 +28,13 @@ export function StatsGrid({ className }: StatsGridProps) {
     averageRating: 0,
     conversionRate: 0
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(8000, true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true);
+        startLoading();
+        clearError();
         const response = await dashboardService.getDashboardStats();
         
         if (response.success) {
@@ -45,13 +46,13 @@ export function StatsGrid({ className }: StatsGridProps) {
             averageRating: response.data.averageRating,
             conversionRate: 18.7 // Mock conversion rate
           });
+          stopLoading();
         } else {
           setError(response.error || 'Failed to fetch statistics');
         }
       } catch (err) {
-        setError('An error occurred while fetching statistics');
-      } finally {
-        setLoading(false);
+        console.error('Error fetching stats:', err);
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching statistics');
       }
     };
 

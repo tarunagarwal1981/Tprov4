@@ -21,7 +21,7 @@ import {
   DollarSign,
   Calendar
 } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce, useLoadingState } from '@/hooks';
 
 const packageService = new PackageService();
 
@@ -39,8 +39,7 @@ const sortOptions = [
 
 export default function PackagesPage() {
   const [packages, setPackages] = useState<Package[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isLoading: loading, error, startLoading, stopLoading, setError, clearError } = useLoadingState(15000, true);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -65,8 +64,8 @@ export default function PackagesPage() {
   // Load packages
   const loadPackages = useCallback(async () => {
     try {
-      setLoading(true);
-      setError(null);
+      startLoading();
+      clearError();
 
       const searchParams: PackageSearchParams = {
         query: debouncedSearchQuery || undefined,
@@ -91,10 +90,8 @@ export default function PackagesPage() {
         setError(response.error || 'Failed to load packages');
       }
     } catch (err) {
-      setError('An unexpected error occurred');
       console.error('Error loading packages:', err);
-    } finally {
-      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Failed to load packages');
     }
   }, [debouncedSearchQuery, filters, sortBy, pagination.page, pagination.limit]);
 

@@ -172,12 +172,17 @@ export function ProtectedRoute({
 
 
   // ===== LOADING STATE =====
-  if (state.isLoading) {
+  // Only show loading if we're actually loading AND don't have a user yet
+  // This prevents infinite spinners when user is already loaded
+  if (state.isLoading && !state.user) {
     console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname);
     
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
