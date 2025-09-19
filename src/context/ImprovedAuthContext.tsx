@@ -148,7 +148,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
       loadingProfileRef.current.add(supabaseUser.id);
       console.log('🔍 Loading profile for user:', supabaseUser.id);
 
-      // Improved timeout handling
+      // Improved timeout handling with retry logic
       const queryPromise = supabase
         .from('users')
         .select('role, name, profile')
@@ -156,7 +156,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
         .single();
       
       const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout')), 15000) // Increased to 15 seconds
+        setTimeout(() => reject(new Error('Profile loading timeout')), 30000) // Increased to 30 seconds
       );
       
       const { data: userProfile, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -246,27 +246,41 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
     if (initializationRef.current) return;
     initializationRef.current = true;
 
+    // Set a fallback timeout to ensure initialization completes
+    const fallbackTimeout = setTimeout(() => {
+      if (!state.isInitialized) {
+        console.warn('⚠️ Auth initialization timeout, forcing completion');
+        dispatch({ 
+          type: 'INITIALIZE', 
+          payload: { 
+            session: null, 
+            user: null 
+          } 
+        });
+      }
+    }, 35000); // 35 seconds fallback
+
     const initializeAuth = async () => {
       try {
         console.log('🚀 Initializing authentication...');
         
-        // Get initial session with timeout
+        // Get initial session with longer timeout and better error handling
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Session initialization timeout')), 10000)
+          setTimeout(() => reject(new Error('Session initialization timeout')), 30000) // Increased to 30 seconds
         );
         
         const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
         
         if (error) {
           console.error('❌ Error getting session:', error);
-          dispatch({ type: 'SET_ERROR', payload: 'Failed to initialize authentication' });
-          return;
+          // Don't set error state immediately, try to continue with null session
+          console.log('⚠️ Continuing with no session due to error');
         }
 
         console.log('📋 Initial session:', session ? 'Found' : 'None');
         
-        // Initialize with session data
+        // Initialize with session data (even if null)
         dispatch({ 
           type: 'INITIALIZE', 
           payload: { 
@@ -277,9 +291,14 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
 
         // Load user profile if session exists
         if (session?.user) {
-          const userProfile = await loadUserProfile(session.user);
-          if (userProfile) {
-            dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+          try {
+            const userProfile = await loadUserProfile(session.user);
+            if (userProfile) {
+              dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+            }
+          } catch (profileError) {
+            console.error('❌ Error loading profile during init:', profileError);
+            // Continue without profile - let auth state change handler retry
           }
         }
 
@@ -287,6 +306,14 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
 
       } catch (error) {
         console.error('❌ Error initializing auth:', error);
+        // Set initialization as complete even on error to prevent infinite loading
+        dispatch({ 
+          type: 'INITIALIZE', 
+          payload: { 
+            session: null, 
+            user: null 
+          } 
+        });
         dispatch({ type: 'SET_ERROR', payload: 'Failed to initialize authentication' });
       }
     };
@@ -319,9 +346,15 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
                   user: session.user 
                 } 
               });
-              const userProfile = await loadUserProfile(session.user);
-              if (userProfile) {
-                dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+              // Load profile with error handling
+              try {
+                const userProfile = await loadUserProfile(session.user);
+                if (userProfile) {
+                  dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+                }
+              } catch (error) {
+                console.error('❌ Error loading profile in SIGNED_IN:', error);
+                // Don't fail the entire auth process, continue with session
               }
             } else {
               console.log('⏭️ Skipping SIGNED_IN - already processed or no session');
@@ -339,9 +372,14 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
             if (session?.user && !state.user) {
               console.log('🔄 Processing TOKEN_REFRESHED event');
               // Only load profile if we don't have it yet
-              const userProfile = await loadUserProfile(session.user);
-              if (userProfile) {
-                dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+              try {
+                const userProfile = await loadUserProfile(session.user);
+                if (userProfile) {
+                  dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+                }
+              } catch (error) {
+                console.error('❌ Error loading profile in TOKEN_REFRESHED:', error);
+                // Continue without failing
               }
             } else {
               console.log('⏭️ Skipping TOKEN_REFRESHED - user already loaded');
@@ -362,6 +400,22 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
               profileCacheRef.current.delete(session.user.id);
             }
             break;
+
+          case 'INITIAL_SESSION':
+            // Handle initial session event
+            if (session?.user && !state.user) {
+              console.log('🔄 Processing INITIAL_SESSION event');
+              try {
+                const userProfile = await loadUserProfile(session.user);
+                if (userProfile) {
+                  dispatch({ type: 'SET_USER_PROFILE', payload: userProfile });
+                }
+              } catch (error) {
+                console.error('❌ Error loading profile in INITIAL_SESSION:', error);
+                // Continue without failing
+              }
+            }
+            break;
         }
       }
     );
@@ -371,6 +425,7 @@ export function ImprovedAuthProvider({ children }: AuthProviderProps) {
       if (sessionRefreshTimeoutRef.current) {
         clearTimeout(sessionRefreshTimeoutRef.current);
       }
+      clearTimeout(fallbackTimeout);
     };
   }, []);
 

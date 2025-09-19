@@ -34,12 +34,14 @@ export function ProtectedRoute({
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const [hasRedirected, setHasRedirected] = useState(false);
   const renderCountRef = useRef(0);
   const effectRunCountRef = useRef(0);
-  const prevDepsRef = useRef<any>({});
+  const redirectAttemptedRef = useRef(false);
   
   console.log('🛡️ ProtectedRoute: useAuth state:', {
     isLoading: state.isLoading,
+    isInitialized: state.isInitialized,
     hasUser: !!state.user,
     userRole: state.user?.role
   });
@@ -80,9 +82,15 @@ export function ProtectedRoute({
       return;
     }
     
-    // Don't redirect while loading or before client hydration
-    if (state.isLoading || !isClient) {
-      console.log('⏳ ProtectedRoute: Skipping redirect - loading or not client-side');
+    // Don't redirect while loading, not initialized, or before client hydration
+    if (state.isLoading || !state.isInitialized || !isClient) {
+      console.log('⏳ ProtectedRoute: Skipping redirect - loading, not initialized, or not client-side');
+      return;
+    }
+
+    // If already redirected, don't redirect again
+    if (hasRedirected || redirectAttemptedRef.current) {
+      console.log('⏳ ProtectedRoute: Already redirected, skipping');
       return;
     }
 
@@ -90,6 +98,8 @@ export function ProtectedRoute({
     if (!state.user) {
       console.log('🚫 ProtectedRoute: Not authenticated, redirecting to login');
       const loginUrl = `/auth/login?redirect=${encodeURIComponent(pathname)}`;
+      redirectAttemptedRef.current = true;
+      setHasRedirected(true);
       router.push(loginUrl);
       return;
     }
@@ -106,6 +116,8 @@ export function ProtectedRoute({
       
       // If redirectTo is specified, use it
       if (redirectTo) {
+        redirectAttemptedRef.current = true;
+        setHasRedirected(true);
         router.push(redirectTo);
         return;
       }
@@ -114,41 +126,39 @@ export function ProtectedRoute({
       const userDashboard = defaultRoleRedirects[state.user.role];
       if (userDashboard) {
         console.log('🔄 ProtectedRoute: Redirecting to user role dashboard:', userDashboard);
+        redirectAttemptedRef.current = true;
+        setHasRedirected(true);
         router.push(userDashboard);
         return;
       }
 
       // Fallback to home page
       console.log('🏠 ProtectedRoute: Fallback redirect to home');
+      redirectAttemptedRef.current = true;
+      setHasRedirected(true);
       router.push('/');
     } else {
       console.log('✅ ProtectedRoute: User has required role, allowing access');
     }
-  }, [state.user?.id, state.isLoading, isClient, pathname]); // Simplified dependencies
+  }, [
+    state.isLoading, 
+    state.isInitialized, 
+    state.user?.id, 
+    state.user?.role, 
+    isClient, 
+    pathname, 
+    requiredRoles, 
+    redirectTo, 
+    hasRedirected
+  ]);
 
-  // Store previous dependencies to detect changes
-  const currentDeps = {
-    user: state.user,
-    isLoading: state.isLoading,
-    isClient,
-    pathname,
-    requiredRoles,
-    redirectTo
-  };
-  
-  // Log what changed
-  const changedDeps = Object.keys(currentDeps).filter(key => {
-    const changed = prevDepsRef.current[key] !== (currentDeps as any)[key];
-    if (changed) {
-      console.log(`🔄 ProtectedRoute: Dependency changed - ${key}:`, {
-        old: prevDepsRef.current[key],
-        new: (currentDeps as any)[key]
-      });
+  // Reset redirect state when pathname changes
+  useEffect(() => {
+    if (pathname) {
+      setHasRedirected(false);
+      redirectAttemptedRef.current = false;
     }
-    return changed;
-  });
-  
-  prevDepsRef.current = currentDeps;
+  }, [pathname]);
 
   // Prevent hydration mismatch by not rendering until client-side
   if (!isClient) {
@@ -172,10 +182,9 @@ export function ProtectedRoute({
 
 
   // ===== LOADING STATE =====
-  // Only show loading if we're actually loading AND don't have a user yet
-  // This prevents infinite spinners when user is already loaded
-  if (state.isLoading && !state.user) {
-    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'user:', !!state.user, 'pathname:', pathname);
+  // Show loading if we're loading OR not initialized yet
+  if (state.isLoading || !state.isInitialized) {
+    console.log('🔄 Showing loading spinner - isLoading:', state.isLoading, 'isInitialized:', state.isInitialized, 'pathname:', pathname);
     
     return (
       <div className="min-h-screen flex items-center justify-center">
