@@ -44,7 +44,7 @@ export default function PackagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [filters, setFilters] = useState<PackageFiltersType>({
-    status: PackageStatus.DRAFT // Default to showing draft packages
+    status: PackageStatus.ACTIVE // Default to showing active packages
   });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({

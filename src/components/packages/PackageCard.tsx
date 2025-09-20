@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useEffect } from 'react';
 import { Package, PackageStatus, PackageType } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import Image from 'next/image';
+import { PackageAnalyticsService, PackageAnalytics } from '@/lib/services/packageAnalyticsService';
 
 interface PackageCardProps {
   package: Package;
@@ -36,6 +37,26 @@ interface PackageCardProps {
 
 export default memo(function PackageCard({ package: pkg, viewMode }: PackageCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [analytics, setAnalytics] = useState<PackageAnalytics | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
+  // Fetch analytics data
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const result = await PackageAnalyticsService.getPackageAnalytics(pkg.id);
+        if (result.success && result.data) {
+          setAnalytics(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching analytics:', error);
+      } finally {
+        setAnalyticsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [pkg.id]);
 
   // Get status badge styling
   const getStatusBadge = (status: PackageStatus) => {
@@ -117,12 +138,12 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
     }
   };
 
-  // Mock analytics data (in real app, this would come from props or API)
-  const mockAnalytics = {
-    views: Math.floor(Math.random() * 1000) + 100,
-    bookings: Math.floor(Math.random() * 50) + 5,
-    rating: 4.2 + Math.random() * 0.8,
-    revenue: Math.floor(Math.random() * 10000) + 1000,
+  // Get analytics data (use real data if available, otherwise show zeros)
+  const analyticsData = {
+    views: analytics?.total_views || 0,
+    bookings: analytics?.total_bookings || 0,
+    rating: analytics?.average_rating || 0,
+    revenue: analytics?.total_revenue || 0,
   };
 
   // Handle actions
@@ -217,7 +238,14 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent 
+                align="end" 
+                className="backdrop-blur-xl border border-white/40 rounded-xl"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.5) 100%)',
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                }}
+              >
                 <DropdownMenuItem onClick={() => handleAction('view')}>
                   <Eye className="w-4 h-4 mr-2" />
                   View Details
@@ -297,7 +325,7 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
               </div>
               <div className="flex items-center text-sm text-gray-500">
                 <Star className="w-4 h-4 mr-1 text-yellow-400" />
-                <span>{mockAnalytics.rating.toFixed(1)}</span>
+                <span>{analyticsData.rating > 0 ? analyticsData.rating.toFixed(1) : 'No rating'}</span>
               </div>
             </div>
 
@@ -306,19 +334,19 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
               <div className="text-center">
                 <div className="text-xs text-gray-500">Views</div>
                 <div className="text-sm font-semibold text-gray-900">
-                  {mockAnalytics.views.toLocaleString()}
+                  {analyticsData.views.toLocaleString()}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-500">Bookings</div>
                 <div className="text-sm font-semibold text-gray-900">
-                  {mockAnalytics.bookings}
+                  {analyticsData.bookings}
                 </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-gray-500">Revenue</div>
                 <div className="text-sm font-semibold text-gray-900">
-                  ${mockAnalytics.revenue.toLocaleString()}
+                  ${analyticsData.revenue.toLocaleString()}
                 </div>
               </div>
             </div>
@@ -391,7 +419,7 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
                   </div>
                   <div className="flex items-center">
                     <Star className="w-4 h-4 mr-1 text-yellow-400" />
-                    <span>{mockAnalytics.rating.toFixed(1)}</span>
+                    <span>{analyticsData.rating > 0 ? analyticsData.rating.toFixed(1) : 'No rating'}</span>
                   </div>
                 </div>
               </div>
@@ -416,7 +444,14 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent 
+                    align="end"
+                    className="backdrop-blur-xl border border-white/40 rounded-xl"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.5) 100%)',
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.15), 0 8px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+                    }}
+                  >
                     <DropdownMenuItem onClick={() => handleAction('view')}>
                       <Eye className="w-4 h-4 mr-2" />
                       View Details
