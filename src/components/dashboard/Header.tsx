@@ -158,7 +158,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-80 backdrop-blur-xl rounded-2xl border border-white/20 z-50"
+                className="absolute right-0 mt-2 w-80 backdrop-blur-xl rounded-2xl border border-white/20 z-[60]"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
                   boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)'
@@ -239,7 +239,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-56 backdrop-blur-xl rounded-2xl border border-white/20 z-50"
+                className="absolute right-0 mt-2 w-56 backdrop-blur-xl rounded-2xl border border-white/20 z-[60]"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
                   boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)'
