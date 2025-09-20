@@ -69,7 +69,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
   const unreadCount = mockNotifications.filter(n => n.unread).length;
 
   return (
-    <header className="backdrop-blur-xl bg-white/90 border-b border-white/40 px-4 py-1 flex items-center justify-between h-12 relative z-10"
+    <header className="backdrop-blur-xl bg-white/90 border-b border-white/40 px-4 py-1 flex items-center justify-between h-12 relative z-50"
     style={{
       boxShadow: '0 15px 40px rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.8)'
     }}>
@@ -158,10 +158,11 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-80 backdrop-blur-xl rounded-2xl border border-white/20 z-[60]"
+                className="absolute right-0 mt-2 w-80 backdrop-blur-xl rounded-2xl border border-white/20 z-[70]"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
-                  boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)'
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)',
+                  zIndex: 70
                 }}
               >
                 <div className="p-4 border-b border-white/20">
@@ -239,10 +240,11 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-56 backdrop-blur-xl rounded-2xl border border-white/20 z-[60]"
+                className="absolute right-0 mt-2 w-56 backdrop-blur-xl rounded-2xl border border-white/20 z-[70]"
                 style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
-                  boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)'
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)',
+                  zIndex: 70
                 }}
               >
                 <div className="p-4 border-b border-white/20">
