@@ -46,6 +46,13 @@ const menuItems: MenuItem[] = [
     icon: LayoutDashboard,
   },
   {
+    id: 'leads-marketplace',
+    label: 'Leads Marketplace',
+    href: '/agent/leads-marketplace',
+    icon: ShoppingCart,
+    badge: 15,
+  },
+  {
     id: 'leads',
     label: 'My Leads',
     href: '/agent/leads',

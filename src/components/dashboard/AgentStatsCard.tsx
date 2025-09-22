@@ -87,24 +87,24 @@ export function AgentStatsCard({
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className={cn('h-full', className)}>
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-600 mb-1">{title}</p>
-              <div className="flex items-baseline space-x-2">
-                <p className="text-2xl font-bold text-gray-900">
+      <Card className={cn('h-full min-h-[120px]', className)}>
+        <CardContent className="p-4 lg:p-6">
+          <div className="flex items-start justify-between h-full">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-600 mb-2 truncate">{title}</p>
+              <div className="flex items-baseline space-x-2 flex-wrap">
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">
                   {typeof value === 'number' ? value.toLocaleString() : value}
                 </p>
                 {change !== undefined && (
                   <div className={cn(
-                    'flex items-center text-sm font-medium',
+                    'flex items-center text-xs lg:text-sm font-medium whitespace-nowrap',
                     isPositive ? colors.change : isNegative ? 'text-red-600' : 'text-gray-500'
                   )}>
                     {isPositive ? (
-                      <ArrowUpRight className="h-4 w-4 mr-1" />
+                      <ArrowUpRight className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                     ) : isNegative ? (
-                      <ArrowDownRight className="h-4 w-4 mr-1" />
+                      <ArrowDownRight className="h-3 w-3 lg:h-4 lg:w-4 mr-1" />
                     ) : null}
                     {Math.abs(change)}%
                   </div>
@@ -112,10 +112,10 @@ export function AgentStatsCard({
               </div>
             </div>
             <div className={cn(
-              'w-12 h-12 rounded-lg flex items-center justify-center',
+              'w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center flex-shrink-0 ml-2',
               colors.bg
             )}>
-              <Icon className={cn('h-6 w-6', colors.icon)} />
+              <Icon className={cn('h-5 w-5 lg:h-6 lg:w-6', colors.icon)} />
             </div>
           </div>
         </CardContent>
@@ -190,7 +190,7 @@ export function AgentStatsGrid({ stats, className }: AgentStatsGridProps) {
   ];
 
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6', className)}>
+    <div className={cn('grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6', className)}>
       {statsCards.map((stat, index) => (
         <AgentStatsCard
           key={stat.title}

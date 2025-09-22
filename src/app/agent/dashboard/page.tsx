@@ -122,183 +122,170 @@ function AgentDashboard() {
   const topPackages = dashboardData?.topPackages || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Header Section */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      {/* Animated background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
+      </div>
+
+      <div className="relative z-10 p-6 space-y-8">
+        {/* Enhanced Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
+        >
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Welcome back, {state.user?.profile?.firstName || state.user?.name || 'Agent'}! 👋
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Here's what's happening with your travel business today
-                </p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                Welcome back, {state.user?.profile?.firstName || state.user?.name || 'Agent'}! 👋
+              </h1>
+              <p className="text-gray-600 mt-2 text-lg">Here's what's happening with your travel business today</p>
             </div>
-            
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-sm font-medium backdrop-blur-sm"
+                style={{
+                  boxShadow: '0 4px 16px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                }}>
                   {state.user?.role}
                 </span>
-                <button
+                <motion.button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-2 backdrop-blur-sm bg-white/20 border border-white/30 rounded-xl hover:bg-white/30 transition-all duration-200"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
-                </button>
+                  <RefreshCw className={`w-4 h-4 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </motion.button>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
+        {/* Enhanced Stats Grid */}
         {dashboardData && (
           <AgentStatsGrid 
             stats={dashboardData.stats} 
-            className="mb-8"
           />
         )}
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Enhanced Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Leads */}
           <RecentLeads
             leads={dashboardData?.recentLeads || []}
             viewAllLink="/agent/leads"
-            className="lg:col-span-1"
           />
 
           {/* Recent Itineraries */}
           <RecentItineraries
             itineraries={dashboardData?.recentItineraries || []}
             viewAllLink="/agent/itineraries"
-            className="lg:col-span-1"
           />
 
           {/* Quick Actions */}
-          <AgentQuickActions className="lg:col-span-1" />
+          <AgentQuickActions />
         </div>
 
-        {/* Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Activity Feed - Using custom component for agent activities */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Activity className="h-5 w-5 text-blue-600" />
-                <span>Recent Activity</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentActivity.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Activity className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                  <p>No recent activity</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
-                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <Activity className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                        <p className="text-sm text-gray-600">{activity.description}</p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {new Date(activity.timestamp).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Top Packages - Using custom component for agent packages */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Package className="h-5 w-5 text-green-600" />
-                <span>Popular Packages</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {topPackages.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                  <p>No packages available</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {topPackages.map((pkg, index) => (
-                    <div key={pkg.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900">{pkg.name}</p>
-                        <p className="text-sm text-gray-600">{pkg.destination}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                          <span className="text-xs text-gray-500">{pkg.rating}</span>
-                          <span className="text-xs text-gray-500">•</span>
-                          <span className="text-xs text-gray-500">{pkg.bookings} bookings</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-gray-900">${pkg.price.toLocaleString()}</p>
-                        <Button size="sm" variant="outline" className="mt-1">
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Performance Insights */}
-        <div className="mt-8">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <Sparkles className="w-6 h-6" />
-                <h3 className="text-xl font-bold">Performance Insights</h3>
-              </div>
-              <Zap className="w-5 h-5" />
+        {/* Activity Feed */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
+        >
+          <div className="flex items-center space-x-2 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+              <Activity className="h-4 w-4 text-white" />
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">64.3%</div>
-                <div className="text-blue-100 text-sm">Conversion Rate</div>
-                <div className="text-green-300 text-xs mt-1">↑ +5.2% this month</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">4.9</div>
-                <div className="text-blue-100 text-sm">Average Rating</div>
-                <div className="text-green-300 text-xs mt-1">↑ +0.2 this month</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-1">$8,750</div>
-                <div className="text-blue-100 text-sm">Monthly Commission</div>
-                <div className="text-green-300 text-xs mt-1">↑ +15.8% this month</div>
-              </div>
-            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
           </div>
-        </div>
+          {recentActivity.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Activity className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <p>No recent activity</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentActivity.map((activity, index) => (
+                <div key={activity.id} className="flex items-start space-x-3 p-3 backdrop-blur-sm bg-white/20 rounded-xl border border-white/30">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <Activity className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                    <p className="text-sm text-gray-600">{activity.description}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(activity.timestamp).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Top Packages */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
+        >
+          <div className="flex items-center space-x-2 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+              <Package className="h-4 w-4 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Popular Packages</h3>
+          </div>
+          {topPackages.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+              <p>No packages available</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {topPackages.map((pkg, index) => (
+                <div key={pkg.id} className="flex items-center justify-between p-3 backdrop-blur-sm bg-white/20 rounded-xl border border-white/30">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{pkg.name}</p>
+                    <p className="text-sm text-gray-600">{pkg.destination}</p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Star className="h-3 w-3 text-yellow-400 fill-current" />
+                      <span className="text-xs text-gray-500">{pkg.rating}</span>
+                      <span className="text-xs text-gray-500">•</span>
+                      <span className="text-xs text-gray-500">{pkg.bookings} bookings</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900">${pkg.price.toLocaleString()}</p>
+                    <Button size="sm" variant="outline" className="mt-1 backdrop-blur-sm border border-white/40">
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

@@ -5,8 +5,6 @@ import { Hero } from '@/components/landing/Hero';
 import { Stats } from '@/components/landing/Stats';
 import { Features } from '@/components/landing/Features';
 import { UserRole } from '@/lib/types';
-import { EnvDebugger } from '@/components/debug/EnvDebugger';
-
 
 export default function Home() {
   return (
@@ -15,7 +13,6 @@ export default function Home() {
       <Hero />
       <Stats />
       <Features />
-      <EnvDebugger />
     </div>
   );
 }

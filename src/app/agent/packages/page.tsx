@@ -60,33 +60,59 @@ function PackagesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                <Package className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 relative overflow-hidden">
+      {/* Bright animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/40 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-pink-500/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/25 to-cyan-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-300/20 to-orange-400/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-gradient-to-br from-violet-400/15 to-fuchsia-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
+      </div>
+      
+      {/* Enhanced Header */}
+      <div className="relative z-10 backdrop-blur-xl border-b border-white/40"
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+        boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
+      }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                style={{
+                  boxShadow: '0 8px 25px rgba(34,197,94,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
+                }}>
+                  <Package className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">Browse Packages</h1>
+                  <p className="text-gray-600 mt-1">Discover packages from tour operators worldwide</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Browse Packages</h1>
-                <p className="text-gray-600 mt-1">Discover packages from tour operators worldwide</p>
+              
+              <div className="flex items-center space-x-4">
+                <Button variant="outline" size="sm" className="backdrop-blur-sm border border-white/40"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
+                }}>
+                  <Filter className="w-4 h-4 mr-2" />
+                  Filters
+                </Button>
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Button variant="outline" size="sm">
-                <Filter className="w-4 h-4 mr-2" />
-                Filters
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="bg-white border-b border-gray-200">
+      {/* Enhanced Search and Filters */}
+      <div className="relative z-10 backdrop-blur-xl border-b border-white/40"
+      style={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%)',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)'
+      }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center space-x-4">
             <div className="flex-1 max-w-md">
@@ -96,12 +122,20 @@ function PackagesPage() {
                   placeholder="Search packages, destinations, or operators..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 backdrop-blur-sm border border-white/40 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
+                  }}
                 />
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge variant="secondary" className="px-3 py-1">
+              <Badge variant="secondary" className="px-3 py-1 backdrop-blur-sm border border-white/40"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.4)'
+              }}>
                 {filteredPackages.length} packages found
               </Badge>
             </div>
@@ -109,59 +143,63 @@ function PackagesPage() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Enhanced Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {isLoading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading packages...</p>
           </div>
         ) : filteredPackages.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No packages found</h3>
-              <p className="text-gray-600 mb-6">
-                {searchTerm ? 'Try adjusting your search terms' : 'No packages available at the moment'}
-              </p>
-              {searchTerm && (
-                <Button variant="outline" onClick={() => setSearchTerm('')}>
-                  Clear Search
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+          <div className="backdrop-blur-xl rounded-2xl border border-white/20 p-8 text-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}>
+            <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No packages found</h3>
+            <p className="text-gray-600 mb-6">
+              {searchTerm ? 'Try adjusting your search terms' : 'No packages available at the moment'}
+            </p>
+            {searchTerm && (
+              <Button variant="outline" onClick={() => setSearchTerm('')} className="backdrop-blur-sm border border-white/40">
+                Clear Search
+              </Button>
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredPackages.map((pkg) => (
-              <Card key={pkg.id} className="hover:shadow-lg transition-all duration-200 group">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg mb-2">{pkg.name}</CardTitle>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapPin className="h-4 w-4" />
-                        <span>{pkg.destination}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
-                        <Users className="h-4 w-4" />
-                        <span>{pkg.operatorName}</span>
-                      </div>
+              <div key={pkg.id} className="backdrop-blur-xl rounded-2xl border border-white/20 p-6 hover:shadow-xl transition-all duration-300 group"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+              }}>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{pkg.name}</h3>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <MapPin className="h-4 w-4" />
+                      <span>{pkg.destination}</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium">{pkg.rating}</span>
+                    <div className="flex items-center space-x-2 text-sm text-gray-600 mt-1">
+                      <Users className="h-4 w-4" />
+                      <span>{pkg.operatorName}</span>
                     </div>
                   </div>
-                </CardHeader>
+                  <div className="flex items-center space-x-1">
+                    <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                    <span className="text-sm font-medium">{pkg.rating}</span>
+                  </div>
+                </div>
                 
-                <CardContent className="space-y-4">
+                <div className="space-y-4">
                   {/* Price */}
                   <div className="flex items-center justify-between">
                     <div className="text-2xl font-bold text-gray-900">
                       ${pkg.price.toLocaleString()}
                     </div>
-                    <Badge variant={pkg.availability ? "default" : "secondary"}>
+                    <Badge variant={pkg.availability ? "default" : "secondary"} className="backdrop-blur-sm">
                       {pkg.availability ? 'Available' : 'Unavailable'}
                     </Badge>
                   </div>
@@ -179,36 +217,40 @@ function PackagesPage() {
                   </div>
                   
                   {/* Actions */}
-                  <div className="flex items-center justify-between pt-4 border-t">
+                  <div className="flex items-center justify-between pt-4 border-t border-white/20">
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="ghost">
+                      <Button size="sm" variant="ghost" className="backdrop-blur-sm hover:bg-white/20">
                         <Heart className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost">
+                      <Button size="sm" variant="ghost" className="backdrop-blur-sm hover:bg-white/20">
                         <Share2 className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" className="backdrop-blur-sm border border-white/40">
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Button>
-                      <Button size="sm" disabled={!pkg.availability}>
+                      <Button size="sm" disabled={!pkg.availability} className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
                         <Plus className="h-4 w-4 mr-1" />
                         Add to Itinerary
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}
         
-        {/* Load More */}
+        {/* Enhanced Load More */}
         {filteredPackages.length > 0 && (
           <div className="text-center mt-8">
-            <Button variant="outline" size="lg">
+            <Button variant="outline" size="lg" className="backdrop-blur-sm border border-white/40"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
+              boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
+            }}>
               Load More Packages
             </Button>
           </div>
