@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   Info
 } from 'lucide-react';
+import { LocationInput } from '../../ui/LocationInput';
 
 // Toast notification system
 const ToastContext = createContext<{
@@ -884,27 +885,38 @@ const TransferForm = ({ data, onChange }: FormProps) => {
               required
               description="Select the city where this transfer operates"
             >
-              <Select
+              <LocationInput
                 value={data.place || ''}
-                onChange={(value) => onChange({ place: value })}
-                options={places}
-                placeholder="Select city"
+                onChange={(value) => onChange({ place: typeof value === 'string' ? value : value.name })}
+                placeholder="Select city for transfers"
+                mode="both"
+                allowCustomInput={true}
+                country="India"
+                displayFormat="name-state"
               />
             </FormField>
 
             <div className="grid grid-cols-2 gap-4">
               <FormField label="From" required>
-                <Input
-                  placeholder="Starting location"
+                <LocationInput
                   value={data.from || ''}
-                  onChange={(value) => onChange({ from: value })}
+                  onChange={(value) => onChange({ from: typeof value === 'string' ? value : value.name })}
+                  placeholder="Starting location"
+                  mode="both"
+                  allowCustomInput={true}
+                  country="India"
+                  displayFormat="name-state"
                 />
               </FormField>
               <FormField label="To" required>
-                <Input
-                  placeholder="Destination"
+                <LocationInput
                   value={data.to || ''}
-                  onChange={(value) => onChange({ to: value })}
+                  onChange={(value) => onChange({ to: typeof value === 'string' ? value : value.name })}
+                  placeholder="Destination"
+                  mode="both"
+                  allowCustomInput={true}
+                  country="India"
+                  displayFormat="name-state"
                 />
               </FormField>
             </div>

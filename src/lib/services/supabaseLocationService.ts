@@ -23,7 +23,7 @@ export class SupabaseLocationService {
       const locations: Location[] = data.map((city: any) => ({
         id: city.id,
         name: city.name,
-        country: city.country,
+        country: city.country, // This is country_name from the function
         state: city.state,
         coordinates: city.coordinates,
         population: city.population,
@@ -59,7 +59,7 @@ export class SupabaseLocationService {
       return data.map((city: any) => ({
         id: city.id,
         name: city.name,
-        country: city.country,
+        country: city.country, // This is country_name from the function
         state: city.state,
         coordinates: city.coordinates,
         population: city.population,
@@ -134,9 +134,30 @@ export class SupabaseLocationService {
     isPopular?: boolean;
   }): Promise<Location | null> {
     try {
+      // Convert country name to country code
+      const { data: countryData } = await supabase
+        .from('countries')
+        .select('code')
+        .eq('name', cityData.country)
+        .single();
+
+      if (!countryData) {
+        throw new Error('Country not found');
+      }
+
+      const insertData = {
+        name: cityData.name,
+        country_code: countryData.code,
+        country_name: cityData.country,
+        state: cityData.state,
+        coordinates: cityData.coordinates,
+        population: cityData.population,
+        is_popular: cityData.isPopular || false
+      };
+
       const { data, error } = await supabase
         .from('cities')
-        .insert([cityData])
+        .insert([insertData])
         .select()
         .single();
 
@@ -148,7 +169,7 @@ export class SupabaseLocationService {
       return {
         id: data.id,
         name: data.name,
-        country: data.country,
+        country: data.country_name,
         state: data.state,
         coordinates: data.coordinates,
         population: data.population,
@@ -202,7 +223,7 @@ export class SupabaseLocationService {
       return {
         id: data.id,
         name: data.name,
-        country: data.country,
+        country: data.country_name,
         state: data.state,
         coordinates: data.coordinates,
         population: data.population,
@@ -240,7 +261,7 @@ export class SupabaseLocationService {
       return data.map((city: any) => ({
         id: city.id,
         name: city.name,
-        country: city.country,
+        country: city.country_name,
         state: city.state,
         coordinates: city.coordinates,
         population: city.population,
