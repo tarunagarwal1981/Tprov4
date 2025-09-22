@@ -69,13 +69,20 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
   const unreadCount = mockNotifications.filter(n => n.unread).length;
 
   return (
-    <header className="bg-white border-b border-gray-200 px-4 py-1 flex items-center justify-between h-12">
+    <header className="backdrop-blur-xl bg-white/90 border-b border-white/40 px-4 py-1 flex items-center justify-between h-12 relative z-50"
+    style={{
+      boxShadow: '0 15px 40px rgba(0,0,0,0.12), inset 0 2px 4px rgba(255,255,255,0.8)'
+    }}>
       {/* Left Section */}
       <div className="flex items-center space-x-4">
         {/* Mobile Menu Button */}
         <button
           onClick={onMenuToggle}
-          className="lg:hidden p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200"
+          className="lg:hidden p-1.5 rounded-xl backdrop-blur-sm transition-all duration-200 border border-white/20"
+          style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+          }}
           aria-label="Toggle mobile menu"
         >
           <Menu className="w-4 h-4 text-gray-600" />
@@ -110,7 +117,10 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
             placeholder="Search packages, bookings, agents..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full pl-10 pr-4 py-1 border border-white/40 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md bg-white/30 hover:bg-white/50 focus:bg-white/60 text-sm"
+            style={{
+              boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
+            }}
             aria-label="Search packages, bookings, and agents"
           />
         </div>
@@ -122,7 +132,11 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
         <div className="relative">
           <button
             onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-            className="relative p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200"
+            className="relative p-1.5 rounded-xl backdrop-blur-sm transition-all duration-200 border border-white/20 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+            }}
             aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
           >
             <Bell className="w-4 h-4 text-gray-600" />
@@ -144,9 +158,14 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                className="absolute right-0 mt-2 w-80 backdrop-blur-xl rounded-2xl border border-white/20 z-[70]"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)',
+                  zIndex: 70
+                }}
               >
-                <div className="p-4 border-b border-gray-200">
+                <div className="p-4 border-b border-white/20">
                   <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
                   <p className="text-sm text-gray-500">{unreadCount} unread notifications</p>
                 </div>
@@ -157,8 +176,8 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       className={cn(
-                        'p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200',
-                        notification.unread && 'bg-blue-50'
+                        'p-4 border-b border-white/10 hover:bg-white/20 transition-colors duration-200',
+                        notification.unread && 'bg-blue-50/30'
                       )}
                     >
                       <div className="flex items-start space-x-3">
@@ -175,7 +194,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                     </motion.div>
                   ))}
                 </div>
-                <div className="p-4 border-t border-gray-200">
+                <div className="p-4 border-t border-white/20">
                   <Link
                     href="/operator/notifications"
                     className="text-sm text-blue-600 hover:text-blue-700 font-medium"
@@ -192,10 +211,17 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
         <div className="relative">
           <button
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center space-x-2 p-1.5 rounded-md hover:bg-gray-100 transition-colors duration-200"
+            className="flex items-center space-x-2 p-1.5 rounded-xl backdrop-blur-sm transition-all duration-200 border border-white/20 hover:scale-105"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+            }}
             aria-label="User profile menu"
           >
-            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center backdrop-blur-sm"
+            style={{
+              boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+            }}>
               <User className="w-3.5 h-3.5 text-white" />
             </div>
             <div className="hidden sm:block text-left">
@@ -214,11 +240,19 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
+                className="absolute right-0 mt-2 w-56 backdrop-blur-xl rounded-2xl border border-white/20 z-[70]"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8)',
+                  zIndex: 70
+                }}
               >
-                <div className="p-4 border-b border-gray-200">
+                <div className="p-4 border-b border-white/20">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center backdrop-blur-sm"
+                    style={{
+                      boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    }}>
                       <User className="w-5 h-5 text-white" />
                     </div>
                     <div>
@@ -232,21 +266,21 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
                 <div className="py-2">
                   <Link
                     href="/operator/profile"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-white/20 transition-colors duration-200 rounded-xl"
                   >
                     <User className="w-4 h-4 mr-3" />
                     Profile
                   </Link>
                   <Link
                     href="/operator/settings"
-                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-white/20 transition-colors duration-200 rounded-xl"
                   >
                     <Settings className="w-4 h-4 mr-3" />
                     Settings
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
+                    className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50/30 transition-colors duration-200 rounded-xl"
                   >
                     <LogOut className="w-4 h-4 mr-3" />
                     Sign out

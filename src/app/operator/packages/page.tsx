@@ -44,7 +44,7 @@ export default function PackagesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [filters, setFilters] = useState<PackageFiltersType>({
-    status: PackageStatus.DRAFT // Default to showing draft packages
+    status: PackageStatus.ACTIVE // Default to showing active packages
   });
   const [showFilters, setShowFilters] = useState(false);
   const [pagination, setPagination] = useState({
@@ -190,18 +190,21 @@ export default function PackagesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30 relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 relative overflow-hidden">
+      {/* Bright animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/40 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-pink-500/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/25 to-cyan-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-300/20 to-orange-400/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-gradient-to-br from-violet-400/15 to-fuchsia-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
       </div>
       
       {/* Header */}
-      <div className="relative z-10 backdrop-blur-xl border-b border-white/20"
+      <div className="relative z-10 backdrop-blur-xl border-b border-white/40"
       style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+        boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
       }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="py-6">
@@ -227,16 +230,16 @@ export default function PackagesPage() {
 
             {/* Stats Cards */}
             <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
               style={{
-                background: 'linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.05) 100%)',
-                boxShadow: '0 8px 32px rgba(59,130,246,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
               }}>
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-blue-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    <div className="h-8 w-8 bg-gradient-to-br from-blue-600/30 to-indigo-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
                     style={{
-                      boxShadow: '0 4px 16px rgba(59,130,246,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      boxShadow: '0 8px 25px rgba(59,130,246,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
                     }}>
                       <PackageIcon className="h-5 w-5 text-blue-600" />
                     </div>
@@ -250,16 +253,16 @@ export default function PackagesPage() {
                 </div>
               </div>
 
-              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
               style={{
-                background: 'linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(34,197,94,0.05) 100%)',
-                boxShadow: '0 8px 32px rgba(34,197,94,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
               }}>
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-green-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    <div className="h-8 w-8 bg-gradient-to-br from-green-600/30 to-emerald-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
                     style={{
-                      boxShadow: '0 4px 16px rgba(34,197,94,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      boxShadow: '0 8px 25px rgba(34,197,94,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
                     }}>
                       <div className="h-4 w-4 bg-green-600 rounded-full"></div>
                     </div>
@@ -273,16 +276,16 @@ export default function PackagesPage() {
                 </div>
               </div>
 
-              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
               style={{
-                background: 'linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(34,197,94,0.05) 100%)',
-                boxShadow: '0 8px 32px rgba(34,197,94,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
               }}>
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-green-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    <div className="h-8 w-8 bg-gradient-to-br from-green-600/30 to-emerald-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
                     style={{
-                      boxShadow: '0 4px 16px rgba(34,197,94,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      boxShadow: '0 8px 25px rgba(34,197,94,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
                     }}>
                       <DollarSign className="h-5 w-5 text-green-600" />
                     </div>
@@ -296,16 +299,16 @@ export default function PackagesPage() {
                 </div>
               </div>
 
-              <div className="backdrop-blur-xl rounded-xl border border-white/20 p-4"
+              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
               style={{
-                background: 'linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(245,158,11,0.05) 100%)',
-                boxShadow: '0 8px 32px rgba(245,158,11,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
               }}>
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-yellow-600/20 rounded-xl flex items-center justify-center backdrop-blur-sm"
+                    <div className="h-8 w-8 bg-gradient-to-br from-yellow-600/30 to-amber-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
                     style={{
-                      boxShadow: '0 4px 16px rgba(245,158,11,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
+                      boxShadow: '0 8px 25px rgba(245,158,11,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
                     }}>
                       <TrendingUp className="h-5 w-5 text-yellow-600" />
                     </div>
@@ -352,9 +355,9 @@ export default function PackagesPage() {
                     }
                     handleFiltersChange(newFilters);
                   }}
-                  className="border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 backdrop-blur-sm bg-white/10"
+                  className="border border-white/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md bg-white/30 hover:bg-white/50 focus:bg-white/60"
                   style={{
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
                   }}
                 >
                   <option value="ALL">All Packages</option>
@@ -372,9 +375,9 @@ export default function PackagesPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                  className="border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 backdrop-blur-sm bg-white/10"
+                  className="border border-white/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md bg-white/30 hover:bg-white/50 focus:bg-white/60"
                   style={{
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                    boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
                   }}
                 >
                   {sortOptions.map((option) => (
@@ -386,33 +389,33 @@ export default function PackagesPage() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex items-center border border-white/20 rounded-xl backdrop-blur-sm"
+              <div className="flex items-center border border-white/40 rounded-2xl backdrop-blur-sm"
               style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
+                boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
               }}>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-xl transition-all duration-200 ${
+                  className={`p-2 rounded-2xl transition-all duration-200 ${
                     viewMode === 'grid' 
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
                       : 'text-gray-600 hover:bg-white/20'
                   }`}
                   style={viewMode === 'grid' ? {
-                    boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
                   } : {}}
                 >
                   <Grid3X3 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-xl transition-all duration-200 ${
+                  className={`p-2 rounded-2xl transition-all duration-200 ${
                     viewMode === 'list' 
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
                       : 'text-gray-600 hover:bg-white/20'
                   }`}
                   style={viewMode === 'list' ? {
-                    boxShadow: '0 4px 16px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+                    boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
                   } : {}}
                 >
                   <List className="w-4 h-4" />
@@ -423,10 +426,10 @@ export default function PackagesPage() {
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="relative backdrop-blur-sm border border-white/20"
+                className="relative backdrop-blur-sm border border-white/40 rounded-2xl"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
+                  boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
                 }}
               >
                 <Filter className="w-4 h-4 mr-2" />

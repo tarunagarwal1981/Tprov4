@@ -1,32 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sidebar } from './Sidebar';
+import { AgentSidebar } from './AgentSidebar';
 import { Header } from './Header';
 import { cn } from '@/lib/utils';
 
-interface DashboardLayoutProps {
+interface AgentDashboardLayoutProps {
   children: React.ReactNode;
   breadcrumbs?: { label: string; href?: string }[];
 }
 
-export function DashboardLayout({ children, breadcrumbs = [] }: DashboardLayoutProps) {
+export function AgentDashboardLayout({ children, breadcrumbs = [] }: AgentDashboardLayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Handle responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsSidebarCollapsed(true);
-      }
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
@@ -37,14 +24,19 @@ export function DashboardLayout({ children, breadcrumbs = [] }: DashboardLayoutP
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 relative overflow-hidden">
-      {/* Bright animated background elements */}
+    <div className="h-screen bg-gray-50 overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+        }} />
+      </div>
+
+      {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/40 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-pink-500/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-br from-emerald-400/25 to-cyan-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-20 left-1/4 w-64 h-64 bg-gradient-to-br from-yellow-300/20 to-orange-400/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
-        <div className="absolute bottom-20 right-1/4 w-72 h-72 bg-gradient-to-br from-green-400/20 to-teal-500/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '4s' }} />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-green-400/20 to-blue-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-br from-purple-400/10 to-pink-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
       </div>
 
       {/* Mobile Overlay */}
@@ -67,7 +59,7 @@ export function DashboardLayout({ children, breadcrumbs = [] }: DashboardLayoutP
           'fixed lg:relative z-50 lg:z-auto transition-all duration-300',
           isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}>
-          <Sidebar 
+          <AgentSidebar 
             isCollapsed={isSidebarCollapsed} 
             onToggle={toggleSidebar} 
           />
