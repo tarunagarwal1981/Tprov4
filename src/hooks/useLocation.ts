@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Location, LocationSearchParams, LocationSearchResult } from '../lib/types/location';
-import { locationService } from '../lib/services/locationService';
+import { EnhancedLocationService } from '../lib/services/enhancedLocationService';
 
 export interface UseLocationSearchOptions {
   debounceMs?: number;
@@ -55,7 +55,10 @@ export function useLocationSearch(options: UseLocationSearchOptions = {}): UseLo
     // Reset state for new search
     setError(null);
 
-    if (!query || query.length < minQueryLength) {
+    // Ensure query is a string and handle edge cases
+    const queryString = typeof query === 'string' ? query : String(query || '');
+    
+    if (!queryString || queryString.length < minQueryLength) {
       setLocations([]);
       setHasMore(false);
       setTotal(0);
@@ -68,13 +71,13 @@ export function useLocationSearch(options: UseLocationSearchOptions = {}): UseLo
       
       try {
         const searchParams: LocationSearchParams = {
-          query: query.trim(),
+          query: queryString.trim(),
           country: defaultCountry,
           limit,
           includeCoordinates
         };
 
-        const result: LocationSearchResult = await locationService.searchLocations(searchParams);
+        const result: LocationSearchResult = await EnhancedLocationService.getInstance().searchLocations(searchParams);
         
         setLocations(result.locations);
         setHasMore(result.hasMore);
@@ -139,7 +142,7 @@ export function usePopularCities(country: string = 'India') {
     const fetchPopularCities = async () => {
       try {
         setLoading(true);
-        const popularCities = await locationService.getPopularCities(country);
+        const popularCities = await EnhancedLocationService.getInstance().getPopularCities(country);
         setCities(popularCities);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch popular cities');
@@ -167,7 +170,7 @@ export function useCountries() {
     const fetchCountries = async () => {
       try {
         setLoading(true);
-        const countriesList = await locationService.getCountries();
+        const countriesList = await EnhancedLocationService.getInstance().getCountries();
         setCountries(countriesList);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch countries');

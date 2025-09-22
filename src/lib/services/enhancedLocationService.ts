@@ -46,29 +46,29 @@ export class EnhancedLocationService {
     let hasMore = false;
 
     try {
-      // Strategy 1: Try Supabase database first (fastest, most accurate)
-      const dbResults = await SupabaseLocationService.searchCities(params);
-      if (dbResults.locations.length > 0) {
-        results = dbResults.locations;
-        hasMore = dbResults.hasMore;
+      // Strategy 1: Try API first (GeoNames - most comprehensive)
+      const apiResults = await locationService.searchLocations(params);
+      if (apiResults.locations.length > 0) {
+        results = apiResults.locations;
+        hasMore = apiResults.hasMore;
       }
     } catch (error) {
-      console.warn('Database search failed, trying API:', error);
+      console.warn('API search failed, trying database:', error);
     }
 
-    // Strategy 2: If database fails or returns few results, try API
+    // Strategy 2: If API fails or returns few results, try database
     if (results.length < 3) {
       try {
-        const apiResults = await locationService.searchLocations(params);
-        if (apiResults.locations.length > 0) {
-          // Merge results, prioritizing database results
+        const dbResults = await SupabaseLocationService.searchCities(params);
+        if (dbResults.locations.length > 0) {
+          // Merge results, prioritizing API results
           const existingIds = new Set(results.map(r => r.id));
-          const newResults = apiResults.locations.filter(r => !existingIds.has(r.id));
+          const newResults = dbResults.locations.filter(r => !existingIds.has(r.id));
           results = [...results, ...newResults];
-          hasMore = apiResults.hasMore;
+          hasMore = dbResults.hasMore;
         }
       } catch (error) {
-        console.warn('API search failed:', error);
+        console.warn('Database search failed:', error);
       }
     }
 
@@ -108,16 +108,16 @@ export class EnhancedLocationService {
     let results: Location[] = [];
 
     try {
-      // Try database first
-      results = await SupabaseLocationService.getPopularCities(country, limit);
+      // Try API first
+      results = await locationService.getPopularCities(country);
     } catch (error) {
-      console.warn('Database popular cities failed, using API:', error);
+      console.warn('API popular cities failed, using database:', error);
       
       try {
-        // Fallback to API
-        results = await locationService.getPopularCities(country);
-      } catch (apiError) {
-        console.error('API popular cities failed:', apiError);
+        // Fallback to database
+        results = await SupabaseLocationService.getPopularCities(country, limit);
+      } catch (dbError) {
+        console.error('Database popular cities failed:', dbError);
       }
     }
 
@@ -142,16 +142,16 @@ export class EnhancedLocationService {
     let results: { code: string; name: string }[] = [];
 
     try {
-      // Try database first
-      results = await SupabaseLocationService.getCountries();
+      // Try API first
+      results = await locationService.getCountries();
     } catch (error) {
-      console.warn('Database countries failed, using API:', error);
+      console.warn('API countries failed, using database:', error);
       
       try {
-        // Fallback to API
-        results = await locationService.getCountries();
-      } catch (apiError) {
-        console.error('API countries failed:', apiError);
+        // Fallback to database
+        results = await SupabaseLocationService.getCountries();
+      } catch (dbError) {
+        console.error('Database countries failed:', dbError);
       }
     }
 
@@ -166,18 +166,18 @@ export class EnhancedLocationService {
    */
   public async getLocationById(id: string): Promise<Location | null> {
     try {
-      // Try database first
-      const dbResult = await SupabaseLocationService.getCityById(id);
-      if (dbResult) {
-        return dbResult;
+      // Try API first
+      const apiResult = await locationService.getLocationById(id);
+      if (apiResult) {
+        return apiResult;
       }
     } catch (error) {
-      console.warn('Database get by ID failed, trying API:', error);
+      console.warn('API get by ID failed, trying database:', error);
     }
 
     try {
-      // Fallback to API/static data
-      return await locationService.getLocationById(id);
+      // Fallback to database
+      return await SupabaseLocationService.getCityById(id);
     } catch (error) {
       console.error('All get by ID strategies failed:', error);
       return null;

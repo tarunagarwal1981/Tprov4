@@ -3,9 +3,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Location, LocationInputProps, LocationDisplayFormat } from '../../lib/types/location';
 import { useLocationSearch, useLocationSelection } from '../../hooks/useLocation';
-import { Input } from './Input';
-import { Select } from './Select';
-import { Button } from './Button';
+import { Input } from './input';
+import { Select } from './select';
+import { Button } from './button';
 import { Loader2, MapPin, X, Search } from 'lucide-react';
 
 interface LocationInputComponentProps extends LocationInputProps {

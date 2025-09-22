@@ -8,6 +8,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 SUPABASE_DB_PASSWORD=your_database_password_here
 
+# GeoNames API Configuration for location search
+NEXT_PUBLIC_GEONAMES_API_KEY=tarunagarwal1981
+
 # Instructions:
 # 1. Create a new file named ".env.local" in your project root
 # 2. Copy the content above into that file
