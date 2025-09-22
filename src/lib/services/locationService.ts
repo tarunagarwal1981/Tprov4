@@ -210,12 +210,17 @@ export class LocationService {
     const response = await fetch(url.toString());
     
     if (!response.ok) {
-      throw new Error(`API request failed: ${response.status}`);
+      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
     
-    if (data.geonames) {
+    // Check for API errors
+    if (data.status && data.status.message) {
+      throw new Error(`GeoNames API error: ${data.status.message}`);
+    }
+    
+    if (data.geonames && Array.isArray(data.geonames)) {
       return data.geonames.map((geo: any) => ({
         id: geo.geonameId.toString(),
         name: geo.name,
@@ -234,8 +239,17 @@ export class LocationService {
 
   private searchFromStatic(query: string, country: string): Location[] {
     const lowerQuery = query.toLowerCase();
+    const lowerCountry = country.toLowerCase();
+    
+    // If query is too short, return popular cities for the country
+    if (lowerQuery.length < 2) {
+      return LocationService.COMMON_CITIES.filter(city => 
+        city.country.toLowerCase() === lowerCountry
+      ).slice(0, 10);
+    }
+    
     return LocationService.COMMON_CITIES.filter(city => 
-      city.country.toLowerCase() === country.toLowerCase() &&
+      city.country.toLowerCase() === lowerCountry &&
       (city.name.toLowerCase().includes(lowerQuery) ||
        city.state?.toLowerCase().includes(lowerQuery))
     ).sort((a, b) => {
@@ -289,6 +303,6 @@ export class LocationService {
 
 // Export singleton instance
 export const locationService = LocationService.getInstance({
-  apiKey: process.env.NEXT_PUBLIC_GEONAMES_API_KEY,
+  apiKey: process.env.NEXT_PUBLIC_GEONAMES_API_KEY || 'tarunagarwal1981',
   fallbackToStatic: true
 });

@@ -25,7 +25,7 @@ export interface UseLocationSearchReturn {
  */
 export function useLocationSearch(options: UseLocationSearchOptions = {}): UseLocationSearchReturn {
   const {
-    debounceMs = 300,
+    debounceMs = 150, // Reduced from 300ms for faster response
     minQueryLength = 2,
     defaultCountry = 'India',
     limit = 10,
@@ -191,7 +191,7 @@ export function useCountries() {
  */
 export function useLocationSelection(initialValue?: string) {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [inputValue, setInputValue] = useState(initialValue || '');
+  const [inputValue, setInputValue] = useState(typeof initialValue === 'string' ? initialValue : '');
   const [isValid, setIsValid] = useState(false);
 
   const selectLocation = useCallback((location: Location) => {
@@ -207,9 +207,10 @@ export function useLocationSelection(initialValue?: string) {
   }, []);
 
   const updateInput = useCallback((value: string) => {
-    setInputValue(value);
+    const stringValue = typeof value === 'string' ? value : String(value || '');
+    setInputValue(stringValue);
     // Reset selection if input doesn't match selected location
-    if (selectedLocation && value !== selectedLocation.name) {
+    if (selectedLocation && stringValue !== selectedLocation.name) {
       setSelectedLocation(null);
       setIsValid(false);
     }

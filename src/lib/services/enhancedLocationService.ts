@@ -21,7 +21,7 @@ export class EnhancedLocationService {
   }
 
   /**
-   * Search locations with multiple fallback strategies
+   * Search locations with optimized fallback strategies for speed
    */
   public async searchLocations(params: LocationSearchParams): Promise<LocationSearchResult> {
     const { query, country = 'India', limit = 10 } = params;
@@ -42,54 +42,45 @@ export class EnhancedLocationService {
       };
     }
 
-    let results: Location[] = [];
-    let hasMore = false;
+    // Strategy 1: Get immediate static results for instant feedback
+    const staticResults = await this.getStaticResults(query, country, limit);
+    
+    // Strategy 2: Try API in parallel for enhanced results
+    const apiPromise = this.tryApiSearch(params).catch(() => []);
+    
+    // Strategy 3: Try database in parallel for additional results
+    const dbPromise = this.tryDatabaseSearch(params).catch(() => []);
 
-    try {
-      // Strategy 1: Try API first (GeoNames - most comprehensive)
-      const apiResults = await locationService.searchLocations(params);
-      if (apiResults.locations.length > 0) {
-        results = apiResults.locations;
-        hasMore = apiResults.hasMore;
-      }
-    } catch (error) {
-      console.warn('API search failed, trying database:', error);
+    // Wait for all parallel searches to complete
+    const [apiResults, dbResults] = await Promise.all([apiPromise, dbPromise]);
+
+    // Merge results intelligently
+    let finalResults = [...staticResults];
+    const existingIds = new Set(finalResults.map(r => r.id));
+
+    // Add API results (highest priority)
+    if (apiResults.length > 0) {
+      const newApiResults = apiResults.filter(r => !existingIds.has(r.id));
+      finalResults = [...finalResults, ...newApiResults];
+      newApiResults.forEach(r => existingIds.add(r.id));
     }
 
-    // Strategy 2: If API fails or returns few results, try database
-    if (results.length < 3) {
-      try {
-        const dbResults = await SupabaseLocationService.searchCities(params);
-        if (dbResults.locations.length > 0) {
-          // Merge results, prioritizing API results
-          const existingIds = new Set(results.map(r => r.id));
-          const newResults = dbResults.locations.filter(r => !existingIds.has(r.id));
-          results = [...results, ...newResults];
-          hasMore = dbResults.hasMore;
-        }
-      } catch (error) {
-        console.warn('Database search failed:', error);
-      }
+    // Add database results (medium priority)
+    if (dbResults.length > 0) {
+      const newDbResults = dbResults.filter(r => !existingIds.has(r.id));
+      finalResults = [...finalResults, ...newDbResults];
     }
 
-    // Strategy 3: If still no results, use static fallback
-    if (results.length === 0) {
-      try {
-        const staticResults = await locationService.searchLocations(params);
-        results = staticResults.locations;
-        hasMore = staticResults.hasMore;
-      } catch (error) {
-        console.error('All search strategies failed:', error);
-      }
-    }
+    // Sort by relevance and popularity
+    finalResults = this.sortResultsByRelevance(finalResults, query);
 
     // Cache the results
-    this.setCache(cacheKey, results);
+    this.setCache(cacheKey, finalResults);
 
     return {
-      locations: results.slice(0, limit),
-      total: results.length,
-      hasMore: hasMore || results.length > limit
+      locations: finalResults.slice(0, limit),
+      total: finalResults.length,
+      hasMore: finalResults.length > limit
     };
   }
 
@@ -241,6 +232,68 @@ export class EnhancedLocationService {
    */
   public clearCache(): void {
     this.cache.clear();
+  }
+
+  // Private helper methods for optimized search
+  private async getStaticResults(query: string, country: string, limit: number): Promise<Location[]> {
+    try {
+      const staticResults = await locationService.searchLocations({
+        query,
+        country,
+        limit,
+        includeCoordinates: true
+      });
+      return staticResults.locations;
+    } catch (error) {
+      console.warn('Static search failed:', error);
+      return [];
+    }
+  }
+
+  private async tryApiSearch(params: LocationSearchParams): Promise<Location[]> {
+    try {
+      const apiResults = await locationService.searchLocations(params);
+      if (apiResults.locations.length > 0) {
+        console.log(`✅ API search successful: Found ${apiResults.locations.length} locations`);
+        return apiResults.locations;
+      }
+    } catch (error) {
+      console.warn('❌ API search failed:', error.message);
+    }
+    return [];
+  }
+
+  private async tryDatabaseSearch(params: LocationSearchParams): Promise<Location[]> {
+    try {
+      const dbResults = await SupabaseLocationService.searchCities(params);
+      if (dbResults.locations.length > 0) {
+        console.log(`✅ Database search successful: Found ${dbResults.locations.length} locations`);
+        return dbResults.locations;
+      }
+    } catch (error) {
+      console.warn('❌ Database search failed:', error.message);
+    }
+    return [];
+  }
+
+  private sortResultsByRelevance(results: Location[], query: string): Location[] {
+    const lowerQuery = query.toLowerCase();
+    
+    return results.sort((a, b) => {
+      // Prioritize exact matches
+      const aExact = a.name.toLowerCase().startsWith(lowerQuery);
+      const bExact = b.name.toLowerCase().startsWith(lowerQuery);
+      
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      
+      // Prioritize popular cities
+      if (a.isPopular && !b.isPopular) return -1;
+      if (!a.isPopular && b.isPopular) return 1;
+      
+      // Sort by name
+      return a.name.localeCompare(b.name);
+    });
   }
 
   // Private cache methods

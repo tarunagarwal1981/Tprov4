@@ -55,16 +55,23 @@ export const LocationInput: React.FC<LocationInputComponentProps> = ({
 
   // Handle input changes
   const handleInputChange = (newValue: string) => {
-    updateInput(newValue);
+    // Ensure we have a string value
+    const stringValue = typeof newValue === 'string' ? newValue : String(newValue || '');
+    
+    updateInput(stringValue);
     
     if (mode === 'search' || mode === 'both') {
-      search(newValue);
+      // Show suggestions immediately for better UX
       setShowSuggestions(true);
+      search(stringValue);
     }
     
     // Call onChange with string value for custom input
-    if (allowCustomInput && onCustomInput) {
-      onCustomInput(newValue);
+    if (allowCustomInput) {
+      onChange(stringValue);
+      if (onCustomInput) {
+        onCustomInput(stringValue);
+      }
     }
   };
 
@@ -73,8 +80,9 @@ export const LocationInput: React.FC<LocationInputComponentProps> = ({
     selectLocation(location);
     setShowSuggestions(false);
     
-    // Call onChange with location object
-    onChange(location);
+    // Call onChange with formatted location string
+    const locationString = formatLocationDisplay(location, displayFormat);
+    onChange(locationString);
     
     if (onLocationSelect) {
       onLocationSelect(location);
@@ -87,6 +95,24 @@ export const LocationInput: React.FC<LocationInputComponentProps> = ({
     clearResults();
     setShowSuggestions(false);
     onChange('');
+  };
+
+  // Handle input blur - allow custom input if no selection made
+  const handleInputBlur = () => {
+    if (allowCustomInput && inputValue && !selectedLocation) {
+      // If user typed something but didn't select from suggestions, treat as custom input
+      const customLocation: Location = {
+        id: `custom-${Date.now()}`,
+        name: inputValue,
+        country: country,
+        state: undefined,
+        isPopular: false
+      };
+      selectLocation(customLocation);
+      const locationString = formatLocationDisplay(customLocation, displayFormat);
+      onChange(locationString);
+    }
+    setShowSuggestions(false);
   };
 
   // Format location display
@@ -132,9 +158,10 @@ export const LocationInput: React.FC<LocationInputComponentProps> = ({
         <div className="relative">
           <Input
             ref={inputRef}
-            value={inputValue}
-            onChange={handleInputChange}
+            value={typeof inputValue === 'string' ? inputValue : String(inputValue || '')}
+            onChange={(e) => handleInputChange(e.target.value)}
             onFocus={() => setShowSuggestions(true)}
+            onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             required={required}
@@ -187,8 +214,15 @@ export const LocationInput: React.FC<LocationInputComponentProps> = ({
                   <button
                     key={location.id}
                     type="button"
-                    className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                    onClick={() => handleLocationSelect(location)}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none cursor-pointer"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleLocationSelect(location);
+                    }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleLocationSelect(location);
+                    }}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -217,7 +251,39 @@ export const LocationInput: React.FC<LocationInputComponentProps> = ({
                 <Search className="h-4 w-4 mx-auto mb-2" />
                 <p className="text-sm">No locations found</p>
                 {allowCustomInput && (
-                  <p className="text-xs mt-1">You can enter a custom location</p>
+                  <div className="mt-2">
+                    <p className="text-xs mb-2">You can enter a custom location</p>
+                    <button
+                      type="button"
+                      className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-md hover:bg-blue-200 transition-colors cursor-pointer"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        // Create a custom location object
+                        const customLocation: Location = {
+                          id: `custom-${Date.now()}`,
+                          name: inputValue,
+                          country: country,
+                          state: undefined,
+                          isPopular: false
+                        };
+                        handleLocationSelect(customLocation);
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        // Create a custom location object
+                        const customLocation: Location = {
+                          id: `custom-${Date.now()}`,
+                          name: inputValue,
+                          country: country,
+                          state: undefined,
+                          isPopular: false
+                        };
+                        handleLocationSelect(customLocation);
+                      }}
+                    >
+                      Use "{inputValue}" as location
+                    </button>
+                  </div>
                 )}
               </div>
             )}
