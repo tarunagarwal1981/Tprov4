@@ -172,7 +172,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          w-full px-4 py-3 text-left text-sm border rounded-xl transition-all duration-200
+          w-full px-2 py-1.5 text-left text-sm border rounded-md transition-all duration-200
           focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70
           backdrop-blur-md
           ${error 
@@ -184,9 +184,9 @@ const TimePicker: React.FC<TimePickerProps> = ({
         `}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className={selectedTime ? 'text-gray-900' : 'text-gray-500'}>
+          <div className="flex items-center gap-1.5">
+            <Clock className="w-3 h-3 text-gray-400" />
+            <span className={`text-sm ${selectedTime ? 'text-gray-900' : 'text-gray-500'}`}>
               {selectedTime ? formatTime(selectedTime) : placeholder}
             </span>
           </div>
@@ -200,23 +200,23 @@ const TimePicker: React.FC<TimePickerProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl p-3 min-w-[240px] max-w-[280px]"
+            className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl p-1.5 min-w-[180px] max-w-[220px]"
             style={{
               boxShadow: '0 20px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.05)'
             }}
           >
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-1.5">
               {/* Hours */}
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => handleHourScroll('up')}
-                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                  className="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
                 >
-                  <ChevronUp className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                  <ChevronUp className="w-2.5 h-2.5 text-gray-600 dark:text-gray-400" />
                 </button>
                 
-                <div className="w-12 h-16 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded-lg mx-1 border border-gray-200 dark:border-gray-600">
-                  <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                <div className="w-8 h-10 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
+                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
                     {format === '12h' && selectedHour === 0 ? '12' : 
                      format === '12h' ? selectedHour : 
                      selectedHour.toString().padStart(2, '0')}
@@ -225,45 +225,45 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 
                 <button
                   onClick={() => handleHourScroll('down')}
-                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                  className="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
                 >
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                  <ChevronDown className="w-2.5 h-2.5 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
               {/* Separator */}
-              <div className="text-xl font-bold text-gray-400 dark:text-gray-500">:</div>
+              <div className="text-sm font-bold text-gray-400 dark:text-gray-500">:</div>
 
               {/* Minutes */}
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => handleMinuteScroll('up')}
-                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                  className="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
                 >
-                  <ChevronUp className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                  <ChevronUp className="w-2.5 h-2.5 text-gray-600 dark:text-gray-400" />
                 </button>
                 
-                <div className="w-12 h-16 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded-lg mx-1 border border-gray-200 dark:border-gray-600">
-                  <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                <div className="w-8 h-10 flex items-center justify-center bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
+                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
                     {selectedMinute.toString().padStart(2, '0')}
                   </span>
                 </div>
                 
                 <button
                   onClick={() => handleMinuteScroll('down')}
-                  className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                  className="p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
                 >
-                  <ChevronDown className="w-3.5 h-3.5 text-gray-600 dark:text-gray-400" />
+                  <ChevronDown className="w-2.5 h-2.5 text-gray-600 dark:text-gray-400" />
                 </button>
               </div>
 
               {/* AM/PM (only for 12h format) */}
               {format === '12h' && (
-                <div className="flex flex-col items-center ml-1">
+                <div className="flex flex-col items-center ml-0.5">
                   <button
                     onClick={() => handleAMPMToggle()}
                     className={`
-                      px-2 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 border
+                      px-1 py-0.5 rounded text-xs font-medium transition-all duration-200 border
                       ${isAM 
                         ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
                         : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
@@ -276,7 +276,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
                   <button
                     onClick={() => handleAMPMToggle()}
                     className={`
-                      px-2 py-1.5 rounded-lg font-medium text-xs transition-all duration-200 mt-1 border
+                      px-1 py-0.5 rounded text-xs font-medium transition-all duration-200 mt-0.5 border
                       ${!isAM 
                         ? 'bg-blue-600 text-white border-blue-600 shadow-lg' 
                         : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600'
@@ -290,17 +290,17 @@ const TimePicker: React.FC<TimePickerProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-2 mt-2 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between pt-0.5 mt-0.5 border-t border-gray-100 dark:border-gray-700">
               <button
                 onClick={setCurrentTime}
-                className="px-2 py-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors duration-200"
+                className="px-1 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors duration-200"
               >
                 Now
               </button>
               
               <button
                 onClick={clearTime}
-                className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors duration-200"
+                className="px-1 py-0.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded transition-colors duration-200"
               >
                 Clear
               </button>

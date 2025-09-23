@@ -415,7 +415,7 @@ interface FormFieldProps {
 }
 
 const FormField = ({ label, required = false, children, error, description }: FormFieldProps) => (
-  <div className="space-y-1.5">
+  <div className="space-y-1">
     <label className="flex items-center gap-1 text-sm font-medium text-gray-700">
       {label}
       {required && <span className="text-red-500 text-xs">*</span>}
