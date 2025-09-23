@@ -7,32 +7,9 @@ import { cn } from '@/lib/utils';
 
 export function Hero() {
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden bg-white">
       {/* Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div 
-          className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full opacity-20"
-          animate={{ 
-            rotate: 360,
-            scale: [1, 1.05, 1]
-          }}
-          transition={{ 
-            rotate: { duration: 30, repeat: Infinity, ease: "linear" },
-            scale: { duration: 8, repeat: Infinity, ease: "easeInOut" }
-          }}
-        />
-        <motion.div 
-          className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-200 rounded-full opacity-20"
-          animate={{ 
-            rotate: -360,
-            scale: [1, 1.1, 1]
-          }}
-          transition={{ 
-            rotate: { duration: 35, repeat: Infinity, ease: "linear" },
-            scale: { duration: 10, repeat: Infinity, ease: "easeInOut" }
-          }}
-        />
-      </div>
+      <div className="absolute inset-0 overflow-hidden" />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
@@ -43,17 +20,13 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.2 }}
           >
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-gray-900 mb-6 leading-tight">
-              The Future of{' '}
-              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-                Travel Booking
-              </span>{' '}
-              is Here
+              The Future of <span className="text-blue-700">Travel Booking</span> is Here
             </h1>
           </motion.div>
 
           {/* Subtitle */}
           <motion.p 
-            className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed"
+            className="text-xl md:text-2xl text-gray-800 mb-8 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -75,7 +48,7 @@ export function Hero() {
               <motion.button 
                 className={cn(
                   'btn btn-primary px-6 py-3 text-base font-semibold',
-                  'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700',
+                  'bg-blue-600 hover:bg-blue-700 text-white',
                   'shadow-lg hover:shadow-xl transform hover:-translate-y-1'
                 )}
                 whileHover={{ scale: 1.02, y: -1 }}
@@ -96,7 +69,7 @@ export function Hero() {
               <motion.button 
                 className={cn(
                   'btn btn-secondary px-6 py-3 text-base font-semibold',
-                  'border-2 border-gray-300 hover:border-gray-400',
+                  'border-2 border-gray-400 text-gray-900 hover:border-gray-500',
                   'shadow-lg hover:shadow-xl transform hover:-translate-y-1'
                 )}
                 whileHover={{ scale: 1.02, y: -1 }}
@@ -116,7 +89,7 @@ export function Hero() {
 
           {/* Trust Indicators */}
           <motion.div 
-            className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-gray-500"
+            className="flex flex-col sm:flex-row items-center justify-center gap-8 text-sm text-gray-700"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
@@ -153,12 +126,12 @@ export function Hero() {
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center"
+          className="w-6 h-10 border-2 border-gray-600 rounded-full flex justify-center"
         >
           <motion.div
             animate={{ y: [0, 12, 0] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="w-1 h-3 bg-gray-400 rounded-full mt-2"
+            className="w-1 h-3 bg-gray-600 rounded-full mt-2"
           />
         </motion.div>
       </motion.div>

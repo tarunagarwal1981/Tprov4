@@ -36,50 +36,50 @@ export default function PackageGrid({
 }: PackageGridProps) {
   // Loading skeleton component
   const LoadingSkeleton = () => (
-    <div className="animate-pulse">
-      <div className="bg-gray-200 rounded-lg h-64 mb-4"></div>
+    <div className="package-card">
+      <div className="loading-skeleton" style={{height: '200px', marginBottom: 'var(--space-4)'}}></div>
       <div className="space-y-2">
-        <div className="bg-gray-200 h-4 rounded w-3/4"></div>
-        <div className="bg-gray-200 h-4 rounded w-1/2"></div>
-        <div className="bg-gray-200 h-4 rounded w-1/4"></div>
+        <div className="loading-skeleton" style={{height: '16px', width: '75%'}}></div>
+        <div className="loading-skeleton" style={{height: '16px', width: '50%'}}></div>
+        <div className="loading-skeleton" style={{height: '16px', width: '25%'}}></div>
       </div>
     </div>
   );
 
   // Empty state component
   const EmptyState = () => (
-    <Card className="text-center py-12">
-      <CardContent>
-        <PackageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No packages found</h3>
-        <p className="text-gray-500 mb-6">
+    <div className="card text-center py-12">
+      <div className="card-body">
+        <PackageIcon className="mx-auto h-12 w-12 text-muted mb-4" />
+        <h3 className="text-lg font-medium text-primary mb-2">No packages found</h3>
+        <p className="text-secondary mb-6">
           Get started by creating your first travel package or adjust your search filters.
         </p>
-        <Button 
+        <button 
           onClick={() => window.location.href = '/operator/packages/create'}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="btn btn-primary"
         >
           Create Package
-        </Button>
-      </CardContent>
-    </Card>
+        </button>
+      </div>
+    </div>
   );
 
   // Error state component
   const ErrorState = ({ error }: { error: string }) => (
-    <Card className="text-center py-12">
-      <CardContent>
-        <AlertCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Error loading packages</h3>
-        <p className="text-gray-500 mb-6">{error}</p>
-        <Button 
+    <div className="card text-center py-12">
+      <div className="card-body">
+        <AlertCircle className="mx-auto h-12 w-12 text-error mb-4" />
+        <h3 className="text-lg font-medium text-primary mb-2">Error loading packages</h3>
+        <p className="text-secondary mb-6">{error}</p>
+        <button 
           onClick={() => window.location.reload()}
-          variant="outline"
+          className="btn btn-secondary"
         >
           Try Again
-        </Button>
-      </CardContent>
-    </Card>
+        </button>
+      </div>
+    </div>
   );
 
   // Loading state
@@ -163,45 +163,37 @@ export default function PackageGrid({
 
     return (
       <div className="flex items-center justify-between mt-8">
-        <div className="text-sm text-gray-700">
+        <div className="text-sm text-secondary">
           Showing {((page - 1) * pagination.limit) + 1} to {Math.min(page * pagination.limit, pagination.total)} of {pagination.total} packages
         </div>
         
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
+        <div className="pagination">
+          <button
+            className="pagination-button"
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
           >
             <ChevronLeft className="w-4 h-4" />
-            Previous
-          </Button>
+          </button>
           
-          <div className="flex items-center space-x-1">
-            {getPageNumbers().map((pageNum, index) => (
-              <Button
-                key={index}
-                variant={pageNum === page ? "default" : "outline"}
-                size="sm"
-                onClick={() => typeof pageNum === 'number' ? onPageChange(pageNum) : undefined}
-                disabled={pageNum === '...'}
-                className={pageNum === '...' ? 'cursor-default' : ''}
-              >
-                {pageNum}
-              </Button>
-            ))}
-          </div>
+          {getPageNumbers().map((pageNum, index) => (
+            <button
+              key={index}
+              className={`pagination-button ${pageNum === page ? 'active' : ''}`}
+              onClick={() => typeof pageNum === 'number' ? onPageChange(pageNum) : undefined}
+              disabled={pageNum === '...'}
+            >
+              {pageNum}
+            </button>
+          ))}
           
-          <Button
-            variant="outline"
-            size="sm"
+          <button
+            className="pagination-button"
             onClick={() => onPageChange(page + 1)}
             disabled={page === totalPages}
           >
-            Next
             <ChevronRight className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -212,18 +204,18 @@ export default function PackageGrid({
       {/* Results header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-primary">
             {pagination.total} {pagination.total === 1 ? 'Package' : 'Packages'}
           </h2>
           {loading && (
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center text-sm text-muted">
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
               Loading...
             </div>
           )}
         </div>
         
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-muted">
           Page {pagination.page} of {pagination.totalPages}
         </div>
       </div>

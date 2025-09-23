@@ -1,0 +1,11 @@
+/* Smooth, performance-friendly transitions */
+
+.smooth-transform { transition: transform 160ms ease, box-shadow 160ms ease; }
+.smooth-colors { transition: color 140ms ease, background-color 140ms ease, border-color 140ms ease; }
+.smooth-all { transition: all 160ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+	.smooth-transform, .smooth-colors, .smooth-all { transition: none; }
+}
+
+

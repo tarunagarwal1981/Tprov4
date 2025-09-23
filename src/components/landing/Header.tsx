@@ -45,10 +45,10 @@ export function Header() {
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">T</span>
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-xl font-bold text-gray-900">
               TravelPro
             </span>
           </motion.div>
@@ -57,25 +57,25 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
               href="#features" 
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
             >
               Features
             </Link>
             <Link 
               href="#stats" 
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
             >
               Stats
             </Link>
             <Link 
               href="#about" 
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
             >
               About
             </Link>
             <Link 
               href="#contact" 
-              className="text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
             >
               Contact
             </Link>

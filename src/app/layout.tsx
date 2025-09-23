@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "../styles/components.css";
+import "../styles/animations.css";
 import { ImprovedAuthProvider } from "@/context/ImprovedAuthContext";
 import { LoadingProvider } from "@/context/LoadingContext";
 import { ErrorBoundary } from "@/components/error/ErrorBoundary";

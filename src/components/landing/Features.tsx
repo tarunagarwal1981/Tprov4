@@ -31,18 +31,18 @@ function FeatureCard({ title, description, icon, features, delay = 0, gradient }
         transition: { duration: 0.2 }
       }}
     >
-      <div className={`w-16 h-16 ${gradient} rounded-xl flex items-center justify-center text-white mb-6`}>
+      <div className={`w-16 h-16 bg-gray-900 rounded-xl flex items-center justify-center text-white mb-6`}>
         {icon}
       </div>
       
       <h3 className="text-2xl font-bold text-gray-900 mb-4">{title}</h3>
-      <p className="text-gray-600 mb-6 leading-relaxed">{description}</p>
+      <p className="text-gray-800 mb-6 leading-relaxed">{description}</p>
       
       <ul className="space-y-3">
         {features.map((feature, index) => (
           <motion.li 
             key={index}
-            className="flex items-center gap-3 text-gray-700"
+            className="flex items-center gap-3 text-gray-800"
             initial={{ opacity: 0, x: -20 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
             transition={{ duration: 0.4, delay: delay + 0.2 + (index * 0.1) }}

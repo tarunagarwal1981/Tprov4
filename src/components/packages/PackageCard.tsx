@@ -63,31 +63,31 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
     const statusConfig = {
       [PackageStatus.ACTIVE]: { 
         label: 'Active', 
-        className: 'bg-green-100 text-green-800 border-green-200' 
+        className: 'badge-success' 
       },
       [PackageStatus.DRAFT]: { 
         label: 'Draft', 
-        className: 'bg-yellow-100 text-yellow-800 border-yellow-200' 
+        className: 'badge-warning' 
       },
       [PackageStatus.INACTIVE]: { 
         label: 'Inactive', 
-        className: 'bg-gray-100 text-gray-800 border-gray-200' 
+        className: 'badge-info' 
       },
       [PackageStatus.SUSPENDED]: { 
         label: 'Suspended', 
-        className: 'bg-red-100 text-red-800 border-red-200' 
+        className: 'badge-error' 
       },
       [PackageStatus.ARCHIVED]: { 
         label: 'Archived', 
-        className: 'bg-gray-100 text-gray-600 border-gray-200' 
+        className: 'badge-info' 
       },
     };
 
     const config = statusConfig[status] || statusConfig[PackageStatus.DRAFT];
     return (
-      <Badge variant="outline" className={config.className}>
+      <span className={`badge ${config.className}`}>
         {config.label}
-      </Badge>
+      </span>
     );
   };
 
@@ -171,28 +171,15 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
   // Grid view
   if (viewMode === 'grid') {
     return (
-      <Card className="group hover:shadow-xl transition-all duration-300 overflow-hidden backdrop-blur-xl border border-white/20"
-      style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)',
-        transformStyle: 'preserve-3d'
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-8px) scale(1.02) rotateX(5deg) rotateY(2deg)';
-        e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0) scale(1) rotateX(0deg) rotateY(0deg)';
-        e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)';
-      }}>
+      <div className="package-card hover-lift">
         {/* Image */}
-        <div className="relative h-36 bg-gray-200">
+        <div className="relative h-48 bg-gray-200">
           {pkg.images && pkg.images.length > 0 && !imageError ? (
             <Image
               src={pkg.images[0]}
               alt={pkg.title}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-200"
+              className="package-card-image"
               onError={() => setImageError(true)}
             />
           ) : (
@@ -277,26 +264,26 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
         </div>
 
         {/* Content */}
-        <CardContent className="p-3">
+        <div className="package-card-content">
           <div className="space-y-2">
             {/* Title and Type */}
             <div>
-              <h3 className="font-semibold text-gray-900 line-clamp-2 mb-1">
+              <h3 className="package-card-title">
                 {pkg.title}
               </h3>
-              <div className="flex items-center text-sm text-gray-500">
+              <div className="flex items-center text-sm text-muted">
                 <span className="mr-1">{getTypeIcon(pkg.type)}</span>
                 <span className="capitalize">{pkg.type.toLowerCase().replace('_', ' ')}</span>
               </div>
             </div>
 
             {/* Description */}
-            <p className="text-sm text-gray-600 line-clamp-2">
+            <p className="package-card-description">
               {pkg.description}
             </p>
 
             {/* Destinations */}
-            <div className="flex items-center text-sm text-gray-500">
+            <div className="flex items-center text-sm text-muted">
               <MapPin className="w-4 h-4 mr-1" />
               <span className="line-clamp-1">
                 {pkg.destinations.join(', ')}
@@ -304,7 +291,7 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
             </div>
 
             {/* Duration and Group Size */}
-            <div className="flex items-center justify-between text-sm text-gray-500">
+            <div className="flex items-center justify-between text-sm text-muted">
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-1" />
                 <span>{pkg.duration.days} days</span>
@@ -317,13 +304,13 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
 
             {/* Price */}
             <div className="flex items-center justify-between">
-              <div className="text-lg font-semibold text-gray-900">
+              <div className="package-card-price">
                 {formatPrice(pkg.pricing.basePrice, pkg.pricing.currency)}
                 {pkg.pricing.pricePerPerson && (
-                  <span className="text-sm text-gray-500 font-normal">/person</span>
+                  <span className="text-sm text-muted font-normal">/person</span>
                 )}
               </div>
-              <div className="flex items-center text-sm text-gray-500">
+              <div className="flex items-center text-sm text-muted">
                 <Star className="w-4 h-4 mr-1 text-yellow-400" />
                 <span>{analyticsData.rating > 0 ? analyticsData.rating.toFixed(1) : 'No rating'}</span>
               </div>
@@ -332,32 +319,38 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
             {/* Quick Stats */}
             <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100">
               <div className="text-center">
-                <div className="text-xs text-gray-500">Views</div>
-                <div className="text-sm font-semibold text-gray-900">
+                <div className="text-xs text-muted">Views</div>
+                <div className="text-sm font-semibold text-primary">
                   {analyticsData.views.toLocaleString()}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-gray-500">Bookings</div>
-                <div className="text-sm font-semibold text-gray-900">
+                <div className="text-xs text-muted">Bookings</div>
+                <div className="text-sm font-semibold text-primary">
                   {analyticsData.bookings}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-gray-500">Revenue</div>
-                <div className="text-sm font-semibold text-gray-900">
+                <div className="text-xs text-muted">Revenue</div>
+                <div className="text-sm font-semibold text-primary">
                   ${analyticsData.revenue.toLocaleString()}
                 </div>
               </div>
             </div>
 
             {/* Created Date */}
-            <div className="text-xs text-gray-400">
+            <div className="text-xs text-muted">
               Created {formatDate(pkg.createdAt)}
             </div>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-2 mt-4">
+              <button className="btn btn-primary flex-1">Book Now</button>
+              <button className="btn btn-secondary">View Details</button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     );
   }
 

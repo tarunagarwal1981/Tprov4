@@ -1,0 +1,42 @@
+/* Light theme tokens tuned for clean, subtle depth */
+
+:root {
+	/* Primary and accents */
+	--brand: #2563eb;           /* primary-600 */
+	--brand-strong: #1d4ed8;    /* primary-700 */
+	--brand-weak: #93c5fd;      /* primary-300 */
+
+	--accent: #0ea5e9;          /* sky-500 */
+	--accent-weak: #bae6fd;     /* sky-200 */
+
+	/* Shadows (subtle 3D) */
+	--shadow-z1: 0 1px 2px rgba(15,23,42,0.06);
+	--shadow-z2: 0 4px 10px rgba(2,6,23,0.07);
+	--shadow-z3: 0 10px 24px rgba(2,6,23,0.10);
+
+	/* Radii */
+	--radius-card: 12px;
+	--radius-button: 10px;
+}
+
+/* Surfaces */
+.surface-muted { background: var(--surface-muted); }
+.surface-card { background: var(--surface-card); }
+.surface-border { border-color: var(--surface-border); }
+
+/* Text utilities (standardized) */
+.text-strong { color: var(--text-strong); }
+.text-default { color: var(--text-default); }
+.text-muted { color: var(--text-muted); }
+.text-subtle { color: var(--text-subtle); }
+
+/* Brand utilities */
+.text-brand { color: var(--brand); }
+.bg-brand { background-color: var(--brand); color: #fff; }
+.bg-brand:hover { background-color: var(--brand-strong); }
+
+/* Links */
+a { color: var(--brand); }
+a:hover { color: var(--brand-strong); }
+
+

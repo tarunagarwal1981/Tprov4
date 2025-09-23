@@ -204,17 +204,17 @@ export function ModernLoginForm() {
                   <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     {/* Email Field */}
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="email" className="form-label">
                         Email address
                       </Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                         <Input
                           id="email"
                           type="email"
                           autoComplete="email"
                           placeholder="Enter your email"
-                          className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                          className="form-input pl-10 h-12"
                           {...register('email')}
                         />
                       </div>
@@ -228,23 +228,23 @@ export function ModernLoginForm() {
 
                     {/* Password Field */}
                     <div className="space-y-2">
-                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="password" className="form-label">
                         Password
                       </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted" />
                         <Input
                           id="password"
                           type={showPassword ? 'text' : 'password'}
                           autoComplete="current-password"
                           placeholder="Enter your password"
-                          className="pl-10 pr-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                          className="form-input pl-10 pr-10 h-12"
                           {...register('password')}
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted hover:text-primary"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
@@ -264,14 +264,14 @@ export function ModernLoginForm() {
                           id="remember-me"
                           {...register('rememberMe')}
                         />
-                        <Label htmlFor="remember-me" className="text-sm text-gray-600">
+                        <Label htmlFor="remember-me" className="text-sm text-secondary">
                           Remember me
                         </Label>
                       </div>
                       <button
                         type="button"
                         onClick={() => setCurrentView('forgot-password')}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-500 transition-colors"
+                        className="text-sm font-medium text-primary hover:text-primary-600 transition-colors"
                       >
                         Forgot password?
                       </button>
@@ -289,7 +289,7 @@ export function ModernLoginForm() {
                     <Button
                       type="submit"
                       disabled={isSubmitting || state.isLoading || isRedirecting}
-                      className="w-full h-12 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      className="btn btn-primary w-full h-12"
                     >
                       {isSubmitting || state.isLoading || isRedirecting ? (
                         <>

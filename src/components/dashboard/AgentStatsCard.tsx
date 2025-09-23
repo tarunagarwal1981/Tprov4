@@ -32,39 +32,39 @@ interface AgentStatsCardProps {
 const colorVariants = {
   blue: {
     bg: 'bg-blue-50',
-    icon: 'text-blue-600',
+    icon: 'text-blue-700',
     accent: 'bg-blue-500',
-    change: 'text-blue-600'
+    change: 'text-blue-700'
   },
   green: {
     bg: 'bg-green-50',
-    icon: 'text-green-600',
+    icon: 'text-green-700',
     accent: 'bg-green-500',
-    change: 'text-green-600'
+    change: 'text-green-700'
   },
   purple: {
     bg: 'bg-purple-50',
-    icon: 'text-purple-600',
+    icon: 'text-purple-700',
     accent: 'bg-purple-500',
-    change: 'text-purple-600'
+    change: 'text-purple-700'
   },
   orange: {
     bg: 'bg-orange-50',
-    icon: 'text-orange-600',
+    icon: 'text-orange-700',
     accent: 'bg-orange-500',
-    change: 'text-orange-600'
+    change: 'text-orange-700'
   },
   red: {
     bg: 'bg-red-50',
-    icon: 'text-red-600',
+    icon: 'text-red-700',
     accent: 'bg-red-500',
-    change: 'text-red-600'
+    change: 'text-red-700'
   },
   indigo: {
     bg: 'bg-indigo-50',
-    icon: 'text-indigo-600',
+    icon: 'text-indigo-700',
     accent: 'bg-indigo-500',
-    change: 'text-indigo-600'
+    change: 'text-indigo-700'
   }
 };
 

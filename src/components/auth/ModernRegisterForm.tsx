@@ -302,7 +302,7 @@ export function ModernRegisterForm() {
           transition={{ delay: 0.3 }}
           className="text-center mt-8"
         >
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-800">
             Already have an account?{' '}
             <Link
               href="/auth/login"

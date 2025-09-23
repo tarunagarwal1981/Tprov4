@@ -75,7 +75,7 @@ function StatCard({ number, suffix = '', prefix = '', label, description, icon, 
       }}
     >
       <div className="flex justify-center mb-3">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white">
+        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white">
           {icon}
         </div>
       </div>
@@ -90,7 +90,7 @@ function StatCard({ number, suffix = '', prefix = '', label, description, icon, 
       </div>
       
       <h3 className="text-xl font-semibold text-gray-800 mb-2">{label}</h3>
-      <p className="text-gray-600">{description}</p>
+      <p className="text-gray-800">{description}</p>
     </motion.div>
   );
 }

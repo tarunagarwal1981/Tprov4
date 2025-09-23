@@ -1,0 +1,8 @@
+/* Compact spacing utilities */
+.gap-compact { gap: var(--compact-gap); }
+.p-compact { padding: var(--compact-padding-y) var(--compact-padding-x); }
+.px-compact { padding-left: var(--compact-padding-x); padding-right: var(--compact-padding-x); }
+.py-compact { padding-top: var(--compact-padding-y); padding-bottom: var(--compact-padding-y); }
+.rounded-compact { border-radius: var(--compact-radius); }
+
+
