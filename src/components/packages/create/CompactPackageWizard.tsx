@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   Info
 } from 'lucide-react';
+import { DatePicker, TimePicker, DateTimePicker } from '../../ui';
 import { LocationInput } from '../../ui/LocationInput';
 
 // Toast notification system
@@ -159,6 +160,8 @@ interface PackageFormData {
   
   // Activity specific
   timing?: string;
+  startTime?: Date | null;
+  endTime?: Date | null;
   durationHours?: number;
   inclusions?: string[];
   exclusions?: string[];
@@ -171,6 +174,11 @@ interface PackageFormData {
   destinations?: string[];
   days?: number;
   itinerary?: DayItinerary[];
+  
+  // Fixed Departure specific
+  departureDate?: Date | null;
+  returnDate?: Date | null;
+  bookingDeadline?: Date | null;
   
   // Hotel specific
   hotels?: HotelInfo[];
@@ -198,8 +206,8 @@ interface HotelInfo {
 interface PricingInfo {
   adultPrice: number;
   childPrice: number;
-  validFrom: string;
-  validTo: string;
+  validFrom: Date | null;
+  validTo: Date | null;
   notes?: string;
 }
 
@@ -448,7 +456,7 @@ const Input = ({ placeholder, value, onChange, type = "text", error, ...props }:
     placeholder={placeholder}
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-4 py-3 text-sm border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md ${
+    className={`w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-500 border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md ${
       error ? 'border-red-300/70 bg-red-50/30' : 'bg-white/30 hover:bg-white/50 focus:bg-white/60'
     }`}
     style={{
@@ -474,7 +482,7 @@ const Textarea = ({ placeholder, value, onChange, rows = 3, error }: TextareaPro
     value={value}
     onChange={(e) => onChange(e.target.value)}
     rows={rows}
-    className={`w-full px-4 py-3 text-sm border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md resize-none ${
+    className={`w-full px-4 py-3 text-sm text-gray-900 placeholder-gray-500 border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md resize-none ${
       error ? 'border-red-300/70 bg-red-50/30' : 'bg-white/30 hover:bg-white/50 focus:bg-white/60'
     }`}
     style={{
@@ -497,7 +505,7 @@ const Select = ({ value, onChange, options, placeholder, error }: SelectProps) =
   <select
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    className={`w-full px-4 py-3 text-sm border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md ${
+    className={`w-full px-4 py-3 text-sm text-gray-900 border border-white/40 rounded-2xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md ${
       error ? 'border-red-300/70 bg-red-50/30' : 'bg-white/30 hover:bg-white/50 focus:bg-white/60'
     }`}
     style={{
@@ -715,7 +723,7 @@ const PricingSection = ({ pricing, onChange }: PricingSectionProps) => {
   const addPricing = () => {
     onChange([
       ...(pricing || []),
-      { adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }
+      { adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }
     ]);
   };
 
@@ -801,17 +809,18 @@ const PricingSection = ({ pricing, onChange }: PricingSectionProps) => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField label="Valid From" required>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={price.validFrom}
-                    onChange={(value) => updatePricing(index, 'validFrom', value)}
+                    onChange={(date: Date | null) => updatePricing(index, 'validFrom', date)}
+                    placeholder="Select start date"
                   />
                 </FormField>
                 <FormField label="Valid To" required>
-                  <Input
-                    type="date"
+                  <DatePicker
                     value={price.validTo}
-                    onChange={(value) => updatePricing(index, 'validTo', value)}
+                    onChange={(date: Date | null) => updatePricing(index, 'validTo', date)}
+                    placeholder="Select end date"
+                    minDate={price.validFrom || undefined}
                   />
                 </FormField>
               </div>
@@ -947,7 +956,7 @@ const TransferForm = ({ data, onChange }: FormProps) => {
 
         <div className="border-t border-gray-200 pt-8">
           <PricingSection
-            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }]}
             onChange={(pricing) => onChange({ pricing })}
           />
         </div>
@@ -1021,26 +1030,34 @@ const ActivityForm = ({ data, onChange }: FormProps) => {
             </FormField>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Timing" required>
-                <div className="relative">
-                  <Clock className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="9:00 AM - 5:00 PM"
-                    value={data.timing || ''}
-                    onChange={(value) => onChange({ timing: value })}
-                    style={{ paddingLeft: '2.5rem' }}
-                  />
-                </div>
+              <FormField label="Start Time" required>
+                <TimePicker
+                  value={data.startTime}
+                  onChange={(time: Date | null) => onChange({ startTime: time })}
+                  placeholder="Select start time"
+                  format="12h"
+                  minuteStep={15}
+                />
               </FormField>
-              <FormField label="Duration (Hours)" required>
-                <Input
-                  type="number"
-                  placeholder="8"
-                  value={data.durationHours?.toString() || ''}
-                  onChange={(value) => onChange({ durationHours: parseInt(value) || 0 })}
+              <FormField label="End Time" required>
+                <TimePicker
+                  value={data.endTime}
+                  onChange={(time: Date | null) => onChange({ endTime: time })}
+                  placeholder="Select end time"
+                  format="12h"
+                  minuteStep={15}
                 />
               </FormField>
             </div>
+            
+            <FormField label="Duration (Hours)" required>
+              <Input
+                type="number"
+                placeholder="8"
+                value={data.durationHours?.toString() || ''}
+                onChange={(value) => onChange({ durationHours: parseInt(value) || 0 })}
+              />
+            </FormField>
           </div>
 
           <div className="space-y-4">
@@ -1084,7 +1101,7 @@ const ActivityForm = ({ data, onChange }: FormProps) => {
 
         <div className="border-t border-gray-200 pt-8">
           <PricingSection
-            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }]}
             onChange={(pricing) => onChange({ pricing })}
           />
         </div>
@@ -1375,7 +1392,7 @@ const MultiCityPackageForm = ({ data, onChange }: FormProps) => {
                 </div>
                 
                 <PricingSection
-                  pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+                  pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }]}
                   onChange={(pricing) => onChange({ pricing })}
                 />
               </motion.div>
@@ -1759,7 +1776,7 @@ const MultiCityPackageWithHotelForm = ({ data, onChange }: FormProps) => {
                 </div>
                 
                 <PricingSection
-                  pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+                  pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }]}
                   onChange={(pricing) => onChange({ pricing })}
                 />
               </motion.div>
@@ -1901,6 +1918,44 @@ const FixedDepartureForm = ({ data, onChange }: FormProps) => {
                       placeholder="15"
                       value={data.days?.toString() || ''}
                       onChange={(value) => onChange({ days: parseInt(value) || 0 })}
+                    />
+                  </FormField>
+
+                  <FormField 
+                    label="Departure Date" 
+                    required
+                    description="When does this tour start?"
+                  >
+                    <DatePicker
+                      value={data.departureDate}
+                      onChange={(date: Date | null) => onChange({ departureDate: date })}
+                      placeholder="Select departure date"
+                      minDate={new Date()}
+                    />
+                  </FormField>
+
+                  <FormField 
+                    label="Return Date" 
+                    required
+                    description="When does this tour end?"
+                  >
+                    <DatePicker
+                      value={data.returnDate}
+                      onChange={(date: Date | null) => onChange({ returnDate: date })}
+                      placeholder="Select return date"
+                      minDate={data.departureDate || undefined}
+                    />
+                  </FormField>
+
+                  <FormField 
+                    label="Booking Deadline" 
+                    description="Last date to book this tour"
+                  >
+                    <DatePicker
+                      value={data.bookingDeadline}
+                      onChange={(date: Date | null) => onChange({ bookingDeadline: date })}
+                      placeholder="Select booking deadline"
+                      maxDate={data.departureDate || undefined}
                     />
                   </FormField>
 
@@ -2092,7 +2147,7 @@ const FixedDepartureForm = ({ data, onChange }: FormProps) => {
               </div>
               
               <PricingSection
-                pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }]}
+                pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }] as PricingInfo[]}
                 onChange={(pricing) => onChange({ pricing })}
               />
             </motion.div>
@@ -2149,14 +2204,19 @@ function CompactPackageWizardContent() {
     setSelectedType(type);
     setFormData({ 
       type, 
-      pricing: [{ adultPrice: 0, childPrice: 0, validFrom: '', validTo: '' }],
+      pricing: [{ adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }],
       inclusions: [],
       exclusions: [],
       tourInclusions: [],
       tourExclusions: [],
       destinations: [],
       itinerary: [],
-      hotels: []
+      hotels: [],
+      startTime: null,
+      endTime: null,
+      departureDate: null,
+      returnDate: null,
+      bookingDeadline: null
     });
     setStep('form');
     addToast('Package type selected! Let\'s create your offering.', 'success');
@@ -2190,12 +2250,21 @@ function CompactPackageWizardContent() {
 
     if (formData.type === PackageType.ACTIVITY) {
       if (!formData.place) newErrors.place = 'Destination is required';
-      if (!formData.timing) newErrors.timing = 'Timing is required';
+      if (!formData.startTime) newErrors.startTime = 'Start time is required';
+      if (!formData.endTime) newErrors.endTime = 'End time is required';
       if (!formData.durationHours) newErrors.duration = 'Duration is required';
     }
 
     if (formData.type === PackageType.FIXED_DEPARTURE_WITH_FLIGHT) {
       if (!formData.days) newErrors.days = 'Number of days is required';
+      if (!formData.departureDate) newErrors.departureDate = 'Departure date is required';
+      if (!formData.returnDate) newErrors.returnDate = 'Return date is required';
+      if (formData.departureDate && formData.returnDate && formData.departureDate >= formData.returnDate) {
+        newErrors.returnDate = 'Return date must be after departure date';
+      }
+      if (formData.bookingDeadline && formData.departureDate && formData.bookingDeadline >= formData.departureDate) {
+        newErrors.bookingDeadline = 'Booking deadline must be before departure date';
+      }
       if (!formData.destinations || formData.destinations.length === 0) {
         newErrors.destinations = 'At least one destination is required';
       }
@@ -2214,6 +2283,9 @@ function CompactPackageWizardContent() {
         }
         if (!price.validTo) {
           newErrors[`pricing_${index}_to`] = 'Valid to date is required';
+        }
+        if (price.validFrom && price.validTo && price.validFrom >= price.validTo) {
+          newErrors[`pricing_${index}_to`] = 'Valid to date must be after valid from date';
         }
       });
     }
@@ -2262,7 +2334,14 @@ function CompactPackageWizardContent() {
         child_price: formData.pricing?.[0]?.childPrice ?? 0,
         duration_days: formData.days ?? 1,
         duration_hours: formData.durationHours ?? 0,
-        status: status
+        status: status,
+        start_time: formData.startTime?.toISOString() || null,
+        end_time: formData.endTime?.toISOString() || null,
+        departure_date: formData.departureDate?.toISOString() || null,
+        return_date: formData.returnDate?.toISOString() || null,
+        booking_deadline: formData.bookingDeadline?.toISOString() || null,
+        pricing_valid_from: formData.pricing?.[0]?.validFrom?.toISOString() || null,
+        pricing_valid_to: formData.pricing?.[0]?.validTo?.toISOString() || null
       } as const;
       console.log('📦 Main insert data:', mainInsert);
 
