@@ -85,23 +85,23 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
           }}
           aria-label="Toggle mobile menu"
         >
-          <Menu className="w-4 h-4 text-gray-600" />
+          <Menu className="w-4 h-4 text-gray-800" />
         </button>
 
         {/* Breadcrumbs */}
-        <nav className="hidden sm:flex items-center space-x-2 text-sm">
-          <Link href="/operator/dashboard" className="text-gray-500 hover:text-gray-700">
+        <nav className="breadcrumb hidden sm:flex">
+          <Link href="/operator/dashboard" className="breadcrumb-item">
             <Home className="w-4 h-4" />
           </Link>
           {breadcrumbs.map((crumb, index) => (
             <React.Fragment key={index}>
-              <span className="text-gray-400">/</span>
+              <span className="breadcrumb-separator">/</span>
               {crumb.href ? (
-                <Link href={crumb.href} className="text-gray-500 hover:text-gray-700">
+                <Link href={crumb.href} className="breadcrumb-item">
                   {crumb.label}
                 </Link>
               ) : (
-                <span className="text-gray-900 font-medium">{crumb.label}</span>
+                <span className="breadcrumb-item active">{crumb.label}</span>
               )}
             </React.Fragment>
           ))}
@@ -109,21 +109,18 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
       </div>
 
       {/* Center Section - Search */}
-      <div className="flex-1 max-w-md mx-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search packages, bookings, agents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-1 border border-white/40 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md bg-white/30 hover:bg-white/50 focus:bg-white/60 text-sm"
-            style={{
-              boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
-            }}
-            aria-label="Search packages, bookings, and agents"
-          />
+      <div className="header-search flex-1 max-w-md mx-4">
+        <div className="header-search-icon">
+          <Search className="w-4 h-4" />
         </div>
+        <input
+          type="text"
+          placeholder="Search packages, bookings, agents..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="header-search input"
+          aria-label="Search packages, bookings, and agents"
+        />
       </div>
 
       {/* Right Section */}
@@ -139,7 +136,7 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
             }}
             aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
           >
-            <Bell className="w-4 h-4 text-gray-600" />
+            <Bell className="w-4 h-4 text-gray-800" />
             {unreadCount > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
@@ -228,9 +225,9 @@ export function Header({ onMenuToggle, breadcrumbs = [] }: HeaderProps) {
               <p className="text-sm font-medium text-gray-900">
                 {state.user?.profile?.firstName} {state.user?.profile?.lastName}
               </p>
-              <p className="text-xs text-gray-500">Tour Operator</p>
+              <p className="text-xs text-gray-600">Tour Operator</p>
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
+            <ChevronDown className="w-3.5 h-3.5 text-gray-700" />
           </button>
 
           <AnimatePresence>

@@ -2403,7 +2403,7 @@ function CompactPackageWizardContent() {
         return <FixedDepartureForm data={formData} onChange={updateFormData} />;
       default:
         return (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-700">
             <Package className="w-16 h-16 mx-auto mb-4 opacity-50" />
             <p>Form for {selectedType} coming soon...</p>
           </div>

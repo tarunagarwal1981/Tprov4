@@ -1,0 +1,25 @@
+/* Forms: visible text, clear focus, compact spacing */
+
+.input-compact, .select-compact, .textarea-compact {
+	background: #fff;
+	color: var(--text-default);
+	border: 1px solid var(--surface-border);
+	border-radius: 10px;
+	padding: 8px 10px;
+	font-size: var(--compact-text);
+	line-height: 1.35;
+	box-shadow: inset 0 1px 0 rgba(2,6,23,0.03);
+}
+
+.input-compact::placeholder, .textarea-compact::placeholder { color: var(--text-subtle); }
+
+.input-compact:focus, .select-compact:focus, .textarea-compact:focus {
+	outline: 2px solid rgba(37, 99, 235, 0.28);
+	outline-offset: 2px;
+	border-color: #c7d2fe;
+}
+
+.field-label { color: var(--text-strong); font-weight: 600; font-size: var(--compact-text-sm); }
+.field-hint { color: var(--text-subtle); font-size: var(--compact-text-xs); }
+
+

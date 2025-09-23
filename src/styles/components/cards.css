@@ -1,0 +1,17 @@
+/* Cards: layered depth, subtle borders, compact padding */
+
+.card-compact {
+	background: var(--surface-card);
+	border: 1px solid var(--surface-border);
+	border-radius: var(--radius-card);
+	box-shadow: var(--shadow-z1);
+}
+
+.card-compact.hoverable { transition: box-shadow 160ms ease, transform 160ms ease; }
+.card-compact.hoverable:hover { box-shadow: var(--shadow-z2); transform: translateY(-2px); }
+
+.card-compact .card-header { padding: 12px 14px; border-bottom: 1px solid var(--surface-border); }
+.card-compact .card-body { padding: 12px 14px; }
+.card-compact .card-footer { padding: 12px 14px; border-top: 1px solid var(--surface-border); background: var(--surface-muted); }
+
+

@@ -197,12 +197,12 @@ const DatePicker: React.FC<DatePickerProps> = ({
           className={`
             h-8 w-8 rounded-md text-xs font-medium transition-all duration-200
             ${disabled 
-              ? 'text-gray-300 cursor-not-allowed' 
+              ? 'text-muted cursor-not-allowed opacity-60' 
               : selected
                 ? 'bg-blue-600 text-white shadow-lg'
                 : today
                   ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  : 'text-secondary hover:bg-gray-100 hover:text-primary'
             }
           `}
         >
@@ -222,36 +222,26 @@ const DatePicker: React.FC<DatePickerProps> = ({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="form-label mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       
       {description && (
-        <p className="text-xs text-gray-500 mb-2">{description}</p>
+        <p className="text-xs text-muted mb-2">{description}</p>
       )}
 
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`
-          w-full px-4 py-3 text-left text-sm border rounded-xl transition-all duration-200
-          focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70
-          backdrop-blur-md
-          ${error 
-            ? 'border-red-300/70 bg-red-50/30 text-red-900' 
-            : disabled
-              ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed'
-              : 'border-white/40 bg-white/30 hover:bg-white/50 focus:bg-white/60 text-gray-900'
-          }
-        `}
+        className={`form-input text-left ${disabled ? 'cursor-not-allowed opacity-70' : ''}`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <span className={selectedDate ? 'text-gray-900' : 'text-gray-500'}>
+            <Calendar className="w-4 h-4 text-muted" />
+            <span className={selectedDate ? 'text-primary' : 'text-muted'}>
               {selectedDate ? formatDate(selectedDate) : placeholder}
             </span>
           </div>
@@ -266,12 +256,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: position === 'top' ? 10 : -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`absolute z-50 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl p-3 min-w-[280px] max-w-[320px] ${
-              position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
-            }`}
-            style={{
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(255,255,255,0.05)'
-            }}
+            className={`card p-3 absolute z-50 min-w-[280px] max-w-[320px] ${position === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'}`}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
@@ -279,10 +264,10 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 onClick={() => navigateMonth('prev')}
                 className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200"
               >
-                <ChevronLeft className="w-3.5 h-3.5 text-gray-600" />
+                <ChevronLeft className="w-3.5 h-3.5 text-secondary" />
               </button>
               
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-primary">
                 {monthNames[currentMonth]} {currentYear}
               </h3>
               
@@ -290,14 +275,14 @@ const DatePicker: React.FC<DatePickerProps> = ({
                 onClick={() => navigateMonth('next')}
                 className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors duration-200"
               >
-                <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
+                <ChevronRight className="w-3.5 h-3.5 text-secondary" />
               </button>
             </div>
 
             {/* Day headers */}
             <div className="grid grid-cols-7 gap-0.5 mb-1">
               {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-gray-500">
+                <div key={day} className="h-6 flex items-center justify-center text-xs font-medium text-muted">
                   {day}
                 </div>
               ))}
@@ -323,7 +308,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
                   onChange(null);
                   setIsOpen(false);
                 }}
-                className="px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-50 rounded-md transition-colors duration-200"
+                className="px-2 py-1 text-xs font-medium text-secondary hover:bg-gray-50 rounded-md transition-colors duration-200"
               >
                 Clear
               </button>

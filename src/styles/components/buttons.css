@@ -1,0 +1,22 @@
+/* Buttons: compact, subtle 3D, standardized contrast */
+
+.btn-compact {
+	border-radius: var(--radius-button, 10px);
+	padding: 8px 12px;
+	font-size: var(--compact-text-sm);
+	line-height: 1.2;
+	box-shadow: var(--shadow-z1);
+}
+
+.btn-compact.bg-brand { color: #fff; }
+.btn-compact.bg-brand:hover { box-shadow: var(--shadow-z2); }
+.btn-compact:active { transform: translateY(0); box-shadow: var(--shadow-z1); }
+
+.btn-outline-compact {
+	border: 1px solid var(--surface-border);
+	background: #fff;
+	color: var(--text-default);
+}
+.btn-outline-compact:hover { border-color: #d5d7df; box-shadow: var(--shadow-z1); }
+
+

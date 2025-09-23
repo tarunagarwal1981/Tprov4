@@ -1,0 +1,13 @@
+/* Navigation: subtle depth, clear active, compact */
+
+.nav-compact {
+	background: var(--surface-card);
+	border-bottom: 1px solid var(--surface-border);
+	box-shadow: var(--shadow-z1);
+}
+
+.nav-item { color: var(--text-muted); padding: 10px 12px; border-radius: 8px; }
+.nav-item:hover { color: var(--text-default); background: var(--surface-muted); }
+.nav-item.active { color: var(--text-strong); background: #eef2ff; box-shadow: inset 0 1px 0 rgba(2,6,23,0.04); }
+
+

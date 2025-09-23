@@ -1,0 +1,12 @@
+/* Shadow system for subtle depth and hover elevation */
+
+.shadow-z1 { box-shadow: var(--shadow-z1); }
+.shadow-z2 { box-shadow: var(--shadow-z2); }
+.shadow-z3 { box-shadow: var(--shadow-z3); }
+
+/* Hover elevation helpers */
+.elevate-hover { transition: box-shadow 180ms ease, transform 180ms ease; }
+.elevate-hover:hover { box-shadow: var(--shadow-z2); transform: translateY(-1px); }
+.elevate-press:active { box-shadow: var(--shadow-z1); transform: translateY(0); }
+
+

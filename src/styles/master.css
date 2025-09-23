@@ -1,0 +1,114 @@
+/* Master CSS: variables, base resets, density */
+
+:root {
+	/* Compact density scale */
+	--density-1: 2px;
+	--density-2: 4px;
+	--density-3: 8px;
+	--density-4: 12px;
+	--density-5: 16px;
+
+	/* Compact component sizing */
+	--compact-radius: 10px;
+	--compact-padding-y: 8px;
+	--compact-padding-x: 12px;
+	--compact-gap: 8px;
+
+	/* Typography (compact) */
+	--compact-text-xs: 11px;
+	--compact-text-sm: 12.5px;
+	--compact-text-base: 14px;
+	--compact-text-lg: 15px;
+	--compact-text-xl: 18px;
+
+	/* Surface colors (light) */
+	--surface-bg: #ffffff;
+	--surface-muted: #f7f8fa;
+	--surface-card: #ffffff;
+	--surface-border: #e6e8ee;
+
+	/* Text colors (high contrast) */
+	--text-strong: #0f172a;   /* slate-900 */
+	--text-default: #111827;  /* gray-900 */
+	--text-muted: #4b5563;    /* gray-600 */
+	--text-subtle: #6b7280;   /* gray-500 */
+}
+
+/* Base, compact rhythm */
+html, body {
+	background: var(--surface-bg);
+	color: var(--text-default);
+	text-rendering: optimizeLegibility;
+}
+
+body {
+	letter-spacing: 0.01em;
+}
+
+/* Compact typography utilities */
+.compact-text-xs { font-size: var(--compact-text-xs); line-height: 1.25; }
+.compact-text-sm { font-size: var(--compact-text-sm); line-height: 1.35; }
+.compact-text { font-size: var(--compact-text-base); line-height: 1.45; }
+.compact-text-lg { font-size: var(--compact-text-lg); line-height: 1.4; }
+.compact-text-xl { font-size: var(--compact-text-xl); line-height: 1.35; }
+
+/* Disable gradients globally for a cleaner, flatter look */
+.bg-gradient-to-r,
+.bg-gradient-to-l,
+.bg-gradient-to-b,
+.bg-gradient-to-t,
+.bg-gradient-to-tr,
+.bg-gradient-to-tl,
+.bg-gradient-to-br,
+.bg-gradient-to-bl {
+	background-image: none !important;
+}
+
+/* Fallback: if text relied on gradient clipping, render solid, readable text */
+.text-transparent.bg-clip-text {
+	color: var(--text-strong) !important;
+	-webkit-text-fill-color: var(--text-strong) !important;
+	background-image: none !important;
+}
+
+/* Force better contrast for icons and text */
+.lucide,
+[class*="lucide"],
+svg[class*="lucide"] {
+	color: var(--text-default) !important;
+}
+
+/* Fix light text colors that are hard to see */
+.text-gray-400,
+.text-gray-300,
+.text-gray-200 {
+	color: var(--text-muted) !important;
+}
+
+/* Ensure buttons have proper contrast */
+button:not([class*="bg-"]):not([class*="text-"]) {
+	color: var(--text-default) !important;
+}
+
+/* Fix form labels and inputs */
+label:not([class*="text-"]) {
+	color: var(--text-strong) !important;
+}
+
+/* Fix navigation text */
+nav a:not([class*="text-"]) {
+	color: var(--text-default) !important;
+}
+
+/* Ensure visible text contrast in common elements */
+input, textarea, select, label, p, span, h1, h2, h3, h4, h5, h6, small {
+	color: var(--text-default);
+}
+
+/* Compact focus ring for accessibility */
+:focus-visible {
+	outline: 2px solid rgba(59, 130, 246, 0.6);
+	outline-offset: 2px;
+}
+
+
