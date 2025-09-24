@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
+import ImagesManager from './ImagesManager';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -607,6 +608,66 @@ const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: ImageUploadP
   );
 };
 
+interface MultiImagePickerProps {
+  onChange: (files: File[]) => void;
+  previews: (string | File)[];
+  label?: string;
+  max?: number;
+}
+
+const MultiImagePicker = ({ onChange, previews, label = 'Upload Gallery Images', max = 10 }: MultiImagePickerProps) => {
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleFiles = (fileList: FileList | null) => {
+    if (!fileList) return;
+    const files = Array.from(fileList).slice(0, max);
+    onChange(files);
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <div
+        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer ${dragOver ? 'border-blue-400 bg-blue-50/50' : 'border-gray-300'}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        onClick={() => (document.getElementById('multi-image-input') as HTMLInputElement)?.click()}
+      >
+        <input
+          id="multi-image-input"
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+        <div className="text-gray-600">
+          Drag & drop images here, or click to browse (max {max})
+        </div>
+      </div>
+      {previews && previews.length > 0 && (
+        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          {previews.map((p, idx) => {
+            const src = typeof p === 'string' ? p : p instanceof File ? URL.createObjectURL(p) : '';
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={idx} src={src} alt={`preview-${idx}`} className="w-full h-20 object-cover rounded-lg border" />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface ListManagerProps {
   items: string[];
   onChange: (items: string[]) => void;
@@ -839,13 +900,6 @@ interface FormProps {
 }
 
 const TransferForm = ({ data, onChange }: FormProps) => {
-  const places = [
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'goa', label: 'Goa' },
-    { value: 'kerala', label: 'Kerala' }
-  ];
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
@@ -944,11 +998,11 @@ const TransferForm = ({ data, onChange }: FormProps) => {
               />
             </FormField>
 
-            <FormField label="Transfer Image">
-              <ImageUpload
-                onUpload={(file) => onChange({ image: file })}
-                preview={data.image}
-                label="Upload Transfer Image"
+            <FormField label="Images">
+              <ImagesManager
+                items={((data as any).imagesDraft as any) || []}
+                onChange={(items) => onChange({ imagesDraft: items as any })}
+                max={10}
               />
             </FormField>
           </div>
@@ -966,13 +1020,6 @@ const TransferForm = ({ data, onChange }: FormProps) => {
 };
 
 const ActivityForm = ({ data, onChange }: FormProps) => {
-  const places = [
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'goa', label: 'Goa' },
-    { value: 'kerala', label: 'Kerala' }
-  ];
 
   return (
     <div className="max-w-5xl mx-auto space-y-5">
@@ -1021,11 +1068,14 @@ const ActivityForm = ({ data, onChange }: FormProps) => {
               required
               description="Where does this activity take place?"
             >
-              <Select
+              <LocationInput
                 value={data.place || ''}
-                onChange={(value) => onChange({ place: value })}
-                options={places}
-                placeholder="Select destination"
+                onChange={(value) => onChange({ place: typeof value === 'string' ? value : value.name })}
+                placeholder="Search for destination city..."
+                mode="both"
+                allowCustomInput={true}
+                country="India"
+                displayFormat="name-state"
               />
             </FormField>
 
@@ -1073,11 +1123,11 @@ const ActivityForm = ({ data, onChange }: FormProps) => {
               />
             </FormField>
 
-            <FormField label="Activity Image">
-              <ImageUpload
-                onUpload={(file) => onChange({ image: file })}
-                preview={data.image}
-                label="Upload Activity Image"
+            <FormField label="Images">
+              <ImagesManager
+                items={((data as any).imagesDraft as any) || []}
+                onChange={(items) => onChange({ imagesDraft: items as any })}
+                max={10}
               />
             </FormField>
           </div>
@@ -1228,11 +1278,11 @@ const MultiCityPackageForm = ({ data, onChange }: FormProps) => {
                   </div>
 
                   <div className="space-y-6">
-                    <FormField label="Banner Image">
-                      <ImageUpload
-                        onUpload={(file) => onChange({ banner: file })}
-                        preview={data.banner}
-                        label="Upload Package Banner"
+                    <FormField label="Images">
+                      <ImagesManager
+                        items={((data as any).imagesDraft as any) || []}
+                        onChange={(items) => onChange({ imagesDraft: items as any })}
+                        max={10}
                       />
                     </FormField>
                   </div>
@@ -2199,6 +2249,7 @@ function CompactPackageWizardContent() {
   const [formData, setFormData] = useState<PackageFormData>({} as PackageFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [showErrorList, setShowErrorList] = useState(false);
 
   const handleTypeSelect = (type: PackageType) => {
     setSelectedType(type);
@@ -2296,7 +2347,9 @@ function CompactPackageWizardContent() {
 
   const handleSave = async (status: 'DRAFT' | 'ACTIVE' = 'DRAFT') => {
     if (!validateForm()) {
-      addToast('Please fix the errors before saving', 'error');
+      const firstError = Object.values(errors)[0];
+      addToast(firstError ? `Fix: ${firstError}` : 'Please fix the errors before saving', 'error');
+      setShowErrorList(true);
       return;
     }
 
@@ -2373,13 +2426,31 @@ function CompactPackageWizardContent() {
         throw new Error('Package creation verification failed. Check RLS permissions and schema.');
       }
 
+      // 3) Upload images to Supabase Storage and insert into package_images
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || 'anonymous';
+        const imagesDraft: any[] = Array.isArray((formData as any).imagesDraft) ? (formData as any).imagesDraft : [];
+        console.log('🖼️ Images to upload:', imagesDraft.length, imagesDraft);
+        if (imagesDraft.length > 0) {
+          const { imageService } = await import('@/lib/services/imageService');
+          await imageService.uploadAndInsert(userId, packageId, imagesDraft.map((it: any) => ({ file: it.file, url: it.url, isCover: !!it.isCover, caption: it.caption })));
+          console.log('✅ Images uploaded successfully');
+        } else {
+          console.log('⚠️ No images to upload');
+        }
+      } catch (imgError) {
+        console.error('❌ Image upload error:', imgError);
+        // Non-fatal: continue, images can be added later
+      }
+
       // Continue with the rest of your save logic...
       
       const successMessage = status === 'ACTIVE' 
         ? 'Package created and published successfully!' 
         : 'Package saved as draft successfully!';
       addToast(successMessage, 'success');
-      router.push('/operator/packages');
+      router.push(`/operator/packages/view?id=${packageId}`);
       
     } catch (error: any) {
       console.error('💥 CRITICAL ERROR in package save:', error);
@@ -2480,6 +2551,23 @@ function CompactPackageWizardContent() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+
+                    {showErrorList && Object.keys(errors).length > 0 && (
+                      <div className="px-4 py-3 bg-red-50/70 text-red-800 rounded-lg border border-red-200 max-w-md">
+                        <div className="font-medium mb-1">Please fix:</div>
+                        <ul className="list-disc list-inside space-y-0.5 text-sm">
+                          {Object.entries(errors).map(([key, message]) => (
+                            <li key={key}>{message}</li>
+                          ))}
+                        </ul>
+                        <button
+                          className="mt-2 text-xs underline"
+                          onClick={() => setShowErrorList(false)}
+                        >
+                          Hide details
+                        </button>
+                      </div>
+                    )}
                     
                     <div className="flex gap-3">
                       {/* Save Draft Button */}
