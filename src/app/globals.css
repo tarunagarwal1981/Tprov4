@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 /* Tailwind CSS removed - using custom design system */
 @import "../styles/shared-package-forms.css";
+@import "../styles/master.css";
+@import "../styles/theme-light.css";
 
 /* ===== CLEAN MODERN DESIGN SYSTEM ===== */
 :root {
@@ -109,7 +111,7 @@ body {
   font-size: var(--font-base);
   font-weight: var(--font-normal);
   color: var(--text-primary);
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #f0f4ff 100%);
+  background: var(--surface-bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -244,28 +246,28 @@ p, span, div {
 }
 
 /* ===== CARD SYSTEM ===== */
+
 .card {
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-glass);
-  backdrop-filter: blur(20px);
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  transition: all var(--transition-normal);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
 }
 
 .card:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .card-header {
-  padding: var(--space-6);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--surface-border);
 }
 
 .card-body {
-  padding: var(--space-6);
+  padding: var(--space-4);
 }
 
 .card-compact {
@@ -952,13 +954,12 @@ p, span, div {
 /* Card Component Fixes */
 .card { 
   display: block !important;
-  background: var(--glass-bg) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-radius: var(--radius-xl) !important;
-  box-shadow: var(--shadow-glass) !important;
-  backdrop-filter: blur(20px) !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--surface-border) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
   overflow: hidden !important;
-  transition: all var(--transition-normal) !important;
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal) !important;
 }
 
 /* Button Component Fixes */
@@ -1046,3 +1047,12 @@ input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   opacity: 0.7;
 }
+
+/* ===== shadcn/ui token mappings (minimal) ===== */
+.bg-card { background-color: var(--surface-card) !important; }
+.text-card-foreground { color: var(--text-default) !important; }
+.bg-background { background-color: var(--surface-bg) !important; }
+.text-muted-foreground { color: var(--text-muted) !important; }
+.border-input { border-color: var(--surface-border) !important; }
+.ring-ring { --tw-ring-color: rgba(37, 99, 235, 0.4) !important; }
+.ring-offset-background { --tw-ring-offset-color: var(--surface-bg) !important; }
