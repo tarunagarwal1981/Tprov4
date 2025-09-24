@@ -3,7 +3,7 @@
 import React from 'react';
 import { Location, LocationDisplayFormat } from '../../../lib/types/location';
 import { LocationInput, LocationMultiSelect } from '../../ui/LocationInput';
-import { FormField } from '../../ui/FormField';
+import { FormField } from './shared/ui/FormField';
 import { PackageType } from '../../../lib/types/wizard';
 
 interface EnhancedLocationFieldsProps {
