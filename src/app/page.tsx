@@ -8,7 +8,7 @@ import { UserRole } from '@/lib/types';
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="landing-page min-h-screen">
       <Header />
       <Hero />
       <Stats />

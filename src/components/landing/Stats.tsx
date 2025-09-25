@@ -64,23 +64,21 @@ function StatCard({ number, suffix = '', prefix = '', label, description, icon, 
   return (
     <motion.div
       ref={ref}
-      className="card card-elevated text-center p-6"
+      className="stat-card"
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.6, delay }}
       whileHover={{ 
-        scale: 1.05, 
-        y: -5,
+        scale: 1.02, 
+        y: -4,
         transition: { duration: 0.2 }
       }}
     >
-      <div className="flex justify-center mb-3">
-        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white">
-          {icon}
-        </div>
+      <div className="stat-icon">
+        {icon}
       </div>
       
-      <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+      <div className="stat-number">
         <AnimatedCounter 
           end={number} 
           suffix={suffix} 
@@ -89,8 +87,8 @@ function StatCard({ number, suffix = '', prefix = '', label, description, icon, 
         />
       </div>
       
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">{label}</h3>
-      <p className="text-gray-800">{description}</p>
+      <h3 className="stat-label">{label}</h3>
+      <p className="stat-description">{description}</p>
     </motion.div>
   );
 }
@@ -137,24 +135,24 @@ export function Stats() {
   ];
 
   return (
-    <section id="stats" className="py-12 bg-gray-50">
-      <div className="container mx-auto px-4">
+    <section id="stats" className="landing-stats">
+      <div className="container">
         <motion.div 
-          className="text-center mb-12"
+          className="section-header"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="section-title">
             Trusted by Industry Leaders
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="section-description">
             Join thousands of travel professionals who have transformed their business with our platform
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="stats-grid">
           {stats.map((stat, index) => (
             <StatCard
               key={index}
@@ -171,35 +169,35 @@ export function Stats() {
 
         {/* Additional Stats Row */}
         <motion.div 
-          className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-6"
+          className="mini-stats"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="text-center">
-            <div className="text-2xl md:text-3xl font-bold text-blue-600 mb-1">
+          <div className="mini-stat">
+            <div className="mini-stat-number blue">
               <AnimatedCounter end={150} suffix="+" duration={2} />
             </div>
-            <div className="text-sm text-gray-600">Countries</div>
+            <div className="mini-stat-label">Countries</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl md:text-3xl font-bold text-purple-600 mb-1">
+          <div className="mini-stat">
+            <div className="mini-stat-number purple">
               <AnimatedCounter end={50} suffix="K+" duration={2} />
             </div>
-            <div className="text-sm text-gray-600">Bookings</div>
+            <div className="mini-stat-label">Bookings</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl md:text-3xl font-bold text-green-600 mb-1">
+          <div className="mini-stat">
+            <div className="mini-stat-number green">
               <AnimatedCounter end={99} suffix="%" duration={2} />
             </div>
-            <div className="text-sm text-gray-600">Satisfaction</div>
+            <div className="mini-stat-label">Satisfaction</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl md:text-3xl font-bold text-orange-600 mb-1">
+          <div className="mini-stat">
+            <div className="mini-stat-number orange">
               <AnimatedCounter end={24} suffix="/7" duration={2} />
             </div>
-            <div className="text-sm text-gray-600">Support</div>
+            <div className="mini-stat-label">Support</div>
           </div>
         </motion.div>
       </div>

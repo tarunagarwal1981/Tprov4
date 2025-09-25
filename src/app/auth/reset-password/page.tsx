@@ -3,8 +3,10 @@ import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ResetPasswordForm />
-    </Suspense>
+    <div className="auth-page">
+      <Suspense fallback={<div>Loading...</div>}>
+        <ResetPasswordForm />
+      </Suspense>
+    </div>
   );
 }

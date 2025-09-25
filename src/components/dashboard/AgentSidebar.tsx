@@ -117,10 +117,10 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
       initial={false}
       animate={{ width: isCollapsed ? 80 : 280 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="bg-white border-r border-gray-200 flex flex-col h-full shadow-lg"
+      className="modern-sidebar flex flex-col h-full"
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
           {!isCollapsed && (
             <motion.div
@@ -129,11 +129,11 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
               transition={{ delay: 0.1 }}
               className="flex items-center space-x-3"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
                 <TrendingUp className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Agent Portal</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Agent Portal</h2>
                 <p className="text-xs text-gray-500">Travel Agent Dashboard</p>
               </div>
             </motion.div>
@@ -141,7 +141,7 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
           
           <button
             onClick={onToggle}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4 text-gray-600" />
@@ -153,7 +153,7 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      <nav className="flex-1 px-4 py-6 space-y-1">
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           
@@ -178,7 +178,7 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
                 )}
                 
                 {isCollapsed && item.badge && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
                     {item.badge}
                   </div>
                 )}
@@ -189,7 +189,7 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-6 border-t border-gray-200">
         {!isCollapsed ? (
           <motion.div
             initial={{ opacity: 0 }}
@@ -198,8 +198,8 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
             className="space-y-3"
           >
             {/* User Info */}
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+            <div className="flex items-center space-x-3 p-3 bg-gray-100 rounded-lg">
+              <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-sm">
                 <User className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
@@ -214,14 +214,14 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
 
             {/* Quick Actions */}
             <div className="space-y-2">
-              <button className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+              <button className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
                 <Bell className="w-4 h-4" />
                 <span>Notifications</span>
               </button>
               
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                className="w-full flex items-center space-x-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Sign Out</span>
@@ -230,12 +230,12 @@ export function AgentSidebar({ isCollapsed, onToggle }: SidebarProps) {
           </motion.div>
         ) : (
           <div className="flex flex-col items-center space-y-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center shadow-sm">
               <User className="w-5 h-5 text-white" />
             </div>
             <button
               onClick={handleLogout}
-              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+              className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />

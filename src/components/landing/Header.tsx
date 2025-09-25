@@ -32,60 +32,36 @@ export function Header() {
 
   return (
     <motion.header 
-      className="bg-white/95 backdrop-blur-sm shadow-sm border-b border-gray-200 sticky top-0 z-50"
+      className="landing-header"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-12">
+      <div className="container">
+        <div className="nav-container">
           {/* Logo */}
           <motion.div 
-            className="flex items-center space-x-2"
-            whileHover={{ scale: 1.05 }}
+            className="logo"
+            whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">T</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">
-              TravelPro
-            </span>
+            <div className="logo-icon">T</div>
+            <span>TravelPro</span>
           </motion.div>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              href="#features" 
-              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
-            >
-              Features
-            </Link>
-            <Link 
-              href="#stats" 
-              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
-            >
-              Stats
-            </Link>
-            <Link 
-              href="#about" 
-              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
-            >
-              About
-            </Link>
-            <Link 
-              href="#contact" 
-              className="text-gray-800 hover:text-gray-900 transition-colors duration-200"
-            >
-              Contact
-            </Link>
+          <nav className="nav-links">
+            <Link href="#features" className="nav-link">Features</Link>
+            <Link href="#stats" className="nav-link">Stats</Link>
+            <Link href="#about" className="nav-link">About</Link>
+            <Link href="#contact" className="nav-link">Contact</Link>
           </nav>
 
           {/* Auth Buttons */}
-          <div className="flex items-center space-x-3">
+          <div className="auth-buttons">
             {state.user ? (
               <>
-                <span className="hidden sm:inline-block px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                <span className="user-role">
                   {state.user?.role.replace('_', ' ')}
                 </span>
                 <Link href={getDashboardUrl()}>
@@ -132,7 +108,7 @@ export function Header() {
 
           {/* Mobile Menu Button */}
           <motion.button 
-            className="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            className="mobile-menu-btn"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             aria-label="Toggle mobile menu"

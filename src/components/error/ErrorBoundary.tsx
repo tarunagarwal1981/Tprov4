@@ -151,7 +151,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             <CardContent className="space-y-4">
               <div className="text-center">
                 <p className="text-sm text-gray-600 mb-4">
-                  We encountered an unexpected error. This has been logged and we're working to fix it.
+                  We encountered an unexpected error. This has been logged and we&apos;re working to fix it.
                 </p>
                 
                 {process.env.NODE_ENV === 'development' && error && (

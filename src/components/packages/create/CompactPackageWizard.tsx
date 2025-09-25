@@ -1280,7 +1280,7 @@ const MultiCityPackageForm = ({ data, onChange }: FormProps) => {
                   {(!data.itinerary || data.itinerary.length === 0) && (
                     <div className="text-center py-12 text-gray-500">
                       <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>No itinerary days added yet. Click "Add Day" to start planning.</p>
+                      <p>No itinerary days added yet. Click &quot;Add Day&quot; to start planning.</p>
                     </div>
                   )}
                 </div>
@@ -1664,7 +1664,7 @@ const MultiCityPackageWithHotelForm = ({ data, onChange }: FormProps) => {
                   {(!data.hotels || data.hotels.length === 0) && (
                     <div className="text-center py-12 text-gray-500">
                       <Bed className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>No hotels added yet. Click "Add Hotel" to include accommodation.</p>
+                      <p>No hotels added yet. Click &quot;Add Hotel&quot; to include accommodation.</p>
                     </div>
                   )}
                 </div>
@@ -1952,7 +1952,7 @@ const FixedDepartureForm = ({ data, onChange }: FormProps) => {
                   {(!data.destinations || data.destinations.length === 0) && (
                     <div className="text-center py-8 text-gray-500">
                       <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No destinations added yet. Click "Add Destination" to start.</p>
+                      <p>No destinations added yet. Click &quot;Add Destination&quot; to start.</p>
                     </div>
                   )}
                 </div>
@@ -2035,7 +2035,7 @@ const FixedDepartureForm = ({ data, onChange }: FormProps) => {
                 {(!data.itinerary || data.itinerary.length === 0) && (
                   <div className="text-center py-12 text-gray-500">
                     <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>No itinerary days added yet. Click "Add Day" to start planning.</p>
+                    <p>No itinerary days added yet. Click &quot;Add Day&quot; to start planning.</p>
                   </div>
                 )}
               </div>

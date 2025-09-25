@@ -39,6 +39,7 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
   const [imageError, setImageError] = useState(false);
   const [analytics, setAnalytics] = useState<PackageAnalytics | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [imgIndex, setImgIndex] = useState(0);
 
   // Fetch analytics data
   useEffect(() => {
@@ -172,7 +173,6 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
   if (viewMode === 'grid') {
     const images: string[] = Array.isArray(pkg.images) ? pkg.images : []
     console.log('🖼️ PackageCard images for', pkg.title, ':', images);
-    const [imgIndex, setImgIndex] = useState(0)
     const hasImages = images.length > 0 && !imageError
     const prev = (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex((i) => (i - 1 + images.length) % images.length) }
     const next = (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex((i) => (i + 1) % images.length) }

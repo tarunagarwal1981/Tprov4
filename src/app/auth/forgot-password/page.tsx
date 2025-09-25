@@ -3,8 +3,10 @@ import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
 
 export default function ForgotPasswordPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ForgotPasswordForm />
-    </Suspense>
+    <div className="auth-page">
+      <Suspense fallback={<div>Loading...</div>}>
+        <ForgotPasswordForm />
+      </Suspense>
+    </div>
   );
 }

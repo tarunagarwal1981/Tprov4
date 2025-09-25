@@ -48,6 +48,81 @@ export function ProtectedRoute({
   console.log('🛡️ ProtectedRoute: useRouter called');
   console.log('🛡️ ProtectedRoute: usePathname called, pathname:', pathname);
 
+  // ALL useEffect HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
+  // Handle hydration - use a more robust approach
+  useEffect(() => {
+    console.log('🛡️ ProtectedRoute: setIsClient useEffect running');
+    setIsClient(true);
+  }, []);
+
+  // ===== REDIRECT LOGIC USEEFFECT =====
+  useEffect(() => {
+    console.log('🛡️ ProtectedRoute: Redirect logic useEffect running');
+    effectRunCountRef.current += 1;
+    console.log(`🛡️ ProtectedRoute: Effect run count: ${effectRunCountRef.current}`);
+    
+    // Only run redirect logic on client-side
+    if (!isClient) {
+      console.log('🛡️ ProtectedRoute: Not client-side yet, skipping redirect logic');
+      return;
+    }
+
+    // Skip if already redirected or redirect attempted
+    if (hasRedirected || redirectAttemptedRef.current) {
+      console.log('🛡️ ProtectedRoute: Already redirected or attempted, skipping');
+      return;
+    }
+
+    // Skip if still loading or not initialized
+    if (state.isLoading || !state.isInitialized) {
+      console.log('🛡️ ProtectedRoute: Still loading or not initialized, skipping redirect');
+      return;
+    }
+
+    // Check if user has required role
+    const hasRequiredRole = !requiredRoles || (state.user?.role && requiredRoles.includes(state.user.role));
+    
+    if (!hasRequiredRole) {
+      console.log('🚫 ProtectedRoute: User does not have required role, redirecting');
+      redirectAttemptedRef.current = true;
+      setHasRedirected(true);
+      
+      if (redirectTo) {
+        console.log(`🔄 ProtectedRoute: Redirecting to custom path: ${redirectTo}`);
+        router.push(redirectTo);
+      } else if (state.user?.role && defaultRoleRedirects[state.user.role]) {
+        console.log(`🔄 ProtectedRoute: Redirecting to role default: ${defaultRoleRedirects[state.user.role]}`);
+        router.push(defaultRoleRedirects[state.user.role]);
+      } else {
+        // Fallback to home page
+        console.log('🏠 ProtectedRoute: Fallback redirect to home');
+        redirectAttemptedRef.current = true;
+        setHasRedirected(true);
+        router.push('/');
+      }
+    } else {
+      console.log('✅ ProtectedRoute: User has required role, allowing access');
+    }
+  }, [
+    state.isLoading, 
+    state.isInitialized, 
+    state.user?.id, 
+    state.user?.role, 
+    isClient, 
+    pathname, 
+    requiredRoles, 
+    redirectTo, 
+    hasRedirected
+  ]);
+
+  // Reset redirect state when pathname changes
+  useEffect(() => {
+    if (pathname) {
+      setHasRedirected(false);
+      redirectAttemptedRef.current = false;
+    }
+  }, [pathname]);
+
   // Circuit breaker to prevent infinite loops
   renderCountRef.current += 1;
   console.log(`🛡️ ProtectedRoute: Render count: ${renderCountRef.current}`);
@@ -64,12 +139,7 @@ export function ProtectedRoute({
     );
   }
 
-  // ALL useEffect HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
-  // Handle hydration - use a more robust approach
-  useEffect(() => {
-    console.log('🛡️ ProtectedRoute: setIsClient useEffect running');
-    setIsClient(true);
-  }, []);
+  // Prevent hydration mismatch by not rendering until client-side
 
   // ===== REDIRECT LOGIC USEEFFECT =====
   useEffect(() => {

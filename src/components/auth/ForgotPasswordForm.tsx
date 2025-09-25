@@ -64,64 +64,56 @@ export function ForgotPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
+      <div className="auth-layout">
+        <div className="auth-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="space-y-2 text-center pb-8">
+            <div className="auth-card">
+              <div className="auth-header">
                 <motion.div
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  className="auth-success-icon"
                 >
-                  <CheckCircle2 className="w-8 h-8 text-white" />
+                  <CheckCircle2 className="w-6 h-6" />
                 </motion.div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  Check your email
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  {successMessage}
-                </CardDescription>
-              </CardHeader>
+                <h1 className="auth-title">Check your email</h1>
+                <p className="auth-description">{successMessage}</p>
+              </div>
 
-              <CardContent className="space-y-6">
+              <div className="auth-content">
                 <div className="text-center space-y-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="auth-description">
                     We've sent a password reset link to your email address. 
                     Click the link in the email to reset your password.
                   </p>
                   
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
+                  <div className="auth-alert info">
+                    <span className="auth-alert-text">
                       <strong>Didn't receive the email?</strong> Check your spam folder or try again.
-                    </p>
+                    </span>
                   </div>
                 </div>
 
-                <Button
+                <button
                   onClick={() => setIsSuccess(false)}
-                  variant="outline"
-                  className="w-full h-12"
+                  className="auth-button secondary"
                 >
                   Try another email
-                </Button>
+                </button>
 
-                <div className="text-center">
-                  <Link
-                    href="/auth/login"
-                    className="text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors flex items-center justify-center gap-2 mx-auto"
-                  >
+                <div className="auth-footer">
+                  <Link href="/auth/login" className="auth-footer-link">
                     <ArrowLeft className="w-4 h-4" />
                     Back to sign in
                   </Link>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
@@ -129,51 +121,46 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
+    <div className="auth-layout">
+      <div className="auth-container">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="space-y-2 text-center pb-8">
+          <div className="auth-card">
+            <div className="auth-header">
               <motion.div
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.1 }}
-                className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                className="auth-icon"
+                style={{ background: 'linear-gradient(135deg, #f59e0b, #dc2626)' }}
               >
-                <Mail className="w-8 h-8 text-white" />
+                <Mail className="w-6 h-6" />
               </motion.div>
-              <CardTitle className="text-2xl font-bold text-gray-900">
-                Reset your password
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                Enter your email address and we'll send you a link to reset your password
-              </CardDescription>
-            </CardHeader>
+              <h1 className="auth-title">Reset your password</h1>
+              <p className="auth-description">Enter your email address and we'll send you a link to reset your password</p>
+            </div>
 
-            <CardContent className="space-y-6">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="auth-content">
+              <form onSubmit={handleSubmit(onSubmit)} className="auth-form">
                 {/* Email Field */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                    Email address
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
+                <div className="auth-field">
+                  <label htmlFor="email" className="auth-label">Email address</label>
+                  <div className="auth-input-group">
+                    <Mail className="auth-input-icon" />
+                    <input
                       id="email"
                       type="email"
                       autoComplete="email"
                       placeholder="Enter your email"
-                      className="pl-10 h-12 border-gray-200 focus:border-orange-500 focus:ring-orange-500/20"
+                      className={`auth-input ${errors.email ? 'error' : ''}`}
                       {...register('email')}
                     />
                   </div>
                   {errors.email && (
-                    <p className="text-sm text-red-600 flex items-center gap-1">
+                    <p className="auth-error">
                       <AlertCircle className="w-4 h-4" />
                       {errors.email.message}
                     </p>
@@ -182,44 +169,42 @@ export function ForgotPasswordForm() {
 
                 {/* Error Message */}
                 {errors.root && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{errors.root.message}</AlertDescription>
-                  </Alert>
+                  <div className="auth-alert error">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="auth-alert-text">{errors.root.message}</span>
+                  </div>
                 )}
 
                 {/* Submit Button */}
-                <Button
+                <button
                   type="submit"
                   disabled={isSubmitting || state.isLoading}
-                  className="w-full h-12 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
+                  className="auth-button"
+                  style={{ background: 'linear-gradient(90deg, #f59e0b, #dc2626)' }}
                 >
                   {isSubmitting || state.isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <div className="auth-loading">
+                      <div className="auth-spinner" />
                       Sending...
-                    </>
+                    </div>
                   ) : (
                     <>
                       Send reset link
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      <ArrowRight className="w-4 h-4" />
                     </>
                   )}
-                </Button>
+                </button>
               </form>
 
               {/* Back to Login */}
-              <div className="text-center pt-4 border-t border-gray-100">
-                <Link
-                  href="/auth/login"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors flex items-center justify-center gap-2 mx-auto"
-                >
+              <div className="auth-footer">
+                <Link href="/auth/login" className="auth-footer-link">
                   <ArrowLeft className="w-4 h-4" />
                   Back to sign in
                 </Link>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>
