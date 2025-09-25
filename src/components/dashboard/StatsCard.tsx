@@ -74,7 +74,8 @@ export function StatsCard({
         <motion.div 
           className="stats-card-icon"
           style={{
-            boxShadow: '0 12px 30px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
+            background: `linear-gradient(135deg, ${getColorClasses(color)})`,
+            boxShadow: `0 20px 40px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2), 0 0 0 1px rgba(255,255,255,0.1)`
           }}
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ type: "spring", stiffness: 200 }}

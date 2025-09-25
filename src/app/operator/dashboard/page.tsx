@@ -344,23 +344,18 @@ function OperatorDashboard() {
         />
       </div>
 
-      <div className="relative z-10 space-y-8">
+      <div className="dashboard-content-wrapper">
         {/* Enhanced Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="p-8 rounded-3xl backdrop-blur-xl"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%)',
-            border: '1px solid rgba(226,232,240,0.4)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
-          }}
+          className="modern-dashboard-header-card"
         >
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="modern-header-content">
+            <div className="header-text-section">
               <motion.h1 
-                className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2"
+                className="modern-welcome-title"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
@@ -368,7 +363,7 @@ function OperatorDashboard() {
                 Welcome back, {state.user?.profile?.firstName || state.user?.name || 'User'}! 👋
               </motion.h1>
               <motion.p 
-                className="text-gray-600 text-lg"
+                className="modern-welcome-subtitle"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
@@ -377,20 +372,16 @@ function OperatorDashboard() {
               </motion.p>
             </div>
             <motion.div 
-              className="flex items-center space-x-3"
+              className="header-controls"
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.6, duration: 0.6 }}
             >
-              <div className="flex items-center space-x-2">
+              <div className="controls-group">
                 <select
                   value={selectedTimeRange}
                   onChange={(e) => setSelectedTimeRange(e.target.value)}
-                  className="px-4 py-2 rounded-2xl border border-gray-200/40 focus:border-blue-400/50 focus:outline-none focus:ring-4 focus:ring-blue-400/10 transition-all duration-300 backdrop-blur-sm"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%)',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
+                  className="modern-select"
                 >
                   <option value="7d">Last 7 days</option>
                   <option value="30d">Last 30 days</option>
@@ -399,16 +390,11 @@ function OperatorDashboard() {
                 <motion.button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="p-3 rounded-2xl backdrop-blur-sm transition-all duration-300 hover:shadow-lg"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.8) 100%)',
-                    border: '1px solid rgba(226,232,240,0.4)',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
+                  className="modern-refresh-btn"
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <RefreshCw className={`w-4 h-4 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`refresh-icon ${isRefreshing ? 'animate-spin' : ''}`} />
                 </motion.button>
               </div>
             </motion.div>
