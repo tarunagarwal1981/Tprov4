@@ -37,6 +37,52 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+function ImageCarousel({ images, title }: { images: string[]; title: string }) {
+  const [index, setIndex] = useState(0);
+  if (!images || images.length === 0) return null;
+
+  const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
+  const next = () => setIndex((i) => (i + 1) % images.length);
+
+  return (
+    <div className="relative w-full h-72 md:h-96 rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={images[index]}
+        alt={title}
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.opacity = '0.4';
+        }}
+      />
+      <button
+        aria-label="Previous image"
+        onClick={prev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+      >
+        ‹
+      </button>
+      <button
+        aria-label="Next image"
+        onClick={next}
+        className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full p-2 shadow"
+      >
+        ›
+      </button>
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            aria-label={`Go to image ${i + 1}`}
+            onClick={() => setIndex(i)}
+            className={`h-2.5 rounded-full transition-all ${i === index ? 'w-5 bg-white' : 'w-2.5 bg-white/70'}`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Helper function to safely parse JSON
 const safeJsonParse = (value: any, defaultValue: any = []) => {
   if (typeof value === 'string') {
@@ -248,7 +294,7 @@ export default function ImprovedPackageViewPage() {
 
         const { data: packageRow, error: fetchError } = await supabase
           .from('packages')
-          .select('*')
+          .select(`*, images:package_images(url, order_index, is_primary)`)        
           .eq('id', packageId)
           .maybeSingle();
 
@@ -261,6 +307,8 @@ export default function ImprovedPackageViewPage() {
           throw new Error('Package not found');
         }
 
+        console.log('📦 Package data fetched:', packageRow);
+        console.log('🖼️ Images data:', (packageRow as any).images);
         setPackageData(packageRow);
       } catch (err: any) {
         console.error('💥 Error fetching package:', err);
@@ -427,6 +475,26 @@ export default function ImprovedPackageViewPage() {
           </div>
         </div>
       </div>
+
+      {/* Image Carousel */}
+      {(() => {
+        const imgs = Array.isArray((packageData as any).images)
+          ? (packageData as any).images
+          : [];
+        const imageUrls = imgs.length > 0 && typeof imgs[0] === 'object'
+          ? (imgs as any[])
+              .sort((a, b) => (a.is_primary === b.is_primary ? (a.order_index || 0) - (b.order_index || 0) : a.is_primary ? -1 : 1))
+              .map((i) => i.url)
+          : (imgs as string[]);
+        return imageUrls.length > 0 ? (
+          <div className="w-full bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <ImageCarousel images={imageUrls} title={packageData.title} />
+            </div>
+          </div>
+        ) : null;
+      })()}
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <motion.div 

@@ -281,7 +281,7 @@ export const LocationInput: React.FC<LocationInputComponentProps> = ({
                         handleLocationSelect(customLocation);
                       }}
                     >
-                      Use "{inputValue}" as location
+                      Use &quot;{inputValue}&quot; as location
                     </button>
                   </div>
                 )}

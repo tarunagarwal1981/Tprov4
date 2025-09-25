@@ -39,6 +39,7 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
   const [imageError, setImageError] = useState(false);
   const [analytics, setAnalytics] = useState<PackageAnalytics | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(true);
+  const [imgIndex, setImgIndex] = useState(0);
 
   // Fetch analytics data
   useEffect(() => {
@@ -170,13 +171,19 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
 
   // Grid view
   if (viewMode === 'grid') {
+    const images: string[] = Array.isArray(pkg.images) ? pkg.images : []
+    console.log('🖼️ PackageCard images for', pkg.title, ':', images);
+    const hasImages = images.length > 0 && !imageError
+    const prev = (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex((i) => (i - 1 + images.length) % images.length) }
+    const next = (e: React.MouseEvent) => { e.stopPropagation(); setImgIndex((i) => (i + 1) % images.length) }
+
     return (
       <div className="package-card hover-lift">
         {/* Image */}
-        <div className="relative h-48 bg-gray-200">
-          {pkg.images && pkg.images.length > 0 && !imageError ? (
+        <div className="relative h-48 bg-gray-200 group">
+          {hasImages ? (
             <Image
-              src={pkg.images[0]}
+              src={images[imgIndex]}
               alt={pkg.title}
               fill
               className="package-card-image"
@@ -186,6 +193,30 @@ export default memo(function PackageCard({ package: pkg, viewMode }: PackageCard
             <div className="flex items-center justify-center h-full bg-gradient-to-br from-blue-100 to-purple-100">
               <div className="text-6xl">{getTypeIcon(pkg.type)}</div>
             </div>
+          )}
+
+          {hasImages && images.length > 1 && (
+            <>
+              <button
+                aria-label="Previous image"
+                onClick={prev}
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full px-2 py-1 shadow opacity-0 group-hover:opacity-100 transition"
+              >
+                ‹
+              </button>
+              <button
+                aria-label="Next image"
+                onClick={next}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white rounded-full px-2 py-1 shadow opacity-0 group-hover:opacity-100 transition"
+              >
+                ›
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                {images.map((_, i) => (
+                  <span key={i} className={`h-1.5 rounded-full ${i === imgIndex ? 'w-4 bg-white' : 'w-2 bg-white/70'}`} />)
+                )}
+              </div>
+            </>
           )}
           
           {/* Status Badge */}

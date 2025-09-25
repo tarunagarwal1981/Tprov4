@@ -44,6 +44,7 @@ import { RecentBookings } from '@/components/dashboard/RecentBookings';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import { TopPackages } from '@/components/dashboard/TopPackages';
 import { QuickActions } from '@/components/dashboard/QuickActions';
+import { ModernOperatorLayout } from '@/components/dashboard/ModernOperatorLayout';
 import { dashboardService } from '@/lib/services/dashboardService';
 import { DashboardStats } from '@/lib/mockData';
 
@@ -300,39 +301,87 @@ function OperatorDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <ModernOperatorLayout>
       {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <motion.div 
+          className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{ 
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            opacity: [0.6, 0.3, 0.6],
+          }}
+          transition={{ 
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
+        <motion.div 
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl"
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.4, 0.7, 0.4],
+          }}
+          transition={{ 
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4
+          }}
+        />
       </div>
 
-      <div className="relative z-10 p-6 space-y-8">
+      <div className="dashboard-content-wrapper">
         {/* Enhanced Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
-          }}
+          transition={{ duration: 0.6 }}
+          className="modern-dashboard-header-card"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Welcome back, {state.user?.profile?.firstName || state.user?.name || 'User'}!
-              </h1>
-              <p className="text-gray-600 mt-2 text-lg">Here's what's happening with your business today</p>
+          <div className="modern-header-content">
+            <div className="header-text-section">
+              <motion.h1 
+                className="modern-welcome-title"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2, duration: 0.6 }}
+              >
+                Welcome back, {state.user?.profile?.firstName || state.user?.name || 'User'}! 👋
+              </motion.h1>
+              <motion.p 
+                className="modern-welcome-subtitle"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4, duration: 0.6 }}
+              >
+                Here's what's happening with your business today
+              </motion.p>
             </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
+            <motion.div 
+              className="header-controls"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6, duration: 0.6 }}
+            >
+              <div className="controls-group">
                 <select
                   value={selectedTimeRange}
                   onChange={(e) => setSelectedTimeRange(e.target.value)}
-                  className="backdrop-blur-sm bg-white/20 border border-white/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="modern-select"
                 >
                   <option value="7d">Last 7 days</option>
                   <option value="30d">Last 30 days</option>
@@ -341,19 +390,24 @@ function OperatorDashboard() {
                 <motion.button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="p-2 backdrop-blur-sm bg-white/20 border border-white/30 rounded-xl hover:bg-white/30 transition-all duration-200"
-                  whileHover={{ scale: 1.05 }}
+                  className="modern-refresh-btn"
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <RefreshCw className={`w-4 h-4 text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`refresh-icon ${isRefreshing ? 'animate-spin' : ''}`} />
                 </motion.button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
 
         {/* Enhanced Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div 
+          className="modern-stats-grid"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.8 }}
+        >
           {stats.map((stat, index) => (
             <StatsCard
               key={stat.title}
@@ -368,20 +422,24 @@ function OperatorDashboard() {
               index={index}
             />
           ))}
-        </div>
+        </motion.div>
 
         {/* Enhanced Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="modern-content-grid">
           {/* Recent Bookings */}
-          <RecentBookings
-            bookings={recentBookings}
-            viewAllLink="/operator/bookings"
-          />
+          <div className="lg:col-span-2">
+            <RecentBookings
+              bookings={recentBookings}
+              viewAllLink="/operator/bookings"
+            />
+          </div>
 
           {/* Activity Feed */}
-          <ActivityFeed
-            activities={recentActivity}
-          />
+          <div className="lg:col-span-1">
+            <ActivityFeed
+              activities={recentActivity}
+            />
+          </div>
         </div>
 
         {/* Top Packages */}
@@ -395,7 +453,7 @@ function OperatorDashboard() {
           actions={quickActions}
         />
       </div>
-    </div>
+    </ModernOperatorLayout>
   );
 }
 

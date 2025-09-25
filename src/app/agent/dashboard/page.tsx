@@ -122,45 +122,31 @@ function AgentDashboard() {
   const topPackages = dashboardData?.topPackages || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 left-20 w-80 h-80 bg-gradient-to-br from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
-      </div>
-
-      <div className="relative z-10 p-6 space-y-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-6 space-y-8">
         {/* Enhanced Page Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
-          }}
+          className="modern-card"
         >
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-semibold text-gray-900">
                 Welcome back, {state.user?.profile?.firstName || state.user?.name || 'Agent'}! 👋
               </h1>
               <p className="text-gray-600 mt-2 text-lg">Here's what's happening with your travel business today</p>
             </div>
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full text-sm font-medium backdrop-blur-sm"
-                style={{
-                  boxShadow: '0 4px 16px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
-                }}>
+                <span className="px-3 py-1 bg-primary-600 text-white rounded-full text-sm font-medium">
                   {state.user?.role}
                 </span>
                 <motion.button
                   onClick={handleRefresh}
                   disabled={isRefreshing}
-                  className="p-2 backdrop-blur-sm bg-white/20 border border-white/30 rounded-xl hover:bg-white/30 transition-all duration-200"
+                  className="p-2 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -201,14 +187,10 @@ function AgentDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
-          }}
+          className="modern-card"
         >
           <div className="flex items-center space-x-2 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
               <Activity className="h-4 w-4 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
@@ -221,8 +203,8 @@ function AgentDashboard() {
           ) : (
             <div className="space-y-4">
               {recentActivity.map((activity, index) => (
-                <div key={activity.id} className="flex items-start space-x-3 p-3 backdrop-blur-sm bg-white/20 rounded-xl border border-white/30">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                <div key={activity.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center shadow-sm">
                     <Activity className="h-4 w-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -243,14 +225,10 @@ function AgentDashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="backdrop-blur-xl rounded-2xl border border-white/20 p-6"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
-          }}
+          className="modern-card"
         >
           <div className="flex items-center space-x-2 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
               <Package className="h-4 w-4 text-white" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900">Popular Packages</h3>
@@ -263,7 +241,7 @@ function AgentDashboard() {
           ) : (
             <div className="space-y-4">
               {topPackages.map((pkg, index) => (
-                <div key={pkg.id} className="flex items-center justify-between p-3 backdrop-blur-sm bg-white/20 rounded-xl border border-white/30">
+                <div key={pkg.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900">{pkg.name}</p>
                     <p className="text-sm text-gray-600">{pkg.destination}</p>
@@ -276,7 +254,7 @@ function AgentDashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-gray-900">${pkg.price.toLocaleString()}</p>
-                    <Button size="sm" variant="outline" className="mt-1 backdrop-blur-sm border border-white/40">
+                    <Button size="sm" variant="outline" className="mt-1">
                       <Plus className="h-3 w-3 mr-1" />
                       Add
                     </Button>

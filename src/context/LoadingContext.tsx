@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useReducer, useCallback, ReactNode, useRef, useEffect } from 'react';
+import { createContext, useContext, useReducer, useCallback, ReactNode, useRef, useEffect, useState } from 'react';
 
 // ===== LOADING STATE INTERFACE =====
 interface LoadingState {

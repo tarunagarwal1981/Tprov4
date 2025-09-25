@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
+import ImagesManager from './ImagesManager';
+import { ActivityForm } from './forms/ActivityForm';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -607,6 +609,66 @@ const ImageUpload = ({ onUpload, preview, label = "Upload Image" }: ImageUploadP
   );
 };
 
+interface MultiImagePickerProps {
+  onChange: (files: File[]) => void;
+  previews: (string | File)[];
+  label?: string;
+  max?: number;
+}
+
+const MultiImagePicker = ({ onChange, previews, label = 'Upload Gallery Images', max = 10 }: MultiImagePickerProps) => {
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleFiles = (fileList: FileList | null) => {
+    if (!fileList) return;
+    const files = Array.from(fileList).slice(0, max);
+    onChange(files);
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <div
+        className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer ${dragOver ? 'border-blue-400 bg-blue-50/50' : 'border-gray-300'}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        onClick={() => (document.getElementById('multi-image-input') as HTMLInputElement)?.click()}
+      >
+        <input
+          id="multi-image-input"
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => handleFiles(e.target.files)}
+        />
+        <div className="text-gray-600">
+          Drag & drop images here, or click to browse (max {max})
+        </div>
+      </div>
+      {previews && previews.length > 0 && (
+        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          {previews.map((p, idx) => {
+            const src = typeof p === 'string' ? p : p instanceof File ? URL.createObjectURL(p) : '';
+            return (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={idx} src={src} alt={`preview-${idx}`} className="w-full h-20 object-cover rounded-lg border" />
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface ListManagerProps {
   items: string[];
   onChange: (items: string[]) => void;
@@ -839,13 +901,6 @@ interface FormProps {
 }
 
 const TransferForm = ({ data, onChange }: FormProps) => {
-  const places = [
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'goa', label: 'Goa' },
-    { value: 'kerala', label: 'Kerala' }
-  ];
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
@@ -944,159 +999,14 @@ const TransferForm = ({ data, onChange }: FormProps) => {
               />
             </FormField>
 
-            <FormField label="Transfer Image">
-              <ImageUpload
-                onUpload={(file) => onChange({ image: file })}
-                preview={data.image}
-                label="Upload Transfer Image"
+            <FormField label="Images">
+              <ImagesManager
+                items={((data as any).imagesDraft as any) || []}
+                onChange={(items) => onChange({ imagesDraft: items as any })}
+                max={10}
               />
             </FormField>
           </div>
-        </div>
-
-        <div className="border-t border-gray-200 pt-8">
-          <PricingSection
-            pricing={data.pricing || [{ adultPrice: 0, childPrice: 0, validFrom: null, validTo: null }]}
-            onChange={(pricing) => onChange({ pricing })}
-          />
-        </div>
-      </motion.div>
-    </div>
-  );
-};
-
-const ActivityForm = ({ data, onChange }: FormProps) => {
-  const places = [
-    { value: 'mumbai', label: 'Mumbai' },
-    { value: 'delhi', label: 'Delhi' },
-    { value: 'bangalore', label: 'Bangalore' },
-    { value: 'goa', label: 'Goa' },
-    { value: 'kerala', label: 'Kerala' }
-  ];
-
-  return (
-    <div className="max-w-5xl mx-auto space-y-5">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-5"
-      >
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50/50 backdrop-blur-sm rounded-xl mb-2 border border-emerald-200/30"
-        style={{
-          boxShadow: '0 4px 16px rgba(16,185,129,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
-        }}>
-          <Star className="w-4 h-4 text-emerald-600" />
-          <span className="text-emerald-600 font-medium text-sm">Activity Experience</span>
-        </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">Activity Details</h2>
-        <p className="text-gray-600 text-sm">Create your activity or experience offering</p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="backdrop-blur-xl rounded-2xl border border-white/20 p-5 space-y-5"
-        style={{
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.2)'
-        }}
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <div className="space-y-3">
-            <FormField 
-              label="Activity Name" 
-              required
-              description="Give your activity a compelling name"
-            >
-              <Input
-                placeholder="e.g., Mumbai City Walking Tour"
-                value={data.name || ''}
-                onChange={(value) => onChange({ name: value })}
-              />
-            </FormField>
-
-            <FormField 
-              label="Destination" 
-              required
-              description="Where does this activity take place?"
-            >
-              <Select
-                value={data.place || ''}
-                onChange={(value) => onChange({ place: value })}
-                options={places}
-                placeholder="Select destination"
-              />
-            </FormField>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="Start Time" required>
-                <TimePicker
-                  value={data.startTime}
-                  onChange={(time: Date | null) => onChange({ startTime: time })}
-                  placeholder="Select start time"
-                  format="12h"
-                  minuteStep={15}
-                />
-              </FormField>
-              <FormField label="End Time" required>
-                <TimePicker
-                  value={data.endTime}
-                  onChange={(time: Date | null) => onChange({ endTime: time })}
-                  placeholder="Select end time"
-                  format="12h"
-                  minuteStep={15}
-                />
-              </FormField>
-            </div>
-            
-            <FormField label="Duration (Hours)" required>
-              <Input
-                type="number"
-                placeholder="8"
-                value={data.durationHours?.toString() || ''}
-                onChange={(value) => onChange({ durationHours: parseInt(value) || 0 })}
-              />
-            </FormField>
-          </div>
-
-          <div className="space-y-4">
-            <FormField 
-              label="Activity Description"
-              description="Describe what makes this experience special"
-            >
-              <Textarea
-                placeholder="Describe your activity, what guests will experience, highlights..."
-                value={data.description || ''}
-                onChange={(value) => onChange({ description: value })}
-                rows={6}
-              />
-            </FormField>
-
-            <FormField label="Activity Image">
-              <ImageUpload
-                onUpload={(file) => onChange({ image: file })}
-                preview={data.image}
-                label="Upload Activity Image"
-              />
-            </FormField>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <ListManager
-            items={data.inclusions || []}
-            onChange={(inclusions) => onChange({ inclusions })}
-            placeholder="Add what's included..."
-            title="Inclusions"
-          />
-
-          <ListManager
-            items={data.exclusions || []}
-            onChange={(exclusions) => onChange({ exclusions })}
-            placeholder="Add what's not included..."
-            title="Exclusions"
-          />
         </div>
 
         <div className="border-t border-gray-200 pt-8">
@@ -1228,11 +1138,11 @@ const MultiCityPackageForm = ({ data, onChange }: FormProps) => {
                   </div>
 
                   <div className="space-y-6">
-                    <FormField label="Banner Image">
-                      <ImageUpload
-                        onUpload={(file) => onChange({ banner: file })}
-                        preview={data.banner}
-                        label="Upload Package Banner"
+                    <FormField label="Images">
+                      <ImagesManager
+                        items={((data as any).imagesDraft as any) || []}
+                        onChange={(items) => onChange({ imagesDraft: items as any })}
+                        max={10}
                       />
                     </FormField>
                   </div>
@@ -1370,7 +1280,7 @@ const MultiCityPackageForm = ({ data, onChange }: FormProps) => {
                   {(!data.itinerary || data.itinerary.length === 0) && (
                     <div className="text-center py-12 text-gray-500">
                       <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>No itinerary days added yet. Click "Add Day" to start planning.</p>
+                      <p>No itinerary days added yet. Click &quot;Add Day&quot; to start planning.</p>
                     </div>
                   )}
                 </div>
@@ -1754,7 +1664,7 @@ const MultiCityPackageWithHotelForm = ({ data, onChange }: FormProps) => {
                   {(!data.hotels || data.hotels.length === 0) && (
                     <div className="text-center py-12 text-gray-500">
                       <Bed className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>No hotels added yet. Click "Add Hotel" to include accommodation.</p>
+                      <p>No hotels added yet. Click &quot;Add Hotel&quot; to include accommodation.</p>
                     </div>
                   )}
                 </div>
@@ -2042,7 +1952,7 @@ const FixedDepartureForm = ({ data, onChange }: FormProps) => {
                   {(!data.destinations || data.destinations.length === 0) && (
                     <div className="text-center py-8 text-gray-500">
                       <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                      <p>No destinations added yet. Click "Add Destination" to start.</p>
+                      <p>No destinations added yet. Click &quot;Add Destination&quot; to start.</p>
                     </div>
                   )}
                 </div>
@@ -2125,7 +2035,7 @@ const FixedDepartureForm = ({ data, onChange }: FormProps) => {
                 {(!data.itinerary || data.itinerary.length === 0) && (
                   <div className="text-center py-12 text-gray-500">
                     <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>No itinerary days added yet. Click "Add Day" to start planning.</p>
+                    <p>No itinerary days added yet. Click &quot;Add Day&quot; to start planning.</p>
                   </div>
                 )}
               </div>
@@ -2199,6 +2109,7 @@ function CompactPackageWizardContent() {
   const [formData, setFormData] = useState<PackageFormData>({} as PackageFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [showErrorList, setShowErrorList] = useState(false);
 
   const handleTypeSelect = (type: PackageType) => {
     setSelectedType(type);
@@ -2296,7 +2207,9 @@ function CompactPackageWizardContent() {
 
   const handleSave = async (status: 'DRAFT' | 'ACTIVE' = 'DRAFT') => {
     if (!validateForm()) {
-      addToast('Please fix the errors before saving', 'error');
+      const firstError = Object.values(errors)[0];
+      addToast(firstError ? `Fix: ${firstError}` : 'Please fix the errors before saving', 'error');
+      setShowErrorList(true);
       return;
     }
 
@@ -2373,13 +2286,31 @@ function CompactPackageWizardContent() {
         throw new Error('Package creation verification failed. Check RLS permissions and schema.');
       }
 
+      // 3) Upload images to Supabase Storage and insert into package_images
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || 'anonymous';
+        const imagesDraft: any[] = Array.isArray((formData as any).imagesDraft) ? (formData as any).imagesDraft : [];
+        console.log('🖼️ Images to upload:', imagesDraft.length, imagesDraft);
+        if (imagesDraft.length > 0) {
+          const { imageService } = await import('@/lib/services/imageService');
+          await imageService.uploadAndInsert(userId, packageId, imagesDraft.map((it: any) => ({ file: it.file, url: it.url, isCover: !!it.isCover, caption: it.caption })));
+          console.log('✅ Images uploaded successfully');
+        } else {
+          console.log('⚠️ No images to upload');
+        }
+      } catch (imgError) {
+        console.error('❌ Image upload error:', imgError);
+        // Non-fatal: continue, images can be added later
+      }
+
       // Continue with the rest of your save logic...
       
       const successMessage = status === 'ACTIVE' 
         ? 'Package created and published successfully!' 
         : 'Package saved as draft successfully!';
       addToast(successMessage, 'success');
-      router.push('/operator/packages');
+      router.push(`/operator/packages/view?id=${packageId}`);
       
     } catch (error: any) {
       console.error('💥 CRITICAL ERROR in package save:', error);
@@ -2480,6 +2411,23 @@ function CompactPackageWizardContent() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+
+                    {showErrorList && Object.keys(errors).length > 0 && (
+                      <div className="px-4 py-3 bg-red-50/70 text-red-800 rounded-lg border border-red-200 max-w-md">
+                        <div className="font-medium mb-1">Please fix:</div>
+                        <ul className="list-disc list-inside space-y-0.5 text-sm">
+                          {Object.entries(errors).map(([key, message]) => (
+                            <li key={key}>{message}</li>
+                          ))}
+                        </ul>
+                        <button
+                          className="mt-2 text-xs underline"
+                          onClick={() => setShowErrorList(false)}
+                        >
+                          Hide details
+                        </button>
+                      </div>
+                    )}
                     
                     <div className="flex gap-3">
                       {/* Save Draft Button */}

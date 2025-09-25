@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Package, PackageType, PackageStatus, DifficultyLevel } from '@/lib/types';
 import { PackageService, PackageSearchParams, PackageFilters as PackageFiltersType } from '@/lib/services/packageService';
 import PackageGrid from '@/components/packages/PackageGrid';
@@ -9,6 +10,7 @@ import PackageSearch from '@/components/packages/PackageSearch';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ModernOperatorLayout } from '@/components/dashboard/ModernOperatorLayout';
 import { 
   Grid3X3, 
   List, 
@@ -190,146 +192,114 @@ export default function PackagesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-purple-100 relative overflow-hidden">
-      {/* Bright animated background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/40 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/30 to-pink-500/40 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/25 to-cyan-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-300/20 to-orange-400/25 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
-        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-gradient-to-br from-violet-400/15 to-fuchsia-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
+    <ModernOperatorLayout breadcrumbs={[{ label: 'Packages' }]}>
+      {/* Animated background elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-32 -right-32 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-gradient-to-br from-indigo-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-gradient-to-br from-emerald-400/10 to-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/4 left-1/3 w-72 h-72 bg-gradient-to-br from-yellow-300/10 to-orange-400/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '3s' }} />
+        <div className="absolute bottom-1/3 left-1/4 w-80 h-80 bg-gradient-to-br from-violet-400/10 to-fuchsia-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }} />
       </div>
       
-      {/* Header */}
-      <div className="relative z-10 backdrop-blur-xl border-b border-white/40"
-      style={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
-        boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
-      }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Package Management</h1>
-                <p className="mt-1 text-gray-600 text-sm">
-                  Manage your travel packages, view analytics, and track performance
-                </p>
-              </div>
-              <Button 
-                onClick={handleCreatePackage}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white backdrop-blur-sm"
-                size="lg"
-                style={{
-                  boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
-                }}
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Create Package
-              </Button>
+      <div className="relative z-10 space-y-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="modern-card p-8"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                Package Management 📦
+              </h1>
+              <p className="text-gray-600 text-lg">
+                Manage your travel packages, view analytics, and track performance
+              </p>
             </div>
-
-            {/* Stats Cards */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
-              }}>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-gradient-to-br from-blue-600/30 to-indigo-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
-                    style={{
-                      boxShadow: '0 8px 25px rgba(59,130,246,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
-                    }}>
-                      <PackageIcon className="h-5 w-5 text-blue-600" />
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs font-medium text-gray-500">Total Packages</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {stats.totalPackages > 0 ? stats.totalPackages : '0'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
-              }}>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-gradient-to-br from-green-600/30 to-emerald-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
-                    style={{
-                      boxShadow: '0 8px 25px rgba(34,197,94,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
-                    }}>
-                      <div className="h-4 w-4 bg-green-600 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs font-medium text-gray-500">Active Packages</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {stats.activePackages > 0 ? stats.activePackages : '0'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
-              }}>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-gradient-to-br from-green-600/30 to-emerald-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
-                    style={{
-                      boxShadow: '0 8px 25px rgba(34,197,94,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
-                    }}>
-                      <DollarSign className="h-5 w-5 text-green-600" />
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs font-medium text-gray-500">Total Revenue</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      ${stats.totalRevenue > 0 ? stats.totalRevenue.toLocaleString() : '0'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="backdrop-blur-xl rounded-2xl border border-white/40 p-5"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0.3) 100%)',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.9)'
-              }}>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-gradient-to-br from-yellow-600/30 to-amber-600/30 rounded-2xl flex items-center justify-center backdrop-blur-sm"
-                    style={{
-                      boxShadow: '0 8px 25px rgba(245,158,11,0.3), inset 0 2px 4px rgba(255,255,255,0.7)'
-                    }}>
-                      <TrendingUp className="h-5 w-5 text-yellow-600" />
-                    </div>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-xs font-medium text-gray-500">Avg Rating</p>
-                    <p className="text-xl font-semibold text-gray-900">
-                      {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <motion.button
+              onClick={handleCreatePackage}
+              className="modern-btn modern-btn-primary"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Plus className="w-5 h-5" />
+              Create Package
+            </motion.button>
           </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
+          {/* Stats Cards */}
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="modern-stats-card"
+            >
+              <div className="modern-stats-icon bg-gradient-to-br from-blue-50 to-blue-100">
+                <PackageIcon className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="modern-stats-value">
+                {stats.totalPackages > 0 ? stats.totalPackages : '0'}
+              </div>
+              <div className="modern-stats-label">Total Packages</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="modern-stats-card"
+            >
+              <div className="modern-stats-icon bg-gradient-to-br from-green-50 to-green-100">
+                <div className="w-6 h-6 bg-green-600 rounded-full"></div>
+              </div>
+              <div className="modern-stats-value">
+                {stats.activePackages > 0 ? stats.activePackages : '0'}
+              </div>
+              <div className="modern-stats-label">Active Packages</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="modern-stats-card"
+            >
+              <div className="modern-stats-icon bg-gradient-to-br from-emerald-50 to-emerald-100">
+                <DollarSign className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div className="modern-stats-value">
+                ${stats.totalRevenue > 0 ? stats.totalRevenue.toLocaleString() : '0'}
+              </div>
+              <div className="modern-stats-label">Total Revenue</div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="modern-stats-card"
+            >
+              <div className="modern-stats-icon bg-gradient-to-br from-yellow-50 to-yellow-100">
+                <TrendingUp className="w-6 h-6 text-yellow-600" />
+              </div>
+              <div className="modern-stats-value">
+                {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '0.0'}
+              </div>
+              <div className="modern-stats-label">Avg Rating</div>
+            </motion.div>
+          </div>
+        </motion.div>
         {/* Search and Controls */}
-        <div className="mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="modern-card p-6"
+        >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Search */}
             <div className="flex-1 max-w-md">
@@ -355,10 +325,7 @@ export default function PackagesPage() {
                     }
                     handleFiltersChange(newFilters);
                   }}
-                  className="border border-white/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md bg-white/30 hover:bg-white/50 focus:bg-white/60"
-                  style={{
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
-                  }}
+                  className="modern-input modern-select"
                 >
                   <option value="ALL">All Packages</option>
                   <option value={PackageStatus.DRAFT}>Draft</option>
@@ -375,10 +342,7 @@ export default function PackagesPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                  className="border border-white/40 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400/50 focus:border-blue-400/70 backdrop-blur-md bg-white/30 hover:bg-white/50 focus:bg-white/60"
-                  style={{
-                    boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
-                  }}
+                  className="modern-input modern-select"
                 >
                   {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -389,80 +353,80 @@ export default function PackagesPage() {
               </div>
 
               {/* View Toggle */}
-              <div className="flex items-center border border-white/40 rounded-2xl backdrop-blur-sm"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
-                boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
-              }}>
-                <button
+              <div className="flex items-center modern-card p-1">
+                <motion.button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-2xl transition-all duration-200 ${
+                  className={`p-2 rounded-xl transition-all duration-200 ${
                     viewMode === 'grid' 
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
-                      : 'text-gray-600 hover:bg-white/20'
+                      ? 'modern-btn-primary' 
+                      : 'text-gray-600 hover:bg-gray-100/50'
                   }`}
-                  style={viewMode === 'grid' ? {
-                    boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
-                  } : {}}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <Grid3X3 className="w-4 h-4" />
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-2xl transition-all duration-200 ${
+                  className={`p-2 rounded-xl transition-all duration-200 ${
                     viewMode === 'list' 
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white' 
-                      : 'text-gray-600 hover:bg-white/20'
+                      ? 'modern-btn-primary' 
+                      : 'text-gray-600 hover:bg-gray-100/50'
                   }`}
-                  style={viewMode === 'list' ? {
-                    boxShadow: '0 8px 32px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
-                  } : {}}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   <List className="w-4 h-4" />
-                </button>
+                </motion.button>
               </div>
 
               {/* Filters Toggle */}
-              <Button
-                variant="outline"
+              <motion.button
                 onClick={() => setShowFilters(!showFilters)}
-                className="relative backdrop-blur-sm border border-white/40 rounded-2xl"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.15) 100%)',
-                  boxShadow: '0 8px 25px rgba(0,0,0,0.08), inset 0 2px 4px rgba(255,255,255,0.4)'
-                }}
+                className="modern-btn modern-btn-secondary relative"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Filters
                 {getFilterCount() > 0 && (
-                  <Badge variant="destructive" className="ml-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs backdrop-blur-sm"
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(239,68,68,0.8) 0%, rgba(220,38,38,0.8) 100%)',
-                    boxShadow: '0 2px 8px rgba(239,68,68,0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
-                  }}>
+                  <span className="modern-badge modern-badge-error ml-2">
                     {getFilterCount()}
-                  </Badge>
+                  </span>
                 )}
-              </Button>
+              </motion.button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Content */}
         <div className="flex gap-8">
           {/* Filters Sidebar */}
-          {showFilters && (
-            <div className="w-80 flex-shrink-0">
-              <PackageFilters
-                filters={filters}
-                onFiltersChange={handleFiltersChange}
-                onClose={() => setShowFilters(false)}
-              />
-            </div>
-          )}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-80 flex-shrink-0"
+              >
+                <PackageFilters
+                  filters={filters}
+                  onFiltersChange={handleFiltersChange}
+                  onClose={() => setShowFilters(false)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Packages Grid */}
-          <div className="flex-1">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="flex-1"
+          >
             <PackageGrid
               packages={packages}
               loading={loading}
@@ -471,9 +435,9 @@ export default function PackagesPage() {
               pagination={pagination}
               onPageChange={handlePageChange}
             />
-          </div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </ModernOperatorLayout>
   );
 }

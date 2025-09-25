@@ -124,53 +124,50 @@ export function ResetPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-emerald-50 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
+      <div className="auth-layout">
+        <div className="auth-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
-              <CardHeader className="space-y-2 text-center pb-8">
+            <div className="auth-card">
+              <div className="auth-header">
                 <motion.div
                   initial={{ scale: 0.9 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  className="auth-success-icon"
                 >
-                  <CheckCircle2 className="w-8 h-8 text-white" />
+                  <CheckCircle2 className="w-8 h-8" />
                 </motion.div>
-                <CardTitle className="text-2xl font-bold text-gray-900">
-                  Password updated!
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Your password has been successfully updated. You can now sign in with your new password.
-                </CardDescription>
-              </CardHeader>
+                <h1 className="auth-title">Password updated!</h1>
+                <p className="auth-description">Your password has been successfully updated. You can now sign in with your new password.</p>
+              </div>
 
-              <CardContent className="space-y-6">
+              <div className="auth-content">
                 <div className="text-center space-y-4">
-                  <p className="text-sm text-gray-600">
+                  <p className="auth-description">
                     You will be redirected to the login page in a few seconds.
                   </p>
                   
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm text-green-800">
+                  <div className="auth-alert success">
+                    <span className="auth-alert-text">
                       <strong>Success!</strong> Your password has been updated and you can now sign in.
-                    </p>
+                    </span>
                   </div>
                 </div>
 
-                <Button
+                <button
                   onClick={() => router.push('/auth/login')}
-                  className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
+                  className="auth-button"
+                  style={{ background: 'linear-gradient(90deg, #059669, #10b981)' }}
                 >
                   Go to sign in
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </CardContent>
-            </Card>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>

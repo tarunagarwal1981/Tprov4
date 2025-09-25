@@ -21,33 +21,33 @@ function FeatureCard({ title, description, icon, features, delay = 0, gradient }
   return (
     <motion.div
       ref={ref}
-      className="card card-elevated p-8 h-full"
+      className="feature-card"
       initial={{ opacity: 0, y: 50 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 0.6, delay }}
       whileHover={{ 
         scale: 1.02, 
-        y: -5,
+        y: -4,
         transition: { duration: 0.2 }
       }}
     >
-      <div className={`w-16 h-16 bg-gray-900 rounded-xl flex items-center justify-center text-white mb-6`}>
+      <div className="feature-icon">
         {icon}
       </div>
       
-      <h3 className="text-2xl font-bold text-gray-900 mb-4">{title}</h3>
-      <p className="text-gray-800 mb-6 leading-relaxed">{description}</p>
+      <h3 className="feature-title">{title}</h3>
+      <p className="feature-description">{description}</p>
       
-      <ul className="space-y-3">
+      <ul className="feature-list">
         {features.map((feature, index) => (
           <motion.li 
             key={index}
-            className="flex items-center gap-3 text-gray-800"
+            className="feature-item"
             initial={{ opacity: 0, x: -20 }}
             animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
             transition={{ duration: 0.4, delay: delay + 0.2 + (index * 0.1) }}
           >
-            <svg className="w-5 h-5 text-green-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="feature-check" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
             </svg>
             <span>{feature}</span>
@@ -117,24 +117,24 @@ export function Features() {
   ];
 
   return (
-    <section id="features" className="py-12 bg-white">
-      <div className="container mx-auto px-4">
+    <section id="features" className="landing-features">
+      <div className="container">
         <motion.div 
-          className="text-center mb-12"
+          className="section-header"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="section-title">
             Powerful Features for Modern Travel Professionals
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="section-description">
             Everything you need to grow your travel business, powered by cutting-edge technology and industry expertise
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="features-grid">
           {features.map((feature, index) => (
             <FeatureCard
               key={index}
@@ -150,50 +150,50 @@ export function Features() {
 
         {/* Additional Features Grid */}
         <motion.div 
-          className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="mini-features"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="text-center p-6 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mini-feature">
+            <div className="mini-feature-icon blue">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Secure Payments</h4>
-            <p className="text-sm text-gray-600">Bank-level security</p>
+            <h4 className="mini-feature-title">Secure Payments</h4>
+            <p className="mini-feature-description">Bank-level security</p>
           </div>
 
-          <div className="text-center p-6 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mini-feature">
+            <div className="mini-feature-icon green">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Real-time Sync</h4>
-            <p className="text-sm text-gray-600">Instant updates</p>
+            <h4 className="mini-feature-title">Real-time Sync</h4>
+            <p className="mini-feature-description">Instant updates</p>
           </div>
 
-          <div className="text-center p-6 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mini-feature">
+            <div className="mini-feature-icon purple">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">Analytics</h4>
-            <p className="text-sm text-gray-600">Deep insights</p>
+            <h4 className="mini-feature-title">Analytics</h4>
+            <p className="mini-feature-description">Deep insights</p>
           </div>
 
-          <div className="text-center p-6 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-            <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-              <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="mini-feature">
+            <div className="mini-feature-icon orange">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
               </svg>
             </div>
-            <h4 className="font-semibold text-gray-900 mb-2">24/7 Support</h4>
-            <p className="text-sm text-gray-600">Always available</p>
+            <h4 className="mini-feature-title">24/7 Support</h4>
+            <p className="mini-feature-description">Always available</p>
           </div>
         </motion.div>
       </div>

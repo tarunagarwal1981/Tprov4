@@ -33,19 +33,25 @@ const TimePicker: React.FC<TimePickerProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<Date | null>(value);
-  const [selectedHour, setSelectedHour] = useState<number>(value ? value.getHours() : 12);
+  const [selectedHour, setSelectedHour] = useState<number>(() => {
+    if (!value) return 12;
+    const hour = value.getHours();
+    return format === '12h' ? (hour === 0 ? 12 : hour > 12 ? hour - 12 : hour) : hour;
+  });
   const [selectedMinute, setSelectedMinute] = useState<number>(value ? value.getMinutes() : 0);
   const [isAM, setIsAM] = useState<boolean>(value ? value.getHours() < 12 : true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (value) {
+      const hour = value.getHours();
+      const minute = value.getMinutes();
       setSelectedTime(value);
-      setSelectedHour(value.getHours());
-      setSelectedMinute(value.getMinutes());
-      setIsAM(value.getHours() < 12);
+      setSelectedHour(format === '12h' ? (hour === 0 ? 12 : hour > 12 ? hour - 12 : hour) : hour);
+      setSelectedMinute(minute);
+      setIsAM(hour < 12);
     }
-  }, [value]);
+  }, [value, format]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -169,7 +175,21 @@ const TimePicker: React.FC<TimePickerProps> = ({
 
       <button
         type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => {
+          if (disabled) return;
+          // If opening with no value selected, auto-select current time for intuitiveness
+          if (!isOpen && !selectedTime) {
+            const now = new Date();
+            const hour = now.getHours();
+            const minute = now.getMinutes();
+            setSelectedTime(now);
+            setSelectedHour(format === '12h' ? (hour === 0 ? 12 : hour > 12 ? hour - 12 : hour) : hour);
+            setSelectedMinute(minute);
+            setIsAM(hour < 12);
+            onChange(now);
+          }
+          setIsOpen(!isOpen);
+        }}
         disabled={disabled}
         className={`form-input text-left py-2 ${disabled ? 'cursor-not-allowed opacity-70' : ''}`}
       >
@@ -204,7 +224,8 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 
                 <div className="w-8 h-10 flex items-center justify-center bg-white rounded border border-gray-200">
                   <span className="text-sm font-bold text-primary">
-                    {format === '12h' && selectedHour === 0 ? '12' : 
+                    {isNaN(selectedHour) ? '12' : 
+                     format === '12h' && selectedHour === 0 ? '12' : 
                      format === '12h' ? selectedHour : 
                      selectedHour.toString().padStart(2, '0')}
                   </span>
@@ -232,7 +253,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 
                 <div className="w-8 h-10 flex items-center justify-center bg-white rounded border border-gray-200">
                   <span className="text-sm font-bold text-primary">
-                    {selectedMinute.toString().padStart(2, '0')}
+                    {isNaN(selectedMinute) ? '00' : selectedMinute.toString().padStart(2, '0')}
                   </span>
                 </div>
                 
